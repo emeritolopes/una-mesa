@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="crema" data-aud="comensal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Una Mesa — La mesa que siempre te espera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ════════ THEMES (exact from v5) ════════ */
+[data-theme="crema"]{
+  --bg:#F4EFE6;--bg-2:#FFFFFF;--bg-3:#FBF7EF;--panel:#FBF6EC;
+  --line:rgba(40,30,20,.12);--line-2:rgba(40,30,20,.07);
+  --text:#1C1714;--muted:#6E655C;--dim:#A99F92;
+  --accent:#D8552E;--accent-2:#E5764F;--accent-soft:rgba(216,85,46,.10);
+  --on-accent:#FFF6EF;--glow:rgba(216,85,46,.18);--glow-2:rgba(216,85,46,.07);
+  --ok:#1E9E6A;--warn:#C8810E;--bad:#CC4444;
+  --card-grad:linear-gradient(160deg,#FFFFFF,#FBF6EC);
+}
+[data-theme="noche"]{
+  --bg:#0A0A0A;--bg-2:#151515;--bg-3:#1E1E1E;--panel:#111111;
+  --line:rgba(255,255,255,.11);--line-2:rgba(255,255,255,.06);
+  --text:#F4EFE6;--muted:#A7A29A;--dim:#6B6760;
+  --accent:#D8552E;--accent-2:#E5764F;--accent-soft:rgba(216,85,46,.16);
+  --on-accent:#FFF6EF;--glow:rgba(216,85,46,.22);--glow-2:rgba(216,85,46,.08);
+  --ok:#2ECC8F;--warn:#EF9F27;--bad:#FF6A6A;
+  --card-grad:linear-gradient(160deg,#151515,#1E1E1E);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--text);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;transition:background .4s,color .4s;
+}
+::selection{background:var(--accent-soft);color:var(--accent)}
+a{color:inherit;text-decoration:none}
+
+/* ── primitives (from v5) ── */
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+.section{padding:120px 0;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--accent);
+  letter-spacing:.04em;padding:7px 14px;border-radius:100px;background:var(--accent-soft);border:1px solid var(--line)}
+.eyebrow .pip{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.s-head{max-width:680px;margin-bottom:60px}
+.s-head h2{font-family:'Manrope',sans-serif;font-weight:800;font-size:clamp(34px,4.6vw,56px);
+  line-height:1.04;letter-spacing:-.025em;margin:22px 0 18px}
+.s-head p{color:var(--muted);font-size:clamp(16px,1.6vw,19px);max-width:580px}
+.hl{color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:'Manrope',sans-serif;font-size:15px;
+  font-weight:700;padding:14px 24px;border-radius:100px;cursor:pointer;border:1px solid transparent;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;white-space:nowrap}
+.btn-acc{background:var(--accent);color:var(--on-accent)}
+.btn-acc:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--glow)}
+.btn-ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn-ghost:hover{background:var(--bg-2);border-color:var(--accent);transform:translateY(-2px)}
+.btn-lg{padding:16px 30px;font-size:16px}
+
+/* ── NAV ── */
+header{position:fixed;inset:0 0 auto 0;z-index:100;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent}
+header.scrolled{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(16px);border-bottom-color:var(--line-2)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Manrope',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;white-space:nowrap;flex:none}
+.brand .mk{width:32px;height:32px;border-radius:9px;flex:none;position:relative;background:var(--accent);display:grid;place-items:center;box-shadow:0 4px 14px var(--glow)}
+.brand .mk::before{content:"";position:absolute;left:8px;right:8px;top:9px;height:3px;border-radius:2px;background:var(--on-accent)}
+.brand .mk::after{content:"";position:absolute;left:8px;right:8px;bottom:8px;top:15px;border:2.5px solid var(--on-accent);border-top:none;border-radius:0 0 7px 7px}
+.brand b{font-weight:600}.brand b span{color:var(--accent)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{font-size:14px;color:var(--muted);font-weight:600;transition:color .15s;white-space:nowrap;padding:6px 10px;border-radius:8px}
+.nav-links a:hover{color:var(--text);background:var(--bg-3)}
+.nav-right{display:flex;align-items:center;gap:10px;flex:none}
+
+/* ── AUDIENCE TOGGLE — main hero version ── */
+.aud-hero{display:flex;align-items:center;background:var(--bg-2);border:1px solid var(--line);border-radius:100px;padding:5px;gap:4px;box-shadow:0 4px 18px rgba(0,0,0,.06);margin:0 auto 72px;width:fit-content}
+.aud-btn{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);padding:10px 22px;border-radius:100px;border:none;background:transparent;cursor:pointer;transition:background .22s,color .22s,box-shadow .22s;font-family:inherit;white-space:nowrap}
+.aud-btn svg{width:15px;height:15px;flex:none}
+.aud-btn.on{background:var(--accent);color:var(--on-accent);box-shadow:0 4px 14px var(--glow)}
+.aud-btn:not(.on):hover{color:var(--text)}
+
+/* ── AUDIENCE TOGGLE — nav compact version ── */
+.aud-nav{display:flex;align-items:center;background:var(--bg-2);border:1px solid var(--line);border-radius:100px;padding:3px;gap:3px;flex:none}
+.aud-nav-btn{font-size:13px;font-weight:700;color:var(--muted);padding:7px 16px;border-radius:100px;border:none;background:transparent;cursor:pointer;transition:background .2s,color .2s;font-family:inherit;white-space:nowrap}
+.aud-nav-btn.on{background:var(--accent);color:var(--on-accent)}
+.aud-nav-btn:not(.on):hover{color:var(--text)}
+
+/* ── DARK TOGGLE ── */
+.dark-btn{width:38px;height:38px;border-radius:100px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);display:grid;place-items:center;cursor:pointer;transition:border-color .18s}
+.dark-btn:hover{border-color:var(--accent)}
+.dark-btn svg{width:17px;height:17px}
+.dark-btn .moon{display:none}
+[data-theme="noche"] .dark-btn .sun{display:none}
+[data-theme="noche"] .dark-btn .moon{display:block}
+
+/* ── AUDIENCE GATING ── */
+[data-aud="comensal"]  .rest-only  {display:none!important}
+[data-aud="restaurante"] .diner-only{display:none!important}
+
+/* audience switching is instant - no fade transition needed */
+
+/* ── HERO ── */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:130px 0 80px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.dots{position:absolute;inset:0;background-image:radial-gradient(var(--line) 1.1px,transparent 1.1px);background-size:30px 30px;
+  mask-image:radial-gradient(ellipse 70% 65% at 65% 35%,#000,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 65% at 65% 35%,#000,transparent 75%);opacity:.7}
+.blob{position:absolute;border-radius:50%;filter:blur(80px)}
+.blob-1{width:560px;height:560px;top:-160px;right:-100px;background:radial-gradient(circle,var(--glow),transparent 65%);animation:fl1 15s ease-in-out infinite}
+.blob-2{width:440px;height:440px;bottom:-150px;left:-120px;background:radial-gradient(circle,var(--glow-2),transparent 65%);animation:fl2 19s ease-in-out infinite}
+@keyframes fl1{0%,100%{transform:translate(0,0)}50%{transform:translate(-36px,38px)}}
+@keyframes fl2{0%,100%{transform:translate(0,0)}50%{transform:translate(34px,-28px)}}
+/* hero-inner used by restaurante section; hero-in is comensal two-col grid */
+
+/* comensal hero — two-column layout handled by .hero-in above */
+
+/* AI search bar */
+.ai-bar{display:flex;align-items:center;gap:13px;max-width:650px;margin:0 auto 16px;
+  background:var(--bg-2);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));
+  border-radius:16px;padding:9px 9px 9px 18px;box-shadow:0 8px 32px var(--glow-2)}
+.ai-bar .spark{width:22px;height:22px;color:var(--accent);flex:none}
+.ai-bar .fld{flex:1;text-align:left;min-width:0}
+.typed-out{font-size:15.5px;color:var(--text);min-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.typed-sub{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);margin-top:2px;font-weight:700}
+.caret{display:inline-block;width:2px;height:17px;background:var(--accent);margin-left:1px;vertical-align:-3px;animation:cblink 1s step-end infinite}
+@keyframes cblink{0%,100%{opacity:1}50%{opacity:0}}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:44px}
+.chip{font-size:12.5px;color:var(--muted);background:var(--bg-2);border:1px solid var(--line-2);border-radius:100px;padding:7px 14px;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:color-mix(in srgb,var(--accent) 40%,var(--line));color:var(--text)}
+
+/* rec cards */
+.recs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:780px;margin:0 auto}
+.rec-card{background:var(--card-grad);border:1px solid var(--line);border-radius:16px;padding:18px 20px;text-align:left;transition:transform .2s,box-shadow .2s;cursor:pointer}
+.rec-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px var(--glow-2)}
+.rec-name{font-size:17px;font-weight:700;margin-bottom:3px}
+.rec-meta{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4}
+.rec-foot{display:flex;align-items:center;justify-content:space-between}
+.rec-score{font-size:11px;font-weight:700;color:var(--ok);background:color-mix(in srgb,var(--ok) 13%,transparent);padding:4px 10px;border-radius:100px}
+.rec-cta{font-size:12px;color:var(--accent);font-weight:700}
+
+/* restaurante hero */
+.hero-r{display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center}
+.hero-r h1{font-family:'Manrope',sans-serif;font-weight:800;font-size:clamp(44px,6vw,80px);line-height:.98;letter-spacing:-.04em;margin:20px 0 22px}
+.hero-r .lede{font-size:clamp(16px,1.7vw,19px);color:var(--muted);margin-bottom:34px;line-height:1.55}
+.hero-btns{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:28px}
+.meta-pills{display:flex;gap:20px;flex-wrap:wrap}
+.mpill{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}
+.mpill .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 20%,transparent);animation:mpulse 2.4s infinite}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── DASHBOARD MOCKUP ── */
+.dash{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.12)}
+[data-theme="crema"] .dash{box-shadow:0 24px 64px rgba(40,20,10,.12)}
+.dash-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line-2);background:var(--bg-3)}
+.dash-bar .dts{display:flex;gap:5px}
+.dash-bar .dts i{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--text) 14%,transparent);display:block}
+.dash-bar .dtl{font-size:11.5px;color:var(--muted);margin-left:8px;font-weight:600}
+.dash-bar .live{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ok);font-weight:700}
+.dash-bar .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent);animation:mpulse 2s infinite}
+.dash-body{display:grid;grid-template-columns:148px 1fr;min-height:340px}
+.dash-side{border-right:1px solid var(--line-2);padding:12px 8px;display:flex;flex-direction:column;gap:2px;background:var(--bg-3)}
+.si{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;font-size:11.5px;color:var(--muted);font-weight:500;cursor:pointer}
+.si svg{width:13px;height:13px;flex:none}
+.si.on{background:var(--accent-soft);color:var(--accent)}
+.dash-main{padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:12px}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px}
+.kpi .kk{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.kpi .kv{font-size:24px;font-weight:800;margin-top:4px;line-height:1}
+.kpi .kv.a{color:var(--accent)}.kpi .kv.g{color:var(--ok)}
+.kpi .kd{font-size:10px;color:var(--ok);margin-top:3px;font-weight:600}
+.chart-box{background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:13px 14px;flex:1}
+.chart-h{font-size:11px;font-weight:700;color:var(--text);margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:88px}
+.bar-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;height:100%}
+.bar-fill{border-radius:3px 3px 0 0;background:var(--accent-soft)}
+.bar-fill.hi{background:var(--accent)}
+.bar-lbl{font-size:8.5px;color:var(--dim);text-align:center;font-weight:700}
+
+/* ── STRIP ── */
+.strip{border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);padding:26px 0}
+.strip-in{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap}
+.strip-lbl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-right:10px}
+.strip b{font-size:18px;font-weight:500;color:var(--muted);opacity:.65;padding:0 12px}
+.strip-dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
+
+/* ── CARDS & BENTO ── */
+.card-grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.feat-card{background:var(--card-grad);border:1px solid var(--line);border-radius:18px;padding:28px 26px;transition:transform .22s,border-color .22s,box-shadow .22s;display:flex;flex-direction:column}
+.feat-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 35%,var(--line));box-shadow:0 16px 44px var(--glow-2)}
+.feat-card .ico{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;margin-bottom:18px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);flex:none}
+.feat-card .ico svg{width:22px;height:22px}
+.feat-card h3{font-size:20px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+.feat-card p{font-size:14px;color:var(--muted);line-height:1.6}
+.feat-card .pain{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--bad);background:color-mix(in srgb,var(--bad) 11%,transparent);padding:3px 10px;border-radius:100px;margin-bottom:12px;display:inline-block}
+
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.bfeat{background:var(--card-grad);border:1px solid var(--line);border-radius:18px;padding:28px 26px;display:flex;flex-direction:column;transition:transform .22s,box-shadow .22s}
+.bfeat:hover{transform:translateY(-3px);box-shadow:0 16px 40px var(--glow-2)}
+.bfeat .ico{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;margin-bottom:16px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line)}
+.bfeat .ico svg{width:21px;height:21px}
+.bfeat h3{font-size:20px;font-weight:700;margin-bottom:7px}
+.bfeat p{font-size:13.5px;color:var(--muted);line-height:1.6}
+.c7{grid-column:span 7}.c5{grid-column:span 5}.c4{grid-column:span 4}.c12{grid-column:span 12}
+.bfeat.wide{flex-direction:row;align-items:center;gap:24px}
+.bfeat.wide .ico{margin-bottom:0}
+.bfeat.wide .txt{flex:1}
+.minibars{display:flex;gap:5px;align-items:flex-end;height:52px;margin-top:auto;padding-top:18px}
+.minibars i{flex:1;border-radius:3px 3px 0 0;background:var(--accent-soft);display:block}
+.minibars i.on{background:var(--accent)}
+
+/* ── HOW IT WORKS ── */
+.how-box{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--panel)}
+.how-box.single{grid-template-columns:1fr}
+.how-box.single .steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:8px}
+@media(max-width:760px){.how-box.single .steps-row{grid-template-columns:1fr}}
+.hcol{padding:42px 40px}
+.hcol.r{background:linear-gradient(165deg,var(--accent-soft),transparent 55%)}
+.kick{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.hcol h3{font-size:24px;font-weight:700;margin-bottom:24px}
+.how-step{display:flex;gap:16px;padding:18px 0;border-top:1px solid var(--line-2)}
+.how-step:first-of-type{border-top:none}
+.s-ico{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;background:var(--bg-3);border:1px solid var(--line);color:var(--accent)}
+.s-ico svg{width:20px;height:20px}
+.how-step .num{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.04em}
+.how-step h4{font-size:15.5px;font-weight:700;margin:3px 0 4px}
+.how-step p{font-size:13.5px;color:var(--muted);line-height:1.5}
+
+/* ── STEPS 4 ── */
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;counter-reset:s4}
+.st4{padding:32px 26px;border-right:1px solid var(--line-2);counter-increment:s4;position:relative;background:var(--card-grad)}
+.st4:last-child{border-right:none}
+.st4::before{content:"0" counter(s4);font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.04em;display:block;margin-bottom:10px}
+.st4 .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin:0 0 14px;background:var(--accent-soft);border:1px solid var(--line);color:var(--accent)}
+.st4 .ic svg{width:21px;height:21px}
+.st4 h4{font-size:16px;font-weight:700;margin-bottom:5px}
+.st4 p{font-size:13px;color:var(--muted);line-height:1.55}
+
+/* ── AI MATCH ── */
+.match-layout{display:grid;grid-template-columns:1fr 1.06fr;gap:56px;align-items:center}
+.reasons{margin-top:24px}
+.reason{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-2)}
+.reason:last-child{border-bottom:1px solid var(--line-2)}
+.ck{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;background:color-mix(in srgb,var(--ok) 13%,transparent);color:var(--ok)}
+.ck svg{width:12px;height:12px}
+.reason span{font-size:14.5px}
+
+.mcard{background:var(--card-grad);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:20px;padding:28px;box-shadow:0 20px 52px var(--glow-2)}
+.mc-img{width:100%;height:138px;border-radius:12px;background:linear-gradient(135deg,var(--bg-3),color-mix(in srgb,var(--accent) 20%,var(--bg-3)));margin-bottom:18px;position:relative}
+.mc-img .badge2{position:absolute;top:11px;left:11px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:color-mix(in srgb,var(--bg) 60%,transparent);color:var(--text);padding:5px 11px;border-radius:100px;border:1px solid var(--line-2);backdrop-filter:blur(8px)}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.mc-name{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.mc-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.ring{width:84px;height:84px;border-radius:50%;flex:none;display:grid;place-items:center;position:relative;background:conic-gradient(var(--accent) 0 352.8deg,color-mix(in srgb,var(--text) 12%,transparent) 352.8deg 360deg)}
+.ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--bg-2)}
+.ring-v{position:relative;text-align:center}
+.ring-v .pct{font-size:21px;font-weight:800;color:var(--accent);line-height:1}
+.ring-v .lbl{font-size:8px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.mc-btns{display:flex;gap:10px;margin-top:18px}
+.mc-btns .btn{flex:1}
+
+/* ── ANALYTICS ── */
+.an-grid{display:grid;grid-template-columns:repeat(3,1fr) 1.28fr;gap:14px}
+.an-w{background:var(--card-grad);border:1px solid var(--line);border-radius:16px;padding:22px 20px}
+.an-w h4{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:10px}
+.an-val{font-size:38px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.an-val.a{color:var(--accent)}.an-val.g{color:var(--ok)}
+.an-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.an-fcast{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.an-fr{display:flex;align-items:center;gap:10px}
+.an-lbl{font-size:12px;color:var(--muted);min-width:72px}
+.an-bg{flex:1;height:5px;background:var(--bg-3);border-radius:100px;overflow:hidden}
+.an-fill{height:100%;border-radius:100px;background:var(--accent)}
+.an-pct{font-size:11.5px;font-weight:700;min-width:32px;text-align:right}
+
+/* ── ROI ── */
+.roi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.roi-card{background:var(--card-grad);border:1px solid var(--line);border-radius:16px;padding:28px 22px;text-align:center;transition:transform .2s,border-color .2s}
+.roi-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+.roi-card .big{font-size:clamp(44px,5vw,60px);font-weight:800;color:var(--accent);line-height:1;letter-spacing:-.03em}
+.roi-card .rl{font-size:13.5px;font-weight:700;margin-top:10px}
+.roi-card .rs{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+
+/* ── TESTIMONIALS ── */
+.tc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tc{background:var(--card-grad);border:1px solid var(--line);border-radius:18px;padding:28px 26px;display:flex;flex-direction:column}
+.tc .stars{display:flex;gap:2px;color:var(--accent);margin-bottom:16px}
+.tc .stars svg{width:14px;height:14px}
+.tc .q{font-size:18px;font-weight:500;line-height:1.45;flex:1;margin-bottom:20px;letter-spacing:-.01em}
+.tc .tp{display:flex;align-items:center;gap:12px}
+.tc .av{width:42px;height:42px;border-radius:50%;flex:none;background:var(--accent)}
+.tc .av.b{background:var(--accent-2)}.tc .av.c{background:color-mix(in srgb,var(--accent) 55%,var(--muted))}
+.tc .nm{font-size:14px;font-weight:700}
+.tc .rl{font-size:12.5px;color:var(--muted)}
+
+/* ── PRICING ── */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.plan{background:var(--card-grad);border:1px solid var(--line);border-radius:20px;padding:32px 28px;display:flex;flex-direction:column;position:relative;transition:transform .2s,border-color .2s}
+.plan:hover{transform:translateY(-3px)}
+.plan.pop{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 18px 48px var(--glow-2)}
+.pbadge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--on-accent);font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:100px;white-space:nowrap}
+.pname{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.pdesc{font-size:13.5px;color:var(--muted);margin:8px 0 20px;min-height:40px}
+.price{font-size:52px;font-weight:800;line-height:1;letter-spacing:-.03em;display:flex;align-items:baseline;gap:3px}
+.price .per{font-size:14px;color:var(--muted);font-weight:600}
+.plan ul{list-style:none;margin:24px 0;display:flex;flex-direction:column;gap:11px;flex:1}
+.plan li{display:flex;gap:10px;font-size:14px;color:var(--muted);align-items:flex-start}
+.plan li svg{width:17px;height:17px;flex:none;color:var(--ok);margin-top:2px}
+.plan .btn{width:100%}
+.nofee{text-align:center;margin-top:36px;font-size:14.5px;color:var(--muted)}
+.nofee b{color:var(--accent);font-weight:700}
+
+/* ── INTEGRATIONS ── */
+.integ{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.integ-cat{background:var(--card-grad);border:1px solid var(--line);border-radius:16px;padding:22px}
+.integ-cat h4{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.integ-cat .items{display:flex;flex-direction:column;gap:9px}
+.integ-cat .item{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.integ-cat .item::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+
+/* ── DEMO CALENDAR ── */
+.demo-form{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:26px 24px;display:flex;flex-direction:column;gap:14px}
+.demo-form .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.df-field{display:flex;flex-direction:column;gap:6px}
+.df-field.full{grid-column:1/-1}
+.df-field label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.demo-form input,.demo-form select,.demo-form textarea{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:inherit;font-size:14px;transition:border-color .15s;width:100%}
+.demo-form input:focus,.demo-form select:focus,.demo-form textarea:focus{outline:none;border-color:var(--accent)}
+.demo-form input::placeholder,.demo-form textarea::placeholder{color:var(--dim)}
+.demo-form textarea{resize:vertical;min-height:62px}
+.demo-form .btn{width:100%;margin-top:4px}
+.demo-ok{display:none;margin-top:2px;padding:12px 14px;border-radius:10px;background:color-mix(in srgb,var(--ok) 13%,transparent);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent);color:var(--ok);font-size:13.5px;font-weight:600;text-align:center}
+.demo-ok.show{display:block}
+.demo-note{font-size:13px;color:var(--dim);margin-top:6px}
+@media(max-width:560px){.demo-form .frow{grid-template-columns:1fr}}
+.demo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:48px 44px}
+.cal-box{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cal-head{background:var(--text);color:var(--bg);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.cal-head .month{font-size:16px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-dow{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:11px 0;border-bottom:1px solid var(--line-2)}
+.cal-day{font-size:13px;padding:9px 4px;text-align:center;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);cursor:pointer;color:var(--muted);transition:background .15s}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day.av{color:var(--text)}.cal-day.av:hover{background:var(--bg-3)}
+.cal-day.sel{background:var(--accent)!important;color:var(--on-accent)!important;font-weight:700}
+.cal-day.emp,.cal-day.past{color:var(--dim);opacity:.4;cursor:default}
+.cal-times{padding:13px 16px;border-top:1px solid var(--line-2)}
+.cal-times h5{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.time-slots{display:flex;gap:7px;flex-wrap:wrap}
+.ts{font-size:12.5px;padding:6px 13px;border:1px solid var(--line);border-radius:100px;cursor:pointer;color:var(--muted);transition:all .15s}
+.ts:hover{border-color:var(--accent);color:var(--accent)}
+.ts.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+/* ── SEGMENTATION ── */
+.seg{display:grid;grid-template-columns:1fr;gap:16px;max-width:460px;margin:0 auto}
+.segc{background:var(--card-grad);border:1px solid var(--line);border-radius:22px;padding:40px 36px;display:flex;flex-direction:column}
+.segc.r{background:linear-gradient(160deg,var(--accent-soft),transparent 60%)}
+.segc .tag{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.segc h3{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:12px 0 7px}
+.segc .sd{font-size:14.5px;color:var(--muted);margin-bottom:22px}
+.segc ul{list-style:none;flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.segc li{display:flex;align-items:center;gap:9px;font-size:14.5px}
+.segc li svg{width:16px;height:16px;color:var(--ok);flex:none}
+.segc .scta{display:flex;gap:10px}
+
+/* ── FINAL CTA ── */
+.final{text-align:center;position:relative;overflow:hidden}
+.final .g{position:absolute;width:720px;height:480px;top:-80px;left:50%;transform:translateX(-50%);
+  background:radial-gradient(ellipse,var(--glow),transparent 64%);filter:blur(70px);z-index:0}
+.final-in{position:relative;z-index:2;max-width:640px;margin:0 auto}
+.final-in h2{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em;margin:20px 0 18px;line-height:1.04}
+.final-in p{color:var(--muted);font-size:18px;margin-bottom:32px}
+.final-btns{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.wl-form{display:flex;gap:11px;max-width:480px;margin:0 auto;flex-wrap:wrap}
+.wl-form input{flex:1;min-width:220px;background:var(--bg-2);border:1px solid var(--line);border-radius:100px;
+  padding:15px 22px;color:var(--text);font-family:inherit;font-size:15px;font-weight:500;transition:border-color .2s}
+.wl-form input::placeholder{color:var(--dim)}
+.wl-form input:focus{outline:none;border-color:var(--accent)}
+.wl-note{margin-top:16px;font-size:12.5px;color:var(--dim)}
+.final-login{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;font-size:14px;color:rgba(245,240,232,.45)}
+.final-login-link{color:rgba(245,240,232,.75);font-weight:600;text-decoration:underline;text-underline-offset:3px;transition:color .15s}
+.final-login-link:hover{color:rgba(245,240,232,1)}
+.wl-ok{display:none;margin-top:22px;padding:14px 22px;border-radius:100px;background:color-mix(in srgb,var(--ok) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--ok) 28%,transparent);color:var(--ok);font-size:14.5px;font-weight:600}
+.wl-ok.show{display:inline-block}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--line-2);padding:64px 0 36px}
+.foot-top{display:grid;gap:40px;margin-bottom:46px}
+.ft-c{grid-template-columns:1.5fr 1fr 1fr}
+.ft-r{grid-template-columns:1.5fr 1fr 1fr 1fr}
+.foot-brand p{color:var(--muted);font-size:14px;max-width:270px;margin-top:16px;line-height:1.55}
+.fcol h5{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:14px}
+.fcol a{display:block;font-size:14px;color:var(--muted);margin-bottom:9px;transition:color .15s}
+.fcol a:hover{color:var(--text)}
+.foot-bot{display:flex;align-items:center;justify-content:space-between;padding-top:26px;border-top:1px solid var(--line-2);flex-wrap:wrap;gap:14px}
+.foot-bot p{font-size:13px;color:var(--dim)}
+.socials{display:flex;gap:10px}
+.socials a{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;background:var(--bg-2);border:1px solid var(--line-2);color:var(--muted);transition:all .18s}
+.socials a:hover{color:var(--accent);border-color:var(--accent)}
+.socials svg{width:16px;height:16px}
+
+/* ── CONCIERGE CHAT ── */
+.concierge-layout{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.chat-box{background:var(--card-grad);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 16px 44px var(--glow-2);display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:12px 15px;border-radius:16px;font-size:14.5px;line-height:1.5}
+.bub.me{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:4px;font-weight:600}
+.bub.ai{align-self:flex-start;background:var(--bg-3);border:1px solid var(--line-2);border-bottom-left-radius:4px;width:100%}
+.bub.ai .who{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.bub-recs{display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.brec{display:flex;align-items:center;justify-content:space-between;background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px}
+.brec .nm{font-size:13.5px;font-weight:700}.brec .mt{font-size:11.5px;color:var(--muted)}
+.brec .sc{font-size:11px;font-weight:700;color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);padding:3px 9px;border-radius:100px}
+
+/* ── COMENSAL HERO TWO-COLUMN (from v5) ── */
+.hero-in{position:relative;z-index:2;display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center;width:100%}
+.hero-copy h1,.display{font-size:clamp(46px,6.4vw,82px);font-weight:800;line-height:.98;letter-spacing:-.04em;margin:0 0 24px}
+.hero-lede{font-size:clamp(17px,1.8vw,20px);color:var(--muted);max-width:520px;margin-bottom:34px;line-height:1.55}
+.hero-lede b{color:var(--text);font-weight:700}
+.hero-cta{display:flex;gap:13px;flex-wrap:wrap}
+.hero-meta{margin-top:36px;display:flex;gap:24px;flex-wrap:wrap}
+.hero-meta .m{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);font-weight:500}
+.hero-meta .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 20%,transparent);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* floating reservation cards */
+.hv{position:relative;height:470px}
+.card{position:absolute;background:var(--card-grad);border:1px solid var(--line);border-radius:20px;padding:20px 22px;box-shadow:0 30px 70px rgba(0,0,0,.18)}
+[data-theme="crema"] .card{box-shadow:0 24px 56px rgba(60,40,20,.12)}
+.c-main{top:46px;right:0;width:340px;border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.c-top{top:-6px;left:0;width:262px;animation:bob 7s ease-in-out .3s infinite}
+.c-bot{bottom:0;left:24px;width:286px;animation:bob 6.4s ease-in-out .7s infinite}
+.c-main{animation:bob 6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.cname{font-weight:600;font-size:20px;margin-top:5px}
+.cmeta{font-size:13px;color:var(--muted);margin-top:3px}
+.badge{font-size:11px;font-weight:700;padding:5px 11px;border-radius:100px;display:inline-flex;align-items:center;gap:6px}
+.b-acc{background:var(--accent-soft);color:var(--accent)}
+.b-ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.depo{margin-top:16px;padding-top:15px;border-top:1px solid var(--line-2);display:flex;align-items:flex-end;justify-content:space-between}
+.amt{font-weight:600;font-size:30px;color:var(--accent)}
+.amt small{font-size:12px;color:var(--muted);font-weight:500;margin-left:3px}
+.avs{display:flex}
+.av{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg-2);background:var(--accent);margin-left:-10px}
+.av:first-child{margin-left:0}
+.av.g2{background:var(--accent-2)}.av.g3{background:color-mix(in srgb,var(--accent) 50%,var(--muted))}
+
+/* ── TRUST BAND ── */
+.trust-band{border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);padding:30px 0;background:var(--bg-3)}
+.trust-in{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ts-stat{text-align:center;position:relative}
+.ts-stat:not(:last-child)::after{content:"";position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:1px;height:34px;background:var(--line-2)}
+.ts-n{font-size:clamp(26px,3vw,34px);font-weight:800;letter-spacing:-.02em;color:var(--accent);line-height:1}
+.ts-l{font-size:12.5px;color:var(--muted);margin-top:6px;font-weight:600}
+
+/* ── PARTNER STRIP (rest) ── */
+.brec-thumb{width:44px;height:44px;flex:none;display:block}
+.brec{gap:10px}
+
+/* ── REVEAL (scroll) ── */
+.reveal{transform:translateY(24px);transition:transform .75s cubic-bezier(.22,.61,.36,1)}
+.reveal.in{transform:none}
+@media print{ .reveal{transform:none!important;transition:none!important} }
+
+/* ── RESPONSIVE ── */
+@media(max-width:980px){
+  .hero-r,.match-layout,.how-box,.seg,.demo-wrap,.concierge-layout,.hero-in{grid-template-columns:1fr;gap:36px}
+  .hv{height:380px;max-width:420px;margin:0 auto}
+  .recs,.g3,.g4,.an-grid,.roi-grid,.tc-grid,.plans,.integ{grid-template-columns:repeat(2,1fr)}
+  .steps4{grid-template-columns:1fr 1fr}
+  .st4{border-right:none;border-bottom:1px solid var(--line-2)}
+  .bento{grid-template-columns:repeat(6,1fr)}
+  .c7,.c5,.c4{grid-column:span 6}
+  .foot-top.ft-c,.foot-top.ft-r{grid-template-columns:1fr 1fr}
+  .hcol:first-child{border-right:none;border-bottom:1px solid var(--line)}
+}
+@media(max-width:640px){
+  .section{padding:80px 0}.wrap{padding:0 20px}
+  .nav-links{display:none}.hero{padding:108px 0 56px}
+  .hv{display:none}
+  .recs,.g2,.g3,.g4,.an-grid,.roi-grid,.tc-grid,.plans,.integ,.seg,.steps4,.hero-r{grid-template-columns:1fr}
+  .bento{grid-template-columns:1fr}.c7,.c5,.c4{grid-column:span 1}
+  .bfeat.wide{flex-direction:column;align-items:flex-start}
+  .foot-top.ft-c,.foot-top.ft-r{grid-template-columns:1fr 1fr}
+  .aud-hero{margin-bottom:44px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ HEADER ══════ -->
+<header id="hdr">
+  <div class="wrap">
+    <nav class="nav">
+      <a href="#" class="brand"><span class="mk"></span><b>Una <span>Mesa</span></b></a>
+      <div class="nav-links" id="navLinks"></div>
+      <div class="nav-right">
+        <div class="aud-nav" id="navToggle">
+          <button class="aud-nav-btn on" data-aud="comensal">Comensal</button>
+          <button class="aud-nav-btn" data-aud="restaurante">Restaurante</button>
+        </div>
+        <div id="navCtas" style="display:flex;gap:8px;"></div>
+        <button class="dark-btn" id="darkBtn" aria-label="Cambiar tema">
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════ HERO ══════ -->
+<section class="hero" id="top">
+  <div class="hero-bg"><div class="dots"></div><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+  <div class="wrap aud-wrap" style="position:relative;z-index:2;">
+
+    <!-- BIG TOGGLE -->
+    <div style="text-align:center;">
+      <div class="aud-hero" id="heroToggle">
+        <button class="aud-btn on" data-aud="comensal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Comensal
+        </button>
+        <button class="aud-btn" data-aud="restaurante">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+          Restaurante
+        </button>
+      </div>
+    </div>
+
+    <!-- COMENSAL HERO -->
+    <div class="hero-in diner-only">
+      <div class="hero-copy reveal">
+        <h1 class="display">La mesa que<br>siempre <span class="hl">te espera</span>.</h1>
+        <p class="hero-lede">Busca entre cientos de restaurantes, compara y reserva en segundos. Dejas un pequeño <b>depósito reembolsable</b> al reservar y lo recuperas íntegro en cuanto te sientas.</p>
+        <div class="ai-bar" style="margin:0 0 12px;max-width:540px;">
+          <svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <div class="fld"><div class="typed-out" id="heroSearch" style="color:var(--dim);font-weight:500;">Restaurante, cocina o zona…</div><div class="typed-sub">Busca y reserva al instante</div></div>
+          <a href="#concierge" class="btn btn-acc" style="font-size:13.5px;padding:10px 18px;">Buscar</a>
+        </div>
+        <div class="chips" style="justify-content:flex-start;margin-bottom:30px;">
+          <span class="chip" data-q="Italiano">Italiano</span>
+          <span class="chip" data-q="Japonés en el centro">Japonés · centro</span>
+          <span class="chip" data-q="Restaurante con terraza">Con terraza</span>
+          <span class="chip" data-q="Brunch este fin de semana">Brunch</span>
+        </div>
+        <div class="hero-cta">
+          <a href="#concierge" class="btn btn-acc btn-lg">Buscar restaurantes <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a href="#" class="btn btn-ghost btn-lg">Iniciar sesión</a>
+        </div>
+        <div class="hero-meta">
+          <div class="m"><span class="d"></span> Busca y reserva al instante</div>
+          <div class="m">Disponibilidad en tiempo real</div>
+          <div class="m">Depósito 100% reembolsable</div>
+        </div>
+      </div>
+      <div class="hv reveal">
+        <div class="card c-top">
+          <div class="row">
+            <div><div class="lbl">Reserva confirmada</div><div class="cname">Marta Salas</div><div class="cmeta">Mesa 12 · 4 pax · 21:30</div></div>
+            <span class="badge b-ok">● Confirmada</span>
+          </div>
+        </div>
+        <div class="card c-main">
+          <div class="row"><span class="lbl">Tu reserva · Viernes</span><span class="badge b-acc">Confirmada</span></div>
+          <div class="cname" style="margin-top:14px;font-size:22px">Casa Lúa</div>
+          <div class="cmeta">Mesa para 4 · 21:30 · centro de Vigo</div>
+          <div class="depo">
+            <div><div class="lbl" style="margin-bottom:6px">Depósito reembolsable</div><div class="amt">€10<small>/ se te devuelve</small></div></div>
+            <div class="avs"><span class="av"></span><span class="av g2"></span><span class="av g3"></span></div>
+          </div>
+        </div>
+        <div class="card c-bot">
+          <div class="row">
+            <div style="display:flex;align-items:center;gap:12px"><span class="av g2" style="margin:0"></span><div><div class="cname" style="font-size:16px">Depósito devuelto</div><div class="cmeta">Llegada confirmada · +€40</div></div></div>
+            <span class="badge b-acc">↺</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESTAURANTE HERO -->
+    <div class="hero-r rest-only">
+      <div class="reveal">
+        <span class="eyebrow"><span class="pip"></span> Sistema operativo para restaurantes</span>
+        <h1>El SO de tu<br>restaurante<br><span class="hl">moderno</span>.</h1>
+        <p class="lede">Aumenta la ocupación, elimina las ausencias, gestiona reservas, conecta tu TPV y haz crecer tus ingresos desde una sola plataforma.</p>
+        <div class="hero-btns">
+          <a href="#demo" class="btn btn-acc btn-lg">Solicitar demo →</a>
+          <a href="#acceso" class="btn btn-ghost btn-lg">Iniciar sesión</a>
+        </div>
+        <div class="meta-pills">
+          <span class="mpill"><span class="dot"></span>Listo para tu TPV</span>
+          <span class="mpill"><span class="dot"></span>Sin comisión por comensal</span>
+          <span class="mpill"><span class="dot"></span>Soporte 24/7</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="dash">
+          <div class="dash-bar">
+            <div class="dts"><i></i><i></i><i></i></div>
+            <span class="dtl">Una Mesa · Sistema de sala</span>
+            <span class="live">En vivo</span>
+          </div>
+          <div class="dash-body">
+            <div class="dash-side">
+              <div class="si on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Resumen</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Reservas</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg>Ingresos</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Ocupación</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.2L12 17l-2.9-5.3L5 9.5Z"/></svg>IA Demanda</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 8h4M19 6v4"/></svg>CRM</div>
+              <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Depósitos</div>
+            </div>
+            <div class="dash-main">
+              <div class="kpi-row">
+                <div class="kpi"><div class="kk">Cubiertos hoy</div><div class="kv a">142</div><div class="kd">+18% vs media</div></div>
+                <div class="kpi"><div class="kk">Ocupación</div><div class="kv g">96%</div><div class="kd">+25% mensual</div></div>
+                <div class="kpi"><div class="kk">Ausencias</div><div class="kv">3.1%</div><div class="kd">−40% anual</div></div>
+              </div>
+              <div class="chart-box">
+                <div class="chart-h">Previsión próximas 7 noches · IA</div>
+                <div class="bars">
+                  <div class="bar-col"><div class="bar-fill" style="height:52%"></div><div class="bar-lbl">L</div></div>
+                  <div class="bar-col"><div class="bar-fill" style="height:61%"></div><div class="bar-lbl">M</div></div>
+                  <div class="bar-col"><div class="bar-fill" style="height:74%"></div><div class="bar-lbl">X</div></div>
+                  <div class="bar-col"><div class="bar-fill hi" style="height:88%"></div><div class="bar-lbl">J</div></div>
+                  <div class="bar-col"><div class="bar-fill hi" style="height:100%"></div><div class="bar-lbl">V</div></div>
+                  <div class="bar-col"><div class="bar-fill hi" style="height:96%"></div><div class="bar-lbl">S</div></div>
+                  <div class="bar-col"><div class="bar-fill" style="height:65%"></div><div class="bar-lbl">D</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════ STRIP ══════ -->
+<div class="strip rest-only">
+  <div class="strip-in">
+    <span class="strip-lbl">Pensado para</span>
+    <b>Bistró</b><span class="strip-dot"></span>
+    <b>Asador</b><span class="strip-dot"></span>
+    <b>Marisquería</b><span class="strip-dot"></span>
+    <b>Tapas</b><span class="strip-dot"></span>
+    <b>Grupos</b><span class="strip-dot"></span>
+    <b>Fine dining</b>
+  </div>
+</div>
+<div class="strip diner-only">
+  <div class="strip-in">
+    <span class="strip-lbl">Reserva en</span>
+    <b>Italiano</b><span class="strip-dot"></span>
+    <b>Japonés</b><span class="strip-dot"></span>
+    <b>Tapas</b><span class="strip-dot"></span>
+    <b>Brunch</b><span class="strip-dot"></span>
+    <b>Con terraza</b><span class="strip-dot"></span>
+    <b>Romántico</b>
+  </div>
+</div>
+
+<!-- ══════ COMENSAL: HOW IT WORKS ══════ -->
+<section class="section diner-only aud-wrap" id="como">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Cómo funciona</span>
+      <h2>Busca, reserva y <span class="hl">disfruta</span>.</h2>
+      <p>Encuentra tu restaurante en segundos y llega con la tranquilidad de que tu mesa te espera. El depósito siempre vuelve cuando llegas.</p>
+    </div>
+    <div class="steps4 reveal">
+      <div class="st4"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div><h4>Busca tu restaurante</h4><p>Por nombre, cocina, zona u ocasión. Filtra y compara en segundos.</p></div>
+      <div class="st4"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><h4>Elige fecha y hora</h4><p>Disponibilidad real en tiempo real — sin llamadas ni esperas.</p></div>
+      <div class="st4"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div><h4>Reserva al instante</h4><p>Confirma tu mesa con un pequeño depósito reembolsable — en tres toques.</p></div>
+      <div class="st4"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 9a8 8 0 0 1 16 0c0 7-8 11-8 11S4 16 4 9Z"/><circle cx="12" cy="9" r="2.4"/></svg></div><h4>Disfruta la experiencia</h4><p>Llega a una mesa que te espera. El depósito se devuelve íntegro al sentarte.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ COMENSAL: AI CONCIERGE ══════ -->
+<section class="section diner-only aud-wrap" id="concierge">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Además · Conserje IA</span>
+      <h2>¿No sabes dónde? Pregunta a la <span class="hl">IA</span>.</h2>
+      <p>Si prefieres que decidamos por ti, describe qué te apetece esta noche y la IA te trae la mesa perfecta, ya reservada.</p>
+    </div>
+    <div class="concierge-layout">
+      <div>
+        <div class="ai-bar" style="margin:0 0 14px;max-width:100%;">
+          <svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.2L12 17l-2.9-5.3L5 9.5Z"/></svg>
+          <div class="fld"><div class="typed-out"><span id="concTyped"></span><span class="caret"></span></div><div class="typed-sub">Búsqueda IA · describe tu mesa ideal</div></div>
+        </div>
+        <div class="card-grid g2 reveal" style="gap:12px;">
+          <div class="feat-card" style="padding:22px 20px;"><div class="ico" style="width:40px;height:40px;border-radius:11px;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div><h3 style="font-size:17px;margin-bottom:5px;">Descubrimiento IA</h3><p style="font-size:13px;">Los sitios adecuados aparecen en segundos, sin scroll infinito.</p></div>
+          <div class="feat-card" style="padding:22px 20px;"><div class="ico" style="width:40px;height:40px;border-radius:11px;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.2L12 17l-2.9-5.3L5 9.5Z"/></svg></div><h3 style="font-size:17px;margin-bottom:5px;">Recomendaciones personales</h3><p style="font-size:13px;">Sugerencias que entienden tu gusto, ánimo y ocasión.</p></div>
+          <div class="feat-card" style="padding:22px 20px;"><div class="ico" style="width:40px;height:40px;border-radius:11px;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div><h3 style="font-size:17px;margin-bottom:5px;">Reserva instantánea</h3><p style="font-size:13px;">De la recomendación a la mesa confirmada en tres toques.</p></div>
+          <div class="feat-card" style="padding:22px 20px;"><div class="ico" style="width:40px;height:40px;border-radius:11px;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3 style="font-size:17px;margin-bottom:5px;">Optimización de presupuesto</h3><p style="font-size:13px;">Define tu techo y recibe opciones que sorprenden dentro de él.</p></div>
+        </div>
+      </div>
+      <div class="chat-box reveal">
+        <div class="bub me">Cena romántica para dos mañana por menos de €80</div>
+        <div class="bub ai">
+          <div class="who"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:11px;height:11px;"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.2L12 17l-2.9-5.3L5 9.5Z"/></svg> Una Mesa IA</div>
+          Encontré 3 opciones perfectas para mañana:
+          <div class="bub-recs">
+            <div class="brec"><image-slot id="rec-casalua" class="brec-thumb" shape="rounded" radius="9" placeholder=""></image-slot><div style="flex:1"><div class="nm">Casa Lúa</div><div class="mt">Mediterráneo · €€€ · 21:30</div></div><span class="sc">98%</span></div>
+            <div class="brec"><image-slot id="rec-mirador" class="brec-thumb" shape="rounded" radius="9" placeholder=""></image-slot><div style="flex:1"><div class="nm">El Mirador</div><div class="mt">Terraza · vistas · €€€ · 21:00</div></div><span class="sc">95%</span></div>
+            <div class="brec"><image-slot id="rec-verde" class="brec-thumb" shape="rounded" radius="9" placeholder=""></image-slot><div style="flex:1"><div class="nm">Verde</div><div class="mt">De mercado · €€ · 20:30</div></div><span class="sc">92%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ COMENSAL: AI MATCH ══════ -->
+<section class="section diner-only aud-wrap" id="afinidad">
+  <div class="wrap">
+    <div class="match-layout">
+      <div class="reveal">
+        <span class="eyebrow"><span class="pip"></span> Puntuación de afinidad</span>
+        <h2 style="margin:20px 0 14px;">Cada mesa viene con<br>un <span class="hl">motivo</span>.</h2>
+        <p style="color:var(--muted);font-size:17px;line-height:1.6;">Una Mesa no solo lista restaurantes — te explica por qué cada uno encaja contigo esta noche.</p>
+        <div class="reasons">
+          <div class="reason"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span>Encaja con tus <strong>preferencias de cocina</strong></span></div>
+          <div class="reason"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span>Se ajusta a tu <strong>presupuesto habitual</strong></span></div>
+          <div class="reason"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span>Disponible a la <strong>hora que quieres</strong></span></div>
+          <div class="reason"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span>Parecido a sitios que <strong>ya te gustaron</strong></span></div>
+          <div class="reason"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span><strong>Ambiente ideal</strong> para tu ocasión</span></div>
+        </div>
+      </div>
+      <div class="mcard reveal">
+        <div class="mc-img" style="position:relative;padding:0;background:none;"><image-slot id="match-casalua" style="width:100%;height:138px;display:block;border-radius:12px;" shape="rounded" radius="12" placeholder="Foto del restaurante"></image-slot><span class="badge2">Mejor opción para ti</span></div>
+        <div class="mc-top">
+          <div><div class="mc-name">Casa Lúa</div><div class="mc-meta">Mediterráneo · €€€ · centro de Vigo</div></div>
+          <div class="ring"><div class="ring-v"><div class="pct">98%</div><div class="lbl">afinidad</div></div></div>
+        </div>
+        <div class="mc-btns"><a href="#contacto" class="btn btn-acc">Reservar 21:30</a><a href="#concierge" class="btn btn-ghost">Comparar</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ COMENSAL: BENEFITS ══════ -->
+<section class="section diner-only aud-wrap" id="ventajas">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Ventajas para comensales</span>
+      <h2>Todo lo que necesitas<br>para <span class="hl">cenar bien</span>.</h2>
+    </div>
+    <div class="card-grid g4 reveal">
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.9 21l1.2-6.8-5-4.9 6.9-1z"/></svg></div><h3>Joyas ocultas</h3><p>Sitios con encanto fuera del radar, elegidos para tu gusto y tu zona.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg></div><h3>Reservas instantáneas</h3><p>De la búsqueda a la mesa confirmada en tres toques — sin llamadas.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Disponibilidad real</h3><p>Mira qué hay libre ahora mismo y resérvalo antes de que vuele.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 11a7 7 0 0 1 14 0v3l1.5 3h-17L5 14v-3Z"/><path d="M10 21h4"/></svg></div><h3>Lista de espera IA</h3><p>Te avisamos si se libera una mesa en tu restaurante favorito.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19.5 13.5 12 21l-7.5-7.5a4.5 4.5 0 0 1 6.4-6.3l1.1 1 1.1-1a4.5 4.5 0 0 1 6.4 6.3Z"/></svg></div><h3>Guarda favoritos</h3><p>Crea tu lista de siempre y vuelve a reservarlos con un toque.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.2L12 17l-2.9-5.3L5 9.5Z"/></svg></div><h3>Recomendaciones IA</h3><p>Sugerencias que mejoran con cada reserva — cuanto más usas, mejor te conoce.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 10H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h4l3 3V7l-3 3z"/></svg></div><h3>Experiencias personalizadas</h3><p>Las mesas recuerdan tus preferencias, alergias y cómo te gusta cenar.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></div><h3>Historial de salidas</h3><p>Recuerda dónde estuviste, qué pediste y vuelve cuando quieras.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: PROBLEMS ══════ -->
+<section class="section rest-only aud-wrap" id="problemas">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Los problemas que resolvemos</span>
+      <h2>El sector tiene<br><span class="hl">problemas reales</span>.</h2>
+      <p>Los restaurantes pierden ingresos cada semana por problemas que Una Mesa resuelve desde el primer día.</p>
+    </div>
+    <div class="card-grid g3 reveal">
+      <div class="feat-card"><span class="pain">Impacto alto</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></div><h3>Mesas vacías</h3><p>Hasta el 30% del aforo queda sin ocupar en los servicios de entre semana por falta de visibilidad.</p></div>
+      <div class="feat-card"><span class="pain">Impacto alto</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div><h3>Ausencias sin avisar</h3><p>Mesas reservadas que nunca aparecen, personal sobredimensionado y costes irrecuperables.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3>Pérdida de ingresos</h3><p>Sin previsión de demanda ni listas de espera, se dejan miles de euros sobre la mesa cada mes.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><h3>Reservas manuales</h3><p>Llamadas, papel, Excel. Tiempo perdido y errores de doble reserva que dañan la experiencia.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 8h4M19 6v4"/></svg></div><h3>Sin datos de clientes</h3><p>No sabes quién repite ni qué les gusta. Imposible fidelizar sin CRM de comensales.</p></div>
+      <div class="feat-card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg></div><h3>Sin previsión de ocupación</h3><p>Imposible gestionar personal, compras y preparación sin saber cuántos cubiertos llegan mañana.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: FEATURES BENTO ══════ -->
+<section class="section rest-only aud-wrap" id="funciones">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> La plataforma</span>
+      <h2>Más que reservas. <span class="hl">Inteligencia</span><br>para tu restaurante.</h2>
+      <p>Desde la puerta hasta la cocina — todo tu servicio en un sistema conectado.</p>
+    </div>
+    <div class="bento reveal">
+      <div class="bfeat c7"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></div><h3>Sistema de depósitos</h3><p>El corazón de Una Mesa. Depósitos reembolsables que aseguran cada reserva. Tú decides importe, franjas y reglas por grupo. Automático, sin discusiones.</p><div class="minibars"><i style="height:40%"></i><i style="height:65%"></i><i class="on" style="height:90%"></i><i class="on" style="height:78%"></i><i class="on" style="height:100%"></i><i style="height:55%"></i><i class="on" style="height:82%"></i></div></div>
+      <div class="bfeat c5"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></div><h3>Reservas inteligentes</h3><p>Aforo en tiempo real, asignación de mesas y reglas de turno que optimizan cada hueco del comedor.</p></div>
+      <div class="bfeat c4"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M9 18h6"/></svg></div><h3>Integración TPV</h3><p>Se conecta con tu TPV. Reservas, mesas y cobros sincronizados sin cambiar de sistema.</p></div>
+      <div class="bfeat c4"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 21h10M12 17v4M7 8h.01M7 12h6"/></svg></div><h3>Pantalla de cocina</h3><p>Comandas en directo, tiempos por plato. Sala y cocina sincronizadas por fin.</p></div>
+      <div class="bfeat c4"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></div><h3>Inventario</h3><p>Control de stock por ingrediente, alertas de rotura y escandallos que cuadran con cada venta.</p></div>
+      <div class="bfeat wide c12"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 7.5a3 3 0 0 1 0 5.8M18 20a6 6 0 0 0-3.2-5.3"/></svg></div><div class="txt"><h3>Gestión de equipo</h3><p>Turnos, roles y rendimiento de sala en un panel. Cada miembro sabe qué mesa atender y cuándo — y tú ves quién rinde.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: INTEGRATIONS STRIP ══════ -->
+<div class="strip rest-only">
+  <div class="strip-in">
+    <span class="strip-lbl">Integrado con</span>
+    <b>Square</b><span class="strip-dot"></span>
+    <b>Stripe</b><span class="strip-dot"></span>
+    <b>Redsys</b><span class="strip-dot"></span>
+    <b>Bizum</b><span class="strip-dot"></span>
+    <b>TheFork</b><span class="strip-dot"></span>
+    <b>Lightspeed</b>
+  </div>
+</div>
+
+<!-- ══════ REST: HOW IT WORKS ══════ -->
+<section class="section rest-only aud-wrap" id="como-r">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Cómo funciona</span>
+      <h2>Llena el comedor,<br><span class="hl">sin huecos</span>.</h2>
+    </div>
+    <div class="how-box single reveal">
+      <div class="hcol">
+        <div class="kick">Para el restaurante</div>
+        <h3>En marcha en un día</h3>
+        <div class="steps-row">
+          <div class="how-step"><div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M2 7h20M5 7v10M19 7v10"/></svg></div><div><div class="num">01</div><h4>Configura tu política</h4><p>Tú decides el depósito por comensal, por franja o por tamaño de grupo.</p></div></div>
+          <div class="how-step"><div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div><div><div class="num">02</div><h4>Recibe reservas firmes</h4><p>Cada confirmación va respaldada por un depósito. Reservas reales, comedor lleno.</p></div></div>
+          <div class="how-step"><div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M22 4 12 14.01l-3-3"/></svg></div><div><div class="num">03</div><h4>Protege tu aforo</h4><p>Si una mesa queda libre sin avisar, el depósito la compensa. Automático.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: ANALYTICS ══════ -->
+<section class="section rest-only aud-wrap" id="inteligencia">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Business intelligence</span>
+      <h2>Tu sala entera, en <span class="hl">una pantalla</span>.</h2>
+      <p>Datos accionables para gestionar el servicio y anticipar la demanda antes de que llegue.</p>
+    </div>
+    <div class="an-grid reveal">
+      <div class="an-w"><h4>Tasa de ocupación</h4><div class="an-val g">96%</div><div class="an-sub">+25% intermensual</div></div>
+      <div class="an-w"><h4>Previsión de ingresos</h4><div class="an-val a">€14.2k</div><div class="an-sub">Esta semana · +18% vs media</div></div>
+      <div class="an-w"><h4>Retención clientes</h4><div class="an-val">2.4×</div><div class="an-sub">más visitas por cliente</div></div>
+      <div class="an-w"><h4>Predicción de demanda</h4><div class="an-fcast">
+        <div class="an-fr"><span class="an-lbl">Viernes</span><div class="an-bg"><div class="an-fill" style="width:100%"></div></div><span class="an-pct">98%</span></div>
+        <div class="an-fr"><span class="an-lbl">Sábado</span><div class="an-bg"><div class="an-fill" style="width:96%"></div></div><span class="an-pct">96%</span></div>
+        <div class="an-fr"><span class="an-lbl">Domingo</span><div class="an-bg"><div class="an-fill" style="width:72%"></div></div><span class="an-pct">72%</span></div>
+        <div class="an-fr"><span class="an-lbl">Lunes</span><div class="an-bg"><div class="an-fill" style="width:48%"></div></div><span class="an-pct">48%</span></div>
+        <div class="an-fr"><span class="an-lbl">Martes</span><div class="an-bg"><div class="an-fill" style="width:54%"></div></div><span class="an-pct">54%</span></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: ROI ══════ -->
+<section class="section rest-only aud-wrap" id="retorno">
+  <div class="wrap">
+    <div class="s-head center reveal" style="text-align:center;margin-left:auto;margin-right:auto;">
+      <span class="eyebrow"><span class="pip"></span> El retorno</span>
+      <h2>Inteligencia que <span class="hl">se paga sola</span>.</h2>
+    </div>
+    <div class="roi-grid reveal">
+      <div class="roi-card"><div class="big">40%</div><div class="rl">Menos ausencias</div><div class="rs">Depósitos y recordatorios inteligentes mantienen las mesas llenas.</div></div>
+      <div class="roi-card"><div class="big">25%</div><div class="rl">Más ocupación</div><div class="rs">La IA llena las franjas flojas y ajusta la demanda a la capacidad.</div></div>
+      <div class="roi-card"><div class="big">+15%</div><div class="rl">Más ingresos</div><div class="rs">Ofertas dinámicas y ritmo de sala elevan el rendimiento de cada asiento.</div></div>
+      <div class="roi-card"><div class="big">2.4×</div><div class="rl">Más clientes que repiten</div><div class="rs">Los perfiles convierten primeras visitas en clientes habituales.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: INTEGRATIONS ══════ -->
+<section class="section rest-only aud-wrap" id="integraciones">
+  <div class="wrap">
+    <div class="s-head reveal">
+      <span class="eyebrow"><span class="pip"></span> Integraciones</span>
+      <h2>Conecta lo que <span class="hl">ya tienes</span>.</h2>
+      <p>Una Mesa se integra con tu ecosistema actual — sin cambiar lo que funciona.</p>
+    </div>
+    <div class="integ reveal">
+      <div class="integ-cat"><h4>TPV &amp; Cobros</h4><div class="items"><div class="item">Square POS</div><div class="item">Lightspeed</div><div class="item">Toast POS</div><div class="item">Stripe Payments</div></div></div>
+      <div class="integ-cat"><h4>Proveedores de pago</h4><div class="items"><div class="item">Stripe</div><div class="item">Redsys</div><div class="item">Bizum</div><div class="item">PayPal</div></div></div>
+      <div class="integ-cat"><h4>CRM &amp; Marketing</h4><div class="items"><div class="item">Mailchimp</div><div class="item">HubSpot</div><div class="item">Klaviyo</div><div class="item">WhatsApp API</div></div></div>
+      <div class="integ-cat"><h4>Reservas &amp; Operativa</h4><div class="items"><div class="item">Google Calendar</div><div class="item">TheFork</div><div class="item">Google My Business</div><div class="item">Deliverect</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ REST: PRICING ══════ -->
+<section class="section rest-only aud-wrap" id="precios">
+  <div class="wrap">
+    <div class="s-head reveal" style="text-align:center;margin-left:auto;margin-right:auto;">
+      <span class="eyebrow"><span class="pip"></span> Precios</span>
+      <h2>Una tarifa plana. <span class="hl">Sin sorpresas</span>.</h2>
+      <p>Paga por restaurante, no por comensal. Sin comisiones ocultas, sin penalizaciones por crecer.</p>
+    </div>
+    <div class="plans reveal">
+      <div class="plan"><div class="pname">Starter</div><div class="pdesc">Para el restaurante que empieza a controlar su aforo.</div><div class="price">€79<span class="per">/mes</span></div><ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg><span><strong>Reservas inteligentes</strong> ilimitadas</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Sistema de depósitos</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Plano de sala y turnos</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Soporte por email</li></ul><a href="#demo" class="btn btn-ghost">Empezar</a></div>
+      <div class="plan pop"><div class="pbadge">Más popular</div><div class="pname">Pro</div><div class="pdesc">Todo lo que necesita un servicio completo, de la puerta a la cocina.</div><div class="price">€149<span class="per">/mes</span></div><ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg><span>Todo lo de <strong>Starter</strong>, y además:</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg><strong>Integración TPV</strong> completa</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Pantalla de cocina (KDS)</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Inventario y escandallos</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Soporte prioritario</li></ul><a href="#demo" class="btn btn-acc">Solicitar demo</a></div>
+      <div class="plan"><div class="pname">Multi</div><div class="pdesc">Para grupos con varios locales bajo un mismo techo.</div><div class="price">€99<span class="per">/local·mes</span></div><ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg><span>Todo lo de <strong>Pro</strong> en cada local</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Panel de grupo unificado</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Informes consolidados</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Gestor de cuenta dedicado</li></ul><a href="#demo" class="btn btn-ghost">Hablar con ventas</a></div>
+    </div>
+    <div class="nofee reveal">Sin comisión por comensal. <b>Nunca.</b> Lo que reservas, es tuyo.</div>
+  </div>
+</section>
+
+<!-- ══════ REST: DEMO ══════ -->
+<section class="section rest-only aud-wrap" id="demo">
+  <div class="wrap">
+    <div class="demo-wrap reveal">
+      <div>
+        <span class="eyebrow" style="margin-bottom:18px;"><span class="pip"></span> Solicita tu demo</span>
+        <h2 style="font-size:clamp(30px,4vw,46px);font-weight:800;letter-spacing:-.025em;margin:14px 0 14px;">Cuéntanos sobre<br>tu <span class="hl">restaurante</span>.</h2>
+        <p style="color:var(--muted);font-size:16px;line-height:1.65;margin-bottom:26px;">Rellena el formulario con los datos de tu local y te preparamos una demo a medida — sin presión, sin compromiso.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);"><span style="width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);display:grid;place-items:center;flex:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" style="width:11px;height:11px;"><path d="M20 6 9 17l-5-5"/></svg></span>Demo personalizada para tu tipo de restaurante</div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);"><span style="width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);display:grid;place-items:center;flex:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" style="width:11px;height:11px;"><path d="M20 6 9 17l-5-5"/></svg></span>Respuestas técnicas en directo</div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);"><span style="width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);display:grid;place-items:center;flex:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" style="width:11px;height:11px;"><path d="M20 6 9 17l-5-5"/></svg></span>Propuesta adaptada a tu volumen</div>
+        </div>
+        <div class="demo-note">Respondemos en menos de 24&nbsp;h laborables. Tus datos solo se usan para preparar tu demo.</div>
+      </div>
+      <form class="demo-form" id="demoForm">
+        <div class="frow">
+          <div class="df-field"><label for="df-rest">Nombre del restaurante</label><input id="df-rest" type="text" placeholder="Casa Lúa" required></div>
+          <div class="df-field"><label for="df-city">Ciudad</label><input id="df-city" type="text" placeholder="Vigo" required></div>
+        </div>
+        <div class="frow">
+          <div class="df-field"><label for="df-name">Persona de contacto</label><input id="df-name" type="text" placeholder="Nombre y apellidos" required></div>
+          <div class="df-field"><label for="df-role">Cargo</label><input id="df-role" type="text" placeholder="Propietario, gerente…"></div>
+        </div>
+        <div class="frow">
+          <div class="df-field"><label for="df-email">Email</label><input id="df-email" type="email" placeholder="tu@restaurante.com" required></div>
+          <div class="df-field"><label for="df-phone">Teléfono</label><input id="df-phone" type="tel" placeholder="+34 600 000 000"></div>
+        </div>
+        <div class="frow">
+          <div class="df-field"><label for="df-tables">Número de mesas</label><input id="df-tables" type="number" min="1" placeholder="24" required></div>
+          <div class="df-field"><label for="df-covers">Cubiertos por servicio</label>
+            <select id="df-covers">
+              <option value="" selected disabled>Selecciona…</option>
+              <option>Menos de 40</option>
+              <option>40 – 80</option>
+              <option>80 – 150</option>
+              <option>Más de 150</option>
+            </select>
+          </div>
+        </div>
+        <div class="df-field full"><label for="df-msg">¿Qué te gustaría resolver? <span style="color:var(--dim);font-weight:500;">(opcional)</span></label><textarea id="df-msg" placeholder="Ausencias, ocupación entre semana, gestión de reservas…"></textarea></div>
+        <button type="submit" class="btn btn-acc btn-lg">Solicitar demo →</button>
+        <div class="demo-ok" id="demoOk">✓ ¡Recibido! Te contactamos en menos de 24&nbsp;h para agendar tu demo.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ SHARED: SEGMENTATION ══════ -->
+<section class="section aud-wrap" id="plataforma">
+  <div class="wrap">
+    <div class="s-head reveal diner-only" style="text-align:center;margin-left:auto;margin-right:auto;">
+      <span class="eyebrow"><span class="pip"></span> Para comensales</span>
+      <h2>Todo en <span class="hl">un solo lugar</span>.</h2>
+    </div>
+    <div class="s-head reveal rest-only" style="text-align:center;margin-left:auto;margin-right:auto;">
+      <span class="eyebrow"><span class="pip"></span> Para restaurantes</span>
+      <h2>Tu negocio, <span class="hl">bajo control</span>.</h2>
+    </div>
+    <div class="seg reveal">
+      <div class="segc diner-only">
+        <span class="tag">Comensales</span>
+        <h3>Para disfrutar</h3>
+        <div class="sd">Descubre, reserva y vuelve a tus sitios favoritos.</div>
+        <ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Reservar una mesa</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Descubrir restaurantes</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Recomendaciones con IA</li></ul>
+        <div class="scta"><a href="#" class="btn btn-acc">Iniciar sesión</a></div>
+      </div>
+      <div class="segc r rest-only">
+        <span class="tag">Restaurantes</span>
+        <h3>Para crecer</h3>
+        <div class="sd">Gestiona tu servicio y aumenta tus ingresos desde un panel.</div>
+        <ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Solicitar una demo</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Gestionar tu operativa</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Acceder al panel</li></ul>
+        <div class="scta"><a href="#demo" class="btn btn-acc">Solicitar demo</a><a href="#contacto" class="btn btn-ghost">Iniciar sesión</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ FINAL CTA ══════ -->
+<section class="section final aud-wrap" id="contacto">
+  <div class="g"></div>
+  <div class="wrap">
+
+    <!-- COMENSAL: Reservar + Iniciar sesión (no form) -->
+    <div class="final-in reveal diner-only">
+      <span class="eyebrow"><span class="pip"></span> Empieza ya</span>
+      <h2>¿Listo para encontrar<br>tu mesa <span class="hl">perfecta</span>?</h2>
+      <p>Descubre, reserva y vive la mejor experiencia gastronómica — con o sin cuenta.</p>
+      <div class="final-btns">
+        <a href="#" class="btn btn-acc btn-lg">Iniciar sesión <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></a>
+      </div>
+      <div class="wl-note">La mesa que siempre te espera.</div>
+    </div>
+
+    <!-- RESTAURANTE: form + note -->
+    <div class="final-in reveal rest-only">
+      <span class="eyebrow"><span class="pip"></span> Empieza ya</span>
+      <h2>¿Listo para transformar<br>tu <span class="hl">restaurante</span>?</h2>
+      <p>Únete a los primeros restaurantes que ya gestionan con inteligencia — sin comisiones por comensal, nunca.</p>
+      <div class="final-btns">
+        <a href="#demo" class="btn btn-acc btn-lg">Solicitar demo</a>
+        <a href="#" class="btn btn-ghost btn-lg">Iniciar sesión</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════ FOOTER ══════ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top ft-c diner-only">
+      <div class="foot-brand">
+        <a href="#" class="brand"><span class="mk"></span><b>Una <span>Mesa</span></b></a>
+        <p>La plataforma de reservas que conecta comensales y restaurantes con inteligencia.</p>
+      </div>
+      <div class="fcol"><h5>Para comensales</h5><a href="#">Buscar restaurantes</a><a href="#">Recomendaciones IA</a><a href="#">Cómo funciona</a><a href="#">Soporte</a></div>
+      <div class="fcol"><h5>Legal</h5><a href="#">Privacidad</a><a href="#">Términos</a><a href="#">Cookies</a><a href="#">Seguridad</a></div>
+    </div>
+    <div class="foot-top ft-r rest-only">
+      <div class="foot-brand">
+        <a href="#" class="brand"><span class="mk"></span><b>Una <span>Mesa</span></b></a>
+        <p>El sistema operativo para la hostelería española moderna.</p>
+      </div>
+      <div class="fcol"><h5>Plataforma</h5><a href="#">Reservas</a><a href="#">Panel de control</a><a href="#">Integraciones</a><a href="#">API</a></div>
+      <div class="fcol"><h5>Empresa</h5><a href="#">Sobre nosotros</a><a href="#">Blog</a><a href="#">Prensa</a><a href="#">Empleo</a></div>
+      <div class="fcol"><h5>Legal</h5><a href="#">Privacidad</a><a href="#">Términos</a><a href="#">Cookies</a><a href="#">Seguridad</a></div>
+    </div>
+    <div class="foot-bot">
+      <p>© 2026 Una Mesa · unamesa.co · Hecho en España con buen producto.</p>
+      <div class="socials">
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 17v-7"/></svg></a>
+        <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4l16 16M20 4L4 20"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="image-slot.js"></script>
+<script>
+/* ── NAV CONFIG ── */
+const NAV = {
+  comensal: {
+    links:[['#como','Cómo funciona'],['#concierge','Conserje IA'],['#afinidad','Afinidad IA'],['#ventajas','Ventajas']],
+    ctas:'<a href="#" class="btn btn-acc" style="font-size:13.5px;padding:10px 19px;">Iniciar sesión</a>'
+  },
+  restaurante: {
+    links:[['#funciones','Plataforma'],['#problemas','Problemas'],['#precios','Precios'],['#integraciones','Integraciones'],['#demo','Demo']],
+    ctas:'<a href="#demo" class="btn btn-acc" style="font-size:13.5px;padding:10px 19px;">Solicitar demo</a><a href="#contacto" class="btn btn-ghost" style="font-size:13.5px;padding:10px 19px;">Iniciar sesión</a>'
+  }
+};
+
+const root = document.documentElement;
+
+function switchAud(aud) {
+  root.setAttribute('data-aud', aud);
+  document.querySelectorAll('.aud-btn, .aud-nav-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.aud === aud);
+  });
+  const cfg = NAV[aud];
+  document.getElementById('navLinks').innerHTML = cfg.links.map(([h,t]) => `<a href="${h}">${t}</a>`).join('');
+  document.getElementById('navCtas').innerHTML = cfg.ctas;
+  try { localStorage.setItem('um-aud', aud); } catch(e) {}
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-aud]');
+  if (btn && (btn.classList.contains('aud-btn') || btn.classList.contains('aud-nav-btn'))) {
+    switchAud(btn.dataset.aud);
+  }
+});
+
+const saved = (() => { try { return localStorage.getItem('um-aud'); } catch(e) { return null; } })();
+switchAud(saved === 'restaurante' ? 'restaurante' : 'comensal');
+
+/* ── DARK MODE ── */
+const darkBtn = document.getElementById('darkBtn');
+darkBtn.addEventListener('click', () => {
+  const t = root.getAttribute('data-theme') === 'noche' ? 'crema' : 'noche';
+  root.setAttribute('data-theme', t);
+  try { localStorage.setItem('um-theme', t); } catch(e) {}
+});
+const savedTheme = (() => { try { return localStorage.getItem('um-theme'); } catch(e) { return null; } })();
+if (savedTheme) root.setAttribute('data-theme', savedTheme);
+
+/* ── HEADER SCROLL ── */
+const hdr = document.getElementById('hdr');
+window.addEventListener('scroll', () => hdr.classList.toggle('scrolled', scrollY > 28), { passive: true });
+
+/* ── REVEAL ── */
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: .1, rootMargin: '0px 0px -5% 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+setTimeout(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('in')), 1600);
+
+/* ── BLOB PARALLAX ── */
+const blobs = document.querySelectorAll('.blob');
+window.addEventListener('mousemove', e => {
+  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+  blobs.forEach((b, i) => { const k = (i + 1) * 16; b.style.marginLeft = x * k + 'px'; b.style.marginTop = y * k + 'px'; });
+}, { passive: true });
+
+/* ── TYPEWRITER ── */
+const SEARCH_SUGGEST = ['Casa Lúa, Vigo', 'Japonés en el centro', 'Arrocería con terraza', 'Brunch este domingo'];
+const AI_PROMPTS = ['Cena romántica para dos mañana por menos de €80', 'Restaurante con terraza cerca de mí esta noche', 'El mejor sushi disponible ahora mismo'];
+
+function makeTyper(el, list) {
+  if (!el) return { set: () => {} };
+  let pi = 0, ci = 0, del = false, timer = null;
+  function tick() {
+    const full = list[pi];
+    if (!del) { ci++; el.textContent = full.slice(0, ci); if (ci === full.length) { del = true; timer = setTimeout(tick, 2200); return; } }
+    else { ci--; el.textContent = full.slice(0, ci); if (ci === 0) { del = false; pi = (pi + 1) % list.length; } }
+    timer = setTimeout(tick, del ? 22 : 48);
+  }
+  tick();
+  return {
+    set(q) { clearTimeout(timer); el.textContent = q; pi = 0; ci = 0; del = false; timer = setTimeout(tick, 2600); }
+  };
+}
+
+const concTyper = makeTyper(document.getElementById('concTyped'), AI_PROMPTS);
+
+const heroSearch = document.getElementById('heroSearch');
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  if (heroSearch) { heroSearch.textContent = c.dataset.q; heroSearch.style.color = 'var(--text)'; }
+}));
+
+/* ── DEMO FORM ── */
+const demoForm = document.getElementById('demoForm');
+if (demoForm) demoForm.addEventListener('submit', e => {
+  e.preventDefault();
+  document.getElementById('demoOk').classList.add('show');
+  demoForm.querySelectorAll('input,select,textarea').forEach(f => f.disabled = true);
+  const sb = demoForm.querySelector('button[type=submit]');
+  if (sb) sb.style.display = 'none';
+});
+</script>
+</body>
+</html>
