@@ -1,16 +1,179 @@
 <!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Unamesa — Gestión de local</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="es" data-theme="crema">
+<head>
+  <meta charset="UTF-8" />
+  <!-- ① Apply saved theme BEFORE any render to prevent flash -->
+  <script>try{var t=localStorage.getItem('um-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Una Mesa — Gestión de local</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: {
+          brand: '#D8552E',
+          gray: {
+            50: '#F4EFE6', 100: '#ECE4D6', 200: '#E0D7C8', 300: '#CFC4B3',
+            400: '#A99F92', 500: '#857C70', 600: '#6E655C', 700: '#4F483F',
+            800: '#332D27', 900: '#1C1714',
+          },
+        },
+        fontFamily: { sans: ['Manrope', 'sans-serif'] },
+      } },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Manrope', sans-serif; -webkit-font-smoothing: antialiased; margin: 0; }
+    /* Remap the display font (was Syne) to Manrope 800 across the app */
+    [class~="font-['Syne']"] { font-family: 'Manrope', sans-serif !important; font-weight: 800 !important; letter-spacing: -0.02em; }
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); border-radius: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+    .animate-shake { animation: shake .42s; }
+    @keyframes toastIn { from{opacity:0; transform:translate(-50%,8px)} to{opacity:1; transform:translate(-50%,0)} }
+    .animate-toast { animation: toastIn .2s ease-out; }
+    @keyframes pulseBorder { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0)} 50%{box-shadow:0 0 0 3px rgba(220,38,38,.22)} }
+    .animate-pulse-border { animation: pulseBorder 1.6s ease-in-out infinite; }
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* boot splash */
+    #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--boot-bg,#fff); z-index: 99; }
+    #boot .wm { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -0.02em; color: #D8552E; }
+    #boot .wm span { color: #A99F92; font-weight: 700; }
+    #boot .dot { width: 6px; height: 6px; border-radius: 9999px; background: #D8552E; display: inline-block; margin-left: 6px; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:.2} 50%{opacity:1} }
+
+    /* ─── Theme transition (temporary class, avoids permanent perf cost) ─── */
+    html.theme-transition, html.theme-transition *,
+    html.theme-transition *::before, html.theme-transition *::after {
+      transition: background-color .34s ease, border-color .34s ease,
+                  color .34s ease, fill .34s ease, box-shadow .34s ease !important;
+    }
+
+    /* ─── Dark mode overrides ──────────────────────────────────────────── */
+    /* Scrollbar */
+    [data-theme="noche"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); }
+    /* Boot bg */
+    [data-theme="noche"] { --boot-bg:#0D0D0D; }
+
+    /* Surfaces */
+    [data-theme="noche"] .bg-white                  { background-color: #141414 !important; }
+    [data-theme="noche"] .bg-gray-50                { background-color: #0D0D0D !important; }
+    [data-theme="noche"] .bg-gray-100               { background-color: #1D1D1D !important; }
+    [data-theme="noche"] .bg-gray-200               { background-color: #262626 !important; }
+    [data-theme="noche"] .hover\:bg-gray-50:hover   { background-color: #1A1A1A !important; }
+    [data-theme="noche"] .hover\:bg-gray-100:hover  { background-color: #222222 !important; }
+    [data-theme="noche"] .hover\:bg-white:hover     { background-color: #1D1D1D !important; }
+    [data-theme="noche"] .focus\:bg-white:focus     { background-color: #1E1E1E !important; }
+
+    /* Text */
+    [data-theme="noche"] .text-gray-900  { color: #F0E9E1 !important; }
+    [data-theme="noche"] .text-gray-800  { color: #D5CCC5 !important; }
+    [data-theme="noche"] .text-gray-700  { color: #B5ABA4 !important; }
+    [data-theme="noche"] .text-gray-600  { color: #978D87 !important; }
+    [data-theme="noche"] .text-gray-500  { color: #7A706A !important; }
+    [data-theme="noche"] .text-gray-400  { color: #5E5550 !important; }
+    [data-theme="noche"] .text-gray-300  { color: #4A4440 !important; }
+    /* buttons don't inherit color — force it */
+    [data-theme="noche"] button          { color: inherit; }
+
+    /* Borders */
+    [data-theme="noche"] .border-black\/7  { border-color: rgba(255,255,255,.09) !important; }
+    [data-theme="noche"] .border-black\/8  { border-color: rgba(255,255,255,.10) !important; }
+    [data-theme="noche"] .border-black\/5  { border-color: rgba(255,255,255,.07) !important; }
+    [data-theme="noche"] .border-black\/10 { border-color: rgba(255,255,255,.13) !important; }
+    [data-theme="noche"] .border-black\/15 { border-color: rgba(255,255,255,.17) !important; }
+    [data-theme="noche"] .border-black\/20 { border-color: rgba(255,255,255,.20) !important; }
+    [data-theme="noche"] .divide-black\/5  > * + * { border-color: rgba(255,255,255,.07) !important; }
+    [data-theme="noche"] .divide-black\/7  > * + * { border-color: rgba(255,255,255,.09) !important; }
+
+    /* Brand (slightly brighter on dark) */
+    [data-theme="noche"] .bg-brand               { background-color: #E0673A !important; }
+    [data-theme="noche"] .hover\:bg-brand:hover   { background-color: #E0673A !important; }
+    [data-theme="noche"] .hover\:bg-brand\/90:hover { background-color: rgba(224,103,58,.92) !important; }
+    [data-theme="noche"] .bg-brand\/90            { background-color: rgba(224,103,58,.9) !important; }
+    [data-theme="noche"] .text-brand              { color: #E5764F !important; }
+    [data-theme="noche"] .hover\:text-brand:hover { color: #E5764F !important; }
+    [data-theme="noche"] .border-brand            { border-color: #E5764F !important; }
+    [data-theme="noche"] .focus\:border-brand:focus { border-color: #E5764F !important; }
+    [data-theme="noche"] .ring-brand              { --tw-ring-color: #E5764F !important; }
+    [data-theme="noche"] .ring-brand\/30          { --tw-ring-color: rgba(229,118,79,.3) !important; }
+    [data-theme="noche"] .bg-brand\/10            { background-color: rgba(224,103,58,.13) !important; }
+    [data-theme="noche"] .bg-brand\/5             { background-color: rgba(224,103,58,.07) !important; }
+    [data-theme="noche"] .bg-brand\/8             { background-color: rgba(224,103,58,.10) !important; }
+    [data-theme="noche"] .bg-brand\/15            { background-color: rgba(224,103,58,.17) !important; }
+    [data-theme="noche"] .before\:bg-brand::before { background-color: #E5764F !important; }
+    [data-theme="noche"] .before\:bg-brand         { --tw-bg-opacity:1; }
+
+    /* Inputs & selects */
+    [data-theme="noche"] input, [data-theme="noche"] select, [data-theme="noche"] textarea {
+      background-color: #1A1A1A;
+      color: #F0E9E1;
+      border-color: rgba(255,255,255,.13);
+    }
+    [data-theme="noche"] input::placeholder { color: #5E5550; }
+    [data-theme="noche"] input:focus, [data-theme="noche"] select:focus { background-color: #1E1E1E; }
+
+    /* Sidebar active bg */
+    [data-theme="noche"] .bg-brand\/10.before\:bg-brand { background-color: rgba(224,103,58,.13) !important; }
+
+    /* White/15 inside brand panel (login) — keep as is, it's on orange */
+    /* Table thead rows */
+    [data-theme="noche"] thead tr  { background-color: #1A1A1A !important; }
+    [data-theme="noche"] .bg-gray-50\/60 { background-color: rgba(13,13,13,.6) !important; }
+    /* Hover rows */
+    [data-theme="noche"] .hover\:bg-gray-50 { } /* handled above */
+
+    /* Amber / green / red status chips — keep saturated in dark */
+    [data-theme="noche"] .bg-amber-50  { background-color: #2A1F0A !important; }
+    [data-theme="noche"] .bg-amber-100 { background-color: #2A2010 !important; }
+    [data-theme="noche"] .bg-red-50    { background-color: #1F0D0D !important; }
+    [data-theme="noche"] .bg-red-100   { background-color: #221212 !important; }
+    [data-theme="noche"] .bg-green-100 { background-color: #0E2018 !important; }
+    [data-theme="noche"] .bg-blue-50   { background-color: #0D1A26 !important; }
+    [data-theme="noche"] .bg-purple-100{ background-color: #1A102A !important; }
+
+    /* Active nav item bg */
+    [data-theme="noche"] .bg-brand\/10 { background-color: rgba(224,103,58,.13) !important; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="boot"><div class="wm">una<span>mesa</span><i class="dot"></i></div></div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script>
+    // Share React hooks as globals across all Babel script scopes
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
+    Object.assign(window, { useState, useEffect, useRef, useCallback, useMemo });
+  </script>
+
+  <script src="app/data.js"></script>
+  <script src="app/store.js"></script>
+  <script type="text/babel" src="app/ui.jsx"></script>
+  <script type="text/babel" src="app/login.jsx"></script>
+  <script type="text/babel" src="app/panel.jsx"></script>
+  <script type="text/babel" src="app/carta.jsx"></script>
+  <script type="text/babel" src="app/informes.jsx"></script>
+  <script type="text/babel" src="app/ajustes.jsx"></script>
+  <script type="text/babel" src="app/stock.jsx"></script>
+  <script type="text/babel" src="app/floorplan.jsx"></script>
+  <script type="text/babel" src="app/modules.jsx"></script>
+  <script type="text/babel" src="app/shell.jsx"></script>
+</body>
 </html>
