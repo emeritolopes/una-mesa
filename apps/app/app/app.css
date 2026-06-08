@@ -1140,3 +1140,108 @@ input,select,textarea{font-family:inherit}
   .det-eyebrow{margin:16px 0 10px}
   .det-bw-times-grid{grid-template-columns:repeat(3,1fr)}
 }
+
+/* ══════════════════════════════════════════
+   Booking flow · Stitch redesign overrides
+   ══════════════════════════════════════════ */
+
+/* ── Numbered step indicator ── */
+.bk-steps{
+  display:flex;align-items:flex-start;
+  margin-bottom:32px;padding:0 4px;
+}
+.bk-step-item{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  flex-shrink:0;
+}
+.bk-step-dot{
+  width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--line);
+  background:var(--bg-2);color:var(--muted);
+  display:grid;place-items:center;
+  font-size:13px;font-weight:800;
+  transition:all .25s;
+}
+.bk-step-item.active .bk-step-dot{
+  border-color:var(--accent);color:var(--accent);
+  background:var(--accent-soft);
+  box-shadow:0 0 0 4px var(--glow-2);
+}
+.bk-step-item.done .bk-step-dot{
+  border-color:var(--accent);background:var(--accent);color:var(--on-accent);
+}
+.bk-step-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--dim);
+  white-space:nowrap;
+}
+.bk-step-item.active .bk-step-lbl{color:var(--accent)}
+.bk-step-item.done .bk-step-lbl{color:var(--text)}
+/* connecting line — flex:1 stretches between items; margin-top centers with 34px dot */
+.bk-step-line{
+  flex:1;height:2px;border-radius:2px;
+  background:var(--line);
+  margin-top:16px;   /* (34px dot - 2px line) / 2 */
+  min-width:16px;
+  transition:background .3s;
+}
+.bk-step-line.done{background:var(--accent)}
+
+/* ── Date cells: circular pills ── */
+.daycell{border-radius:50%}
+.daycell .dw{font-size:9px}
+
+/* ── Time cells: full pill shape ── */
+.timecell{border-radius:100px;padding:12px 6px;font-size:14px}
+
+/* ── Time section label (Mediodía / Noche) ── */
+.bk-time-section{
+  font-size:10.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);
+  margin:18px 0 10px;
+}
+
+/* ── Section labels in deposit step ── */
+.bk-section-label{
+  font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);
+  margin-bottom:10px;
+}
+
+/* ── Deposit note: coral instead of green ── */
+.bw-dep{
+  background:var(--accent-soft);
+  border:1px solid var(--accent-line);
+  border-radius:14px;color:var(--text);
+}
+.bw-dep svg{color:var(--accent)}
+
+/* ── Booking summary card: glassmorphism ── */
+.dep-box{
+  background:var(--glass);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-bdr);
+}
+
+/* ── Payment pills: fully rounded ── */
+.pay-m{border-radius:100px}
+
+/* ── Confirmation: coral check circle ── */
+.confirm-ico{background:var(--accent-soft);color:var(--accent)}
+.confirm-card h2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:30px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;
+}
+.confirm-detail{
+  background:var(--glass);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--glass-bdr);
+}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .bk-step-lbl{display:none}
+  .bk-step-line{min-width:10px}
+  .bk-step-dot{width:28px;height:28px;font-size:12px}
+  .bk-step-line{margin-top:13px}
+}
