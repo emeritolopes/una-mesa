@@ -89,8 +89,9 @@ function LogoMark({ size = 36, className = '' }) {
 
 /* Logo badge — the Una Mesa app icon (rounded orange tile) */
 function LogoBadge({ size = 36, rounded = 'rounded-xl' }) {
+  const logoSrc = (window.__resources && window.__resources.unaLogo) || 'app/una-mesa-logo.png';
   return (
-    <img src="app/una-mesa-logo.png" alt="Una Mesa" className={`${rounded} flex-shrink-0 block object-contain`} style={{ width: size, height: size }} />
+    <img src={logoSrc} alt="Una Mesa" className={`${rounded} flex-shrink-0 block object-contain`} style={{ width: size, height: size }} />
   );
 }
 
@@ -99,7 +100,7 @@ function Logo({ light = false, badge = true, size = 36 }) {
   return (
     <div className="flex items-center gap-2.5">
       {badge && (light
-        ? <div className="rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1" style={{ width: size, height: size }}><img src="app/una-mesa-logo.png" alt="Una Mesa" className="w-full h-full object-contain rounded-lg" /></div>
+        ? <div className="rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1" style={{ width: size, height: size }}><img src={(window.__resources && window.__resources.unaLogo) || 'app/una-mesa-logo.png'} alt="Una Mesa" className="w-full h-full object-contain rounded-lg" /></div>
         : <LogoBadge size={size} />)}
       <div className={`font-['Syne'] font-black tracking-tight leading-none ${light ? 'text-white' : 'text-brand'}`} style={{ fontSize: size * 0.6 }}>
         una<span className={light ? 'text-white/55 font-bold' : 'text-gray-400 font-bold'}>mesa</span>

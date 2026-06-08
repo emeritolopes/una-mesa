@@ -233,7 +233,7 @@ create table daily_sales (
   avg_ticket    numeric(8,2) default 0,
   covers        int default 0,
   table_turns   numeric(4,2) default 0,
-  unique constraint (venue_id, date)
+  constraint daily_sales_venue_date_unique unique (venue_id, date)
 );
 
 -- ============================================================
