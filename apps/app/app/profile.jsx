@@ -76,10 +76,10 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     panel = (upcoming.length||past.length)
       ? React.createElement('div', null,
           upcoming.length?React.createElement('div',null,
-            React.createElement('div',{style:{fontSize:'13px',fontWeight:700,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'.08em',margin:'4px 0 12px'}},'Próximas'),
+            React.createElement('div',{className:'prof-sec-label'},'Próximas'),
             upcoming.map(b=>BookingRow(b,false))):null,
           past.length?React.createElement('div',{style:{marginTop:'22px'}},
-            React.createElement('div',{style:{fontSize:'13px',fontWeight:700,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'.08em',margin:'4px 0 12px'}},'Historial'),
+            React.createElement('div',{className:'prof-sec-label'},'Historial'),
             past.map(b=>BookingRow(b,true))):null)
       : React.createElement('div',{className:'empty'},
           React.createElement(Icon,{name:'cal'}),
