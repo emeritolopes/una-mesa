@@ -1,210 +1,278 @@
-/* ════ UNA MESA · mock data (Vigo / Galicia) ════ */
-(function(){
-  // gradient palettes for photo placeholders [from,to]
-  const G = {
-    marisco:['#2E6E8E','#143B4F'], asador:['#8E4A2E','#4F2414'], gallego:['#3E7A52','#1F3D29'],
-    arroz:['#C8810E','#7A4E08'], tapas:['#B0492E','#5E2418'], fusion:['#6E4A8E','#36234F'],
-    bistro:['#A35C3A','#5E3320'], pulpo:['#9E3A4E','#52202A'], cafe:['#7A5E3A','#3D2E1F'],
-    vegetal:['#5E8E3A','#2F4F1D'], japones:['#3A5E8E','#1D2F4F'], dulce:['#B06A8E','#5E3349']
+/* ─────────────────────────────────────────────────────────────
+   Una Mesa — mock seed data (mirrors Supabase seed: El Bodegón Central)
+   Plain JS global: window.DATA
+   ───────────────────────────────────────────────────────────── */
+(function () {
+  const pad = (n) => String(n).padStart(2, '0');
+  const today = new Date();
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const addDays = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return d; };
+
+  const venue = {
+    id: 'v1', name: 'El Bodegón Central', address: 'Calle Mayor 12',
+    city: 'Madrid', cp: '28013', phone: '+34 91 123 4567',
+    email: 'hola@bodegoncentral.es', vat_number: 'B12345678',
+    plan: 'profesional', currency: 'EUR', locale: 'es-ES', timezone: 'Europe/Madrid',
   };
-  const cz = (k)=>({key:k, from:G[k][0], to:G[k][1]});
 
-  const R = (o)=>o;
-  const data = [
-    R({ id:'casa-lua', name:'Casa Lúa', cuisine:'Mediterráneo', cz:cz('marisco'), price:'€€€', area:'Casco Vello', city:'Vigo',
-      rating:4.8, reviews:284, match:98, coords:{x:30,y:42}, glyph:'fish',
-      tags:['Romántico','Con terraza','Pescado del día'],
-      about:'Cocina mediterránea de producto en pleno Casco Vello. Pescado de la lonja de Vigo, brasa de encina y una bodega corta pero bien elegida. Sala íntima con velas y una terraza interior sobre piedra centenaria.',
-      address:'Rúa Real 12, Casco Vello', hours:'13:00–16:00 · 20:30–23:30', phone:'+34 986 22 14 08',
-      times:{ lunch:[['13:30','few'],['14:00','free'],['14:30','free'],['15:00','free']],
-              dinner:[['20:30','free'],['21:00','few'],['21:30','free'],['22:00','full']] },
-      menu:[
-        {s:'Para empezar', items:[['Ostras de Arcade','media docena, al natural','18€'],['Zamburiñas a la brasa','con manteiga de algas','16€'],['Croquetas de centollo','crujientes, cremosas','12€']]},
-        {s:'Principales', items:[['Rodaballo a la brasa','de la lonja, verduras de temporada','28€'],['Arroz meloso de bogavante','para dos','46€'],['Solomillo de vaca rubia gallega','grelos y patata confitada','26€']]},
-        {s:'Postres', items:[['Filloas rellenas','crema de castaña','7€'],['Tarta de queso de O Cebreiro','—','7€']]}
-      ],
-      revs:[['Sara M.',5,'Hace 2 días','Reservé por la app en un minuto y la mesa estaba lista al llegar. El rodaballo, espectacular. Volveremos.'],
-            ['Rafa S.',5,'Hace 1 semana','Ambiente íntimo perfecto para una cena especial. El depósito se devolvió al sentarnos, sin líos.'],
-            ['Elena V.',4,'Hace 2 semanas','Muy buena experiencia. El arroz de bogavante para dos da de sobra. Algo de ruido cuando se llena.']] }),
-
-    R({ id:'el-mirador', name:'El Mirador', cuisine:'Contemporáneo', cz:cz('fusion'), price:'€€€', area:'A Guía', city:'Vigo',
-      rating:4.7, reviews:196, match:95, coords:{x:72,y:24}, glyph:'sparkle',
-      tags:['Vistas','Con terraza','Maridaje'],
-      about:'Cocina contemporánea gallega con las mejores vistas a la ría desde el monte de A Guía. Menú degustación opcional con maridaje, terraza acristalada y puestas de sol que justifican la subida.',
-      address:'Estrada da Guía 88, A Guía', hours:'13:30–16:00 · 20:00–23:00', phone:'+34 986 37 55 21',
-      times:{ lunch:[['14:00','free'],['14:30','free'],['15:00','few']],
-              dinner:[['20:00','free'],['20:30','free'],['21:00','few'],['21:30','free']] },
-      menu:[
-        {s:'Entrantes', items:[['Steak tartar de vaca madurada','yema curada, pan de cristal','19€'],['Vieira asada','coliflor y avellana','17€']]},
-        {s:'Principales', items:[['Merluza de pincho','pil-pil de algas','27€'],['Pichón de Bresse','remolacha y cereza','32€']]},
-        {s:'Menú degustación', items:[['7 pases','con la cocina de temporada','68€'],['Maridaje de vinos','5 copas','34€']]}
-      ],
-      revs:[['Marcos P.',5,'Hace 4 días','Las vistas al atardecer son una pasada y la cocina está a la altura. Maridaje muy bien pensado.'],
-            ['Lucía F.',5,'Hace 10 días','De lo mejor de Vigo para celebrar algo. Reserva fácil y mesa junto al ventanal como pedí en las notas.']] }),
-
-    R({ id:'verde', name:'Verde', cuisine:'De mercado', cz:cz('vegetal'), price:'€€', area:'Areal', city:'Vigo',
-      rating:4.6, reviews:152, match:92, coords:{x:48,y:58}, glyph:'leaf',
-      tags:['Vegetariano','Tranquilo','Saludable'],
-      about:'Cocina de mercado con mucha verdura de temporada y opciones vegetarianas y veganas reales, no de relleno. Local luminoso y tranquilo en el Areal, ideal para comidas de diario sin renunciar a comer bien.',
-      address:'Rúa do Areal 44', hours:'13:00–16:30 · 20:30–23:00', phone:'+34 986 11 90 33',
-      times:{ lunch:[['13:00','free'],['13:30','free'],['14:00','few'],['14:30','free']],
-              dinner:[['20:30','free'],['21:00','free'],['21:30','few']] },
-      menu:[
-        {s:'Del huerto', items:[['Ensalada de tomate de temporada','burrata y albahaca','13€'],['Coliflor asada entera','tahini y granada','12€']]},
-        {s:'Platos', items:[['Risotto de setas','parmesano curado','16€'],['Curry verde de garbanzos','arroz basmati','14€'],['Lubina al vapor','verduras salteadas','21€']]},
-        {s:'Dulce', items:[['Tarta de zanahoria','—','6€'],['Helado artesano','de temporada','5€']]}
-      ],
-      revs:[['Nuria A.',5,'Hace 3 días','Por fin un sitio con opciones veganas que están realmente buenas. Tranquilo para comer y trabajar.'],
-            ['Pablo R.',4,'Hace 1 semana','Comida fresca y de calidad. Relación calidad-precio muy buena para el menú de mediodía.']] }),
-
-    R({ id:'o-pulpeiro', name:'O Pulpeiro', cuisine:'Gallego', cz:cz('pulpo'), price:'€€', area:'Berbés', city:'Vigo',
-      rating:4.7, reviews:331, match:90, coords:{x:24,y:66}, glyph:'pot',
-      tags:['Clásico','Grupos','Pulpo á feira'],
-      about:'Una pulpería de toda la vida en el Berbés, junto al puerto. Pulpo á feira cocido en cobre, raxo, zorza y vinos del Ribeiro en cunca. Mesas corridas, bullicio y raciones generosas para compartir.',
-      address:'Rúa do Berbés 7', hours:'12:30–16:30 · 20:00–23:30', phone:'+34 986 43 21 76',
-      times:{ lunch:[['13:00','few'],['13:30','full'],['14:00','few'],['14:30','free']],
-              dinner:[['20:30','free'],['21:00','free'],['21:30','few'],['22:00','free']] },
-      menu:[
-        {s:'Para compartir', items:[['Pulpo á feira','ración','16€'],['Raxo con cachelos','—','11€'],['Zorza','—','9€'],['Pimientos de Padrón','—','7€']]},
-        {s:'Cazuelas', items:[['Caldeirada de raya','—','15€'],['Almejas a la marinera','—','18€']]},
-        {s:'Postre', items:[['Tarta de Santiago','—','5€'],['Queixo con membrillo','—','6€']]}
-      ],
-      revs:[['Antón G.',5,'Hace 5 días','El pulpo está en su punto siempre. Fuimos 8 y reservar mesa grande fue facilísimo por la app.'],
-            ['Carmen L.',5,'Hace 2 semanas','Sabor de siempre, raciones enormes. El Ribeiro en cunca no falla.'],
-            ['Dani T.',4,'Hace 3 semanas','Muy auténtico y animado. Si vas en finde, reserva sí o sí porque se llena.']] }),
-
-    R({ id:'brasa-norte', name:'Brasa Norte', cuisine:'Asador', cz:cz('asador'), price:'€€€', area:'Travesía de Vigo', city:'Vigo',
-      rating:4.8, reviews:218, match:88, coords:{x:60,y:48}, glyph:'flame',
-      tags:['Carne madurada','Grupos','Brasa'],
-      about:'Asador de brasa de carbón de encina especializado en chuletón de vaca rubia gallega madurada. Cortes a la vista, guarniciones de huerta y una carta de tintos para acompañar. Mesas amplias para grupos.',
-      address:'Travesía de Vigo 102', hours:'13:30–16:00 · 20:30–00:00', phone:'+34 986 27 64 19',
-      times:{ lunch:[['14:00','free'],['14:30','few'],['15:00','free']],
-              dinner:[['20:30','free'],['21:00','few'],['21:30','few'],['22:00','free']] },
-      menu:[
-        {s:'Entrantes', items:[['Cecina de vaca','con aceite de oliva','14€'],['Provolone a la brasa','orégano y tomate','10€']]},
-        {s:'A la brasa', items:[['Chuletón de vaca rubia (1kg)','maduración 45 días','56€'],['Entrecot','guarnición','24€'],['Secreto ibérico','pimientos asados','19€']]},
-        {s:'Postres', items:[['Torrija caramelizada','helado de vainilla','7€']]}
-      ],
-      revs:[['Iván M.',5,'Hace 1 día','El chuletón madurado es brutal. Punto de brasa perfecto. Ideal para ir en grupo.'],
-            ['Rosa B.',5,'Hace 6 días','Carne de primera y servicio atento. Reservamos para 10 sin problema.']] }),
-
-    R({ id:'sakura', name:'Sakura', cuisine:'Japonés', cz:cz('japones'), price:'€€€', area:'Plaza de Compostela', city:'Vigo',
-      rating:4.6, reviews:174, match:86, coords:{x:42,y:38}, glyph:'fish',
-      tags:['Sushi','Barra','Omakase'],
-      about:'Cocina japonesa con producto gallego: nigiri de pescado de la ría, omakase en barra y robata. Espacio minimalista de madera clara junto a la Plaza de Compostela. Barra para ver al itamae trabajar.',
-      address:'Rúa de Reconquista 5', hours:'13:30–16:00 · 20:30–23:30', phone:'+34 986 90 12 47',
-      times:{ lunch:[['14:00','few'],['14:30','free'],['15:00','free']],
-              dinner:[['20:30','free'],['21:00','full'],['21:30','few'],['22:00','free']] },
-      menu:[
-        {s:'Entrantes', items:[['Edamame con sal de algas','—','5€'],['Gyozas de cerdo','—','9€'],['Tartar de atún','aguacate y soja','15€']]},
-        {s:'Sushi', items:[['Nigiri selección (8 pz)','del día','24€'],['Uramaki Sakura','langostino y mango','14€']]},
-        {s:'Omakase', items:[['Menú del itamae','12 pases en barra','62€']]}
-      ],
-      revs:[['Tomás V.',5,'Hace 4 días','El omakase en barra es una experiencia. Pescado fresquísimo de la ría. Reserva la barra con tiempo.'],
-            ['Ana D.',4,'Hace 2 semanas','Muy buen sushi y ambiente cuidado. Un pelín caro pero merece la pena.']] }),
-
-    R({ id:'a-taberna', name:'A Taberna do Bo', cuisine:'Tapas', cz:cz('tapas'), price:'€€', area:'Casco Vello', city:'Vigo',
-      rating:4.5, reviews:267, match:84, coords:{x:34,y:50}, glyph:'wine',
-      tags:['Tapas','Animado','Vinos'],
-      about:'Tapas gallegas con un punto moderno y una carta de vinos naturales en constante rotación. Barra de pinchos, mesas altas y mucho ambiente las tardes de finde en el corazón del Casco Vello.',
-      address:'Rúa Cesteiros 3, Casco Vello', hours:'12:00–16:00 · 19:30–00:00', phone:'+34 986 55 38 90',
-      times:{ lunch:[['13:00','free'],['13:30','few'],['14:00','free']],
-              dinner:[['20:00','free'],['20:30','free'],['21:00','few'],['21:30','full']] },
-      menu:[
-        {s:'Pinchos', items:[['Tortilla de Betanzos','poco hecha','3€'],['Pincho de bonito','con pimiento','3,5€'],['Croqueta del día','—','2€']]},
-        {s:'Tapas', items:[['Pulpo en tempura','alioli de pimentón','12€'],['Croquetas de jamón','6 uds','8€'],['Mejillones tigre','—','9€']]},
-        {s:'Dulce', items:[['Mousse de chocolate','—','5€']]}
-      ],
-      revs:[['Berta C.',5,'Hace 2 días','Para ir de vinos y tapas es perfecto. La tortilla de Betanzos, de las mejores que he probado.'],
-            ['Hugo N.',4,'Hace 9 días','Muy animado y buen rollo. Los vinos naturales que recomiendan, un acierto.']] }),
-
-    R({ id:'arrozal', name:'Arrozal', cuisine:'Arroces', cz:cz('arroz'), price:'€€€', area:'Bouzas', city:'Vigo',
-      rating:4.7, reviews:143, match:82, coords:{x:16,y:52}, glyph:'pot',
-      tags:['Arroces','Con terraza','Frente al mar'],
-      about:'Arrocería frente al puerto de Bouzas con arroces de leña y producto de la ría. Terraza con vistas a los barcos y arroces para dos y cuatro que hay que pedir al reservar. Especialidad en arroz con bogavante.',
-      address:'Rúa Eduardo Cabello 30, Bouzas', hours:'13:00–16:30', phone:'+34 986 24 71 55',
-      times:{ lunch:[['13:30','free'],['14:00','few'],['14:30','free'],['15:00','free']],
-              dinner:[['20:30','free'],['21:00','free']] },
-      menu:[
-        {s:'Para abrir boca', items:[['Navajas a la plancha','—','14€'],['Ensaladilla de la casa','con ventresca','9€']]},
-        {s:'Arroces (mín. 2)', items:[['Arroz con bogavante','por persona','24€'],['Arroz de marisco','por persona','21€'],['Arroz negro con chipirones','por persona','19€']]},
-        {s:'Postre', items:[['Leche frita','—','6€']]}
-      ],
-      revs:[['Sonia R.',5,'Hace 1 semana','El arroz de bogavante espectacular y con vistas al mar. Avisar al reservar que tarda 40 min, merece la espera.'],
-            ['Luis A.',4,'Hace 3 semanas','Muy buen producto. La terraza es una gozada en días de sol.']] }),
-
-    R({ id:'panadeira', name:'A Panadeira', cuisine:'Brunch & Café', cz:cz('cafe'), price:'€€', area:'Areal', city:'Vigo',
-      rating:4.6, reviews:209, match:80, coords:{x:52,y:44}, glyph:'coffee',
-      tags:['Brunch','Café de especialidad','Desayunos'],
-      about:'Café de especialidad y brunch todo el día en un antiguo obrador. Bollería propia, tostas de masa madre, huevos benedictinos y matcha. Mesas junto al ventanal y wifi para quedarse.',
-      address:'Rúa Luís Taboada 18', hours:'09:00–14:00 · brunch finde 09:00–16:00', phone:'+34 986 33 87 02',
-      times:{ lunch:[['10:00','free'],['10:30','few'],['11:00','free'],['11:30','few'],['12:00','free']],
-              dinner:[] },
-      menu:[
-        {s:'Brunch', items:[['Huevos benedictinos','con salmón','12€'],['Tosta de aguacate','huevo poché','10€'],['Pancakes','frutos rojos y sirope','9€']]},
-        {s:'Café', items:[['Flat white','—','2,8€'],['Matcha latte','—','3,5€'],['Filtrado V60','origen del mes','3€']]},
-        {s:'Dulce', items:[['Croissant de almendra','—','3€'],['Roll de canela','—','3,5€']]}
-      ],
-      revs:[['Marta L.',5,'Hace 3 días','El mejor brunch de Vigo. El finde se llena, así que reservar por la app es un salvavidas.'],
-            ['Jorge P.',4,'Hace 1 semana','Café de especialidad de verdad y bollería buenísima. Sitio acogedor.']] }),
-
-    R({ id:'fumeiro', name:'Fumeiro Moderno', cuisine:'Fusión', cz:cz('bistro'), price:'€€€', area:'Centro', city:'Vigo',
-      rating:4.5, reviews:118, match:78, coords:{x:46,y:30}, glyph:'sparkle',
-      tags:['Fusión','Cócteles','Cena tardía'],
-      about:'Bistró de fusión gallego-asiática con coctelería de autor. Platos para compartir que cruzan la brasa gallega con el wok, y una barra de cócteles que aguanta hasta tarde. Luz tenue y música a buen volumen.',
-      address:'Rúa do Príncipe 41, Centro', hours:'20:00–01:00', phone:'+34 986 19 55 60',
-      times:{ lunch:[],
-              dinner:[['20:00','free'],['20:30','few'],['21:00','free'],['21:30','few'],['22:00','free'],['22:30','free']] },
-      menu:[
-        {s:'Para compartir', items:[['Bao de panceta a la brasa','hoisin gallego','7€'],['Tartar de vieira','leche de tigre','15€'],['Gyoza de raxo','—','10€']]},
-        {s:'Platos', items:[['Pulpo al wok','pak choi','18€'],['Costilla glaseada','48h a baja temperatura','19€']]},
-        {s:'Cócteles', items:[['Albariño spritz','—','9€'],['Negroni de loureiro','—','10€']]}
-      ],
-      revs:[['Elsa M.',5,'Hace 6 días','Conceptazo. Los baos a la brasa y los cócteles, top. Para cenar tarde es ideal.'],
-            ['Nico R.',4,'Hace 2 semanas','Original y rico. Algo alto de precio pero la experiencia lo vale.']] })
+  const tables = [
+    { id: 'ft1',  label: '24"×24"',   section: 'sala',    capacity: 2,  status: 'free'     },
+    { id: 'ft2',  label: '24"×30"',   section: 'sala',    capacity: 2,  status: 'occupied' },
+    { id: 'ft3',  label: '30"×72"',   section: 'sala',    capacity: 6,  status: 'occupied' },
+    { id: 'ft4',  label: '72" Round', section: 'redonda', capacity: 10, status: 'reserved' },
+    { id: 'ft5',  label: '30"×30"',   section: 'sala',    capacity: 4,  status: 'free'     },
+    { id: 'ft6',  label: '36"×36"',   section: 'sala',    capacity: 4,  status: 'occupied' },
+    { id: 'ft7',  label: '30"×60"',   section: 'sala',    capacity: 6,  status: 'free'     },
+    { id: 'ft8',  label: '30"×48"',   section: 'sala',    capacity: 4,  status: 'occupied' },
+    { id: 'ft9',  label: '24"×42"',   section: 'sala',    capacity: 4,  status: 'free'     },
+    { id: 'ft10', label: '60" Round', section: 'redonda', capacity: 8,  status: 'free'     },
+    { id: 'ft11', label: '48" Round', section: 'redonda', capacity: 6,  status: 'free'     },
+    { id: 'ft12', label: '42" Round', section: 'redonda', capacity: 5,  status: 'free'     },
+    { id: 'ft13', label: '24" Round', section: 'redonda', capacity: 2,  status: 'free'     },
+    { id: 'ft14', label: '30" Round', section: 'redonda', capacity: 3,  status: 'free'     },
+    { id: 'ft15', label: '36" Round', section: 'redonda', capacity: 4,  status: 'free'     },
   ];
 
-  const CATEGORIES = [
-    {key:'marisco', name:'Marisco', glyph:'fish'},
-    {key:'asador', name:'Asador', glyph:'flame'},
-    {key:'arroz', name:'Arroces', glyph:'pot'},
-    {key:'japones', name:'Japonés', glyph:'fish'},
-    {key:'vegetal', name:'Saludable', glyph:'leaf'},
-    {key:'cafe', name:'Brunch', glyph:'coffee'}
+  const categories = [
+    { id: 'c1', name: 'Entrantes', sort_order: 1 },
+    { id: 'c2', name: 'Principales', sort_order: 2 },
+    { id: 'c3', name: 'Postres', sort_order: 3 },
+    { id: 'c4', name: 'Bebidas', sort_order: 4 },
   ];
 
-  const KW = {
-    'casa-lua':['Marisco','Mariscada','Pescado','Mediterráneo','Romántico'],
-    'el-mirador':['Marisco','Pescado','Vistas','Contemporáneo','Romántico'],
-    'verde':['Vegetariano','Vegano','Saludable','Mercado','Ensaladas'],
-    'o-pulpeiro':['Marisco','Pulpo','Gallego','Grupos','Ribeiro'],
-    'brasa-norte':['Carne','Asador','Brasa','Chuletón','Grupos'],
-    'sakura':['Japonés','Sushi','Marisco','Pescado','Nigiri'],
-    'a-taberna':['Tapas','Vinos','Marisco','Pinchos','Animado'],
-    'arrozal':['Arroces','Marisco','Paella','Bogavante','Vistas'],
-    'panadeira':['Brunch','Café','Desayuno','Saludable','Dulce'],
-    'fumeiro':['Fusión','Cócteles','Asiático','Brasa','Cena tardía']
+  const menu = [
+    { id: 'm1',  category_id: 'c1', name: 'Croquetas caseras',    description: 'Jamón ibérico, bechamel suave',           price: 9.50,  vat_rate: 10, tag: 'popular', available: true,  sold: 41 },
+    { id: 'm2',  category_id: 'c1', name: 'Gambas al ajillo',      description: 'Con guindilla y pan de hogaza',             price: 13.80, vat_rate: 10, tag: 'popular', available: true,  sold: 33 },
+    { id: 'm3',  category_id: 'c1', name: 'Ensalada mixta',        description: 'Tomate, lechuga, aceitunas',                price: 7.20,  vat_rate: 10, tag: 'vegano',  available: true,  sold: 18 },
+    { id: 'm4',  category_id: 'c1', name: 'Pimientos de Padrón',   description: 'Fritos, sal gruesa',                        price: 8.00,  vat_rate: 10, tag: 'vegano',  available: true,  sold: 22 },
+    { id: 'm5',  category_id: 'c1', name: 'Jamón ibérico D.O.',    description: 'Corte a cuchillo, 80g',                     price: 18.50, vat_rate: 10, tag: null,      available: true,  sold: 27 },
+    { id: 'm6',  category_id: 'c1', name: 'Patatas bravas',        description: 'Salsa brava y alioli casero',               price: 7.80,  vat_rate: 10, tag: 'popular', available: true,  sold: 38 },
+    { id: 'm7',  category_id: 'c2', name: 'Cocido madrileño',      description: 'Garbanzos, morcillo, chorizo',              price: 17.50, vat_rate: 10, tag: 'popular', available: true,  sold: 29 },
+    { id: 'm8',  category_id: 'c2', name: 'Paella valenciana',     description: 'Pollo, conejo, judías',                     price: 16.80, vat_rate: 10, tag: null,      available: true,  sold: 24 },
+    { id: 'm9',  category_id: 'c2', name: 'Chuletón de buey',      description: '700g, con patatas y pimientos',             price: 42.00, vat_rate: 10, tag: 'nuevo',   available: true,  sold: 12 },
+    { id: 'm10', category_id: 'c2', name: 'Bacalao al pil-pil',    description: 'Salsa tradicional vasca',                   price: 21.50, vat_rate: 10, tag: null,      available: false, sold: 9  },
+    { id: 'm11', category_id: 'c2', name: 'Pollo asado',           description: 'Medio pollo, limón, tomillo',               price: 14.90, vat_rate: 10, tag: null,      available: true,  sold: 21 },
+    { id: 'm12', category_id: 'c2', name: 'Rabo de toro',          description: 'Estofado, 8 horas de cocción',              price: 19.50, vat_rate: 10, tag: 'popular', available: true,  sold: 26 },
+    { id: 'm13', category_id: 'c3', name: 'Tarta de queso',        description: 'Estilo Basque, coulis de fresa',            price: 6.50,  vat_rate: 10, tag: 'popular', available: true,  sold: 44 },
+    { id: 'm14', category_id: 'c3', name: 'Crema catalana',        description: 'Azúcar quemado al momento',                 price: 5.80,  vat_rate: 10, tag: null,      available: true,  sold: 19 },
+    { id: 'm15', category_id: 'c3', name: 'Torrijas caseras',      description: 'Con miel y canela',                         price: 6.00,  vat_rate: 10, tag: 'nuevo',   available: true,  sold: 15 },
+    // Bebidas — grouped by subcategory
+    { id: 'm16', category_id: 'c4', subcategory: 'agua',       name: 'Agua mineral',          description: '50cl, con o sin gas',                 price: 2.20,  vat_rate: 10, tag: null,      available: true,  sold: 62 },
+    { id: 'mb1', category_id: 'c4', subcategory: 'agua',       name: 'Zumo de naranja natural', description: 'Exprimido al momento',               price: 3.50,  vat_rate: 10, tag: 'nuevo',   available: true,  sold: 24 },
+    { id: 'mb2', category_id: 'c4', subcategory: 'refrescos',  name: 'Coca-Cola',             description: 'Lata 33cl',                           price: 2.80,  vat_rate: 10, tag: null,      available: true,  sold: 41 },
+    { id: 'mb3', category_id: 'c4', subcategory: 'refrescos',  name: 'Fanta Naranja',         description: 'Lata 33cl',                           price: 2.80,  vat_rate: 10, tag: null,      available: true,  sold: 19 },
+    { id: 'mb4', category_id: 'c4', subcategory: 'refrescos',  name: 'Schweppes Limón',       description: 'Lata 33cl',                           price: 2.80,  vat_rate: 10, tag: null,      available: true,  sold: 14 },
+    { id: 'm17', category_id: 'c4', subcategory: 'cervezas',   name: 'Cerveza Mahou',         description: 'Caña 25cl o botella 33cl',            price: 2.50,  vat_rate: 21, tag: 'popular', available: true,  sold: 88 },
+    { id: 'mb5', category_id: 'c4', subcategory: 'cervezas',   name: 'Estrella Damm',         description: 'Botella 33cl',                        price: 2.80,  vat_rate: 21, tag: null,      available: true,  sold: 31 },
+    { id: 'mb6', category_id: 'c4', subcategory: 'cervezas',   name: 'Cerveza sin alcohol',   description: 'Mahou 0,0 botella 33cl',              price: 2.50,  vat_rate: 10, tag: null,      available: true,  sold: 18 },
+    { id: 'm18', category_id: 'c4', subcategory: 'vinos',      name: 'Vino Rioja Crianza',    description: 'Copa 15cl, Marqués de Riscal',        price: 4.50,  vat_rate: 21, tag: 'popular', available: true,  sold: 57 },
+    { id: 'mb7', category_id: 'c4', subcategory: 'vinos',      name: 'Albariño Martín Códax', description: 'Copa 15cl, Rías Baixas',              price: 4.80,  vat_rate: 21, tag: null,      available: true,  sold: 29 },
+    { id: 'mb8', category_id: 'c4', subcategory: 'vinos',      name: 'Cava Freixenet',        description: 'Copa 12cl, brut nature',              price: 5.00,  vat_rate: 21, tag: 'nuevo',   available: true,  sold: 22 },
+    { id: 'mb9', category_id: 'c4', subcategory: 'cocteleria', name: 'Gin-tonic Hendrick\'s', description: 'Con pepino y tónica Fever-Tree',      price: 9.50,  vat_rate: 21, tag: null,      available: true,  sold: 17 },
+    { id: 'mba', category_id: 'c4', subcategory: 'cocteleria', name: 'Mojito',                description: 'Ron Havana, menta, lima',             price: 8.50,  vat_rate: 21, tag: 'popular', available: true,  sold: 23 },
+    { id: 'mbb', category_id: 'c4', subcategory: 'cocteleria', name: 'Aperol Spritz',         description: 'Aperol, cava, naranja',               price: 8.00,  vat_rate: 21, tag: null,      available: true,  sold: 15 },
+    { id: 'm19', category_id: 'c4', subcategory: 'calientes',  name: 'Café solo',             description: 'Granos de tueste natural',            price: 1.80,  vat_rate: 10, tag: null,      available: true,  sold: 73 },
+    { id: 'mbc', category_id: 'c4', subcategory: 'calientes',  name: 'Café con leche',        description: 'Leche fresca, espresso doble',        price: 2.20,  vat_rate: 10, tag: null,      available: true,  sold: 48 },
+    { id: 'mbd', category_id: 'c4', subcategory: 'calientes',  name: 'Té e infusiones',       description: 'Variedad de tés y tisanas',           price: 2.50,  vat_rate: 10, tag: null,      available: true,  sold: 21 },
+  ];
+
+  // EU allergen catalog (icon = Tabler glyph that renders; code = 2-letter fallback chip)
+  const ALLERGENS = [
+    { key: 'gluten',         label: 'Gluten',            icon: 'ti-bread',       code: 'GL', color: '#C8881F' },
+    { key: 'crustaceos',     label: 'Crustáceos',        icon: null,             code: 'CR', color: '#E0613B' },
+    { key: 'huevo',          label: 'Huevo',             icon: 'ti-egg',         code: 'HU', color: '#E3A008' },
+    { key: 'pescado',        label: 'Pescado',           icon: 'ti-fish',        code: 'PE', color: '#2B7FC4' },
+    { key: 'cacahuetes',     label: 'Cacahuetes',        icon: null,             code: 'CA', color: '#B5651D' },
+    { key: 'soja',           label: 'Soja',              icon: 'ti-plant-2',     code: 'SO', color: '#4E944F' },
+    { key: 'lacteos',        label: 'Lácteos',           icon: 'ti-milk',        code: 'LA', color: '#5B8DD9' },
+    { key: 'frutos_cascara', label: 'Frutos de cáscara', icon: 'ti-nut',         code: 'FC', color: '#8B5E34' },
+    { key: 'apio',           label: 'Apio',              icon: 'ti-leaf',        code: 'AP', color: '#6FAE4A' },
+    { key: 'mostaza',        label: 'Mostaza',           icon: 'ti-droplet',     code: 'MO', color: '#D6A50A' },
+    { key: 'sesamo',         label: 'Sésamo',            icon: 'ti-grain',       code: 'SE', color: '#B89150' },
+    { key: 'sulfitos',       label: 'Sulfitos',          icon: 'ti-bottle',      code: 'SU', color: '#8156A8' },
+    { key: 'altramuces',     label: 'Altramuces',        icon: null,             code: 'AL', color: '#C99A1E' },
+    { key: 'moluscos',       label: 'Moluscos',          icon: null,             code: 'ML', color: '#4F8E86' },
+  ];
+
+  // seed allergens onto the menu (kept separate so the literals above stay readable)
+  const ALLERGEN_SEED = {
+    m1: ['gluten', 'lacteos'], m2: ['crustaceos'], m3: [], m4: [], m5: [],
+    m6: ['huevo'], m7: ['apio'], m8: [], m9: [], m10: ['pescado'], m11: [],
+    m12: ['gluten', 'sulfitos'], m13: ['gluten', 'lacteos', 'huevo'],
+    m14: ['lacteos', 'huevo'], m15: ['gluten', 'lacteos', 'huevo'], m16: [],
+    m17: ['gluten'], m18: ['sulfitos'], m19: [],
   };
-  data.forEach(r=>{ r.kw = KW[r.id] || []; });
+  menu.forEach(it => { it.allergens = ALLERGEN_SEED[it.id] || []; });
 
-  // area centroids (for manual-address fallback) + distance helper
-  const AREAS = {};
-  data.forEach(r=>{ if(!AREAS[r.area]) AREAS[r.area]=r.coords; });
-  function distKm(coords, ref){
-    const dx=coords.x-ref.x, dy=coords.y-ref.y;
-    return Math.round(Math.sqrt(dx*dx+dy*dy)*0.09*10)/10; // ~0–6 km
-  }
-  // resolve a typed address to a reference point (matches a known área, else Vigo centre)
-  function geocode(text){
-    if(!text) return {x:50,y:50};
-    const t=text.toLowerCase();
-    for(const a in AREAS){ if(t.includes(a.toLowerCase())) return AREAS[a]; }
-    return {x:50,y:50};
-  }
+  const staff = [
+    { id: 's1', name: 'Miguel García', role: 'Jefe de cocina', pin: '1234', initials: 'MG', color: '#D8552E', color_bg: '#F6E3DB', email: 'miguel@bodegoncentral.es', access: 'Administrador' },
+    { id: 's2', name: 'Laura Romero', role: 'Camarera', pin: '2345', initials: 'LR', color: '#7C3AED', color_bg: '#EDE9FE', email: 'laura@bodegoncentral.es', access: 'Camarero' },
+    { id: 's3', name: 'Diego Blanco', role: 'Cocinero', pin: '3456', initials: 'DB', color: '#0369A1', color_bg: '#DBEAFE', email: 'diego@bodegoncentral.es', access: 'Cocina' },
+    { id: 's4', name: 'Sofía Ruiz', role: 'Ayudante cocina', pin: '4567', initials: 'SR', color: '#B45309', color_bg: '#FEF3C7', email: 'sofia@bodegoncentral.es', access: 'Cocina' },
+    { id: 's5', name: 'Andrés Pérez', role: 'Barman', pin: '5678', initials: 'AP', color: '#D8552E', color_bg: '#F6E3DB', email: 'andres@bodegoncentral.es', access: 'Camarero' },
+    { id: 's6', name: 'José Morales', role: 'Maître', pin: '6789', initials: 'JM', color: '#7C3AED', color_bg: '#EDE9FE', email: 'jose@bodegoncentral.es', access: 'Encargado' },
+    { id: 's7', name: 'Paula Navarro', role: 'Camarera', pin: '7890', initials: 'PN', color: '#B45309', color_bg: '#FEF3C7', email: 'paula@bodegoncentral.es', access: 'Camarero' },
+    { id: 's8', name: 'Ricardo López', role: 'Cocinero', pin: '8901', initials: 'RL', color: '#0369A1', color_bg: '#DBEAFE', email: 'ricardo@bodegoncentral.es', access: 'Cocina' },
+  ];
 
-  window.UM_DATA = data;
-  window.UM_CATEGORIES = CATEGORIES;
-  window.UM_AREAS = AREAS;
-  window.UM_DIST = distKm;
-  window.UM_GEOCODE = geocode;
+  const admin = { name: 'Carlos Méndez', role: 'Administrador', initials: 'CM', email: 'carlos@bodegoncentral.es' };
+
+  const dailySales = [
+    { date: iso(addDays(-6)), total_revenue: 1820.00, total_orders: 48, avg_ticket: 37.92, covers: 52, table_turns: 1.8 },
+    { date: iso(addDays(-5)), total_revenue: 2480.00, total_orders: 64, avg_ticket: 38.75, covers: 68, table_turns: 2.2 },
+    { date: iso(addDays(-4)), total_revenue: 1560.00, total_orders: 41, avg_ticket: 38.05, covers: 44, table_turns: 1.5 },
+    { date: iso(addDays(-3)), total_revenue: 3100.00, total_orders: 80, avg_ticket: 38.75, covers: 86, table_turns: 2.8 },
+    { date: iso(addDays(-2)), total_revenue: 2200.00, total_orders: 57, avg_ticket: 38.60, covers: 61, table_turns: 2.1 },
+    { date: iso(addDays(-1)), total_revenue: 3600.00, total_orders: 92, avg_ticket: 39.13, covers: 98, table_turns: 3.2 },
+    { date: iso(addDays(0)),  total_revenue: 2840.00, total_orders: 74, avg_ticket: 38.38, covers: 79, table_turns: 2.4 },
+  ];
+
+  // reservations — seeded relative to today
+  const reservations = [
+    { id:'r1',  customer_name:'Familia Serrano',    customer_phone:'+34 612 334 556', pax:6,  time:'13:30:00', status:'confirmed',   table:'30"×72"',   notes:'Sin gluten para niña pequeña', allergy_alert:'Glúten' },
+    { id:'r2',  customer_name:'Ana Belén García',   customer_phone:'+34 655 221 003', pax:2,  time:'14:00:00', status:'confirmed',   table:'24"×30"',   notes:'', allergy_alert:'' },
+    { id:'r3',  customer_name:'Grupo Iberdrola',    customer_phone:'+34 91 555 0199', pax:10, time:'14:00:00', status:'unconfirmed', table:'72" Round', notes:'Comida de empresa, factura', allergy_alert:'' },
+    { id:'r4',  customer_name:'Javier Domínguez',  customer_phone:'+34 600 778 221', pax:4,  time:'14:30:00', status:'confirmed',   table:'36"×36"',   notes:'', allergy_alert:'' },
+    { id:'r4b', customer_name:'Carlos Fuentes',     customer_phone:'+34 677 221 004', pax:2,  time:'16:30:00', status:'confirmed',   table:'24"×30"',   notes:'', allergy_alert:'' },
+    { id:'r4c', customer_name:'Grupo Repsol',       customer_phone:'+34 91 777 0100', pax:5,  time:'17:00:00', status:'confirmed',   table:'30"×60"',   notes:'Reunión de trabajo', allergy_alert:'' },
+    { id:'r5',  customer_name:'Montserrat Boix',    customer_phone:'+34 934 667 001', pax:2,  time:'20:00:00', status:'confirmed',   table:'24"×24"',   notes:'', allergy_alert:'' },
+    { id:'r6',  customer_name:'Club Rotario Madrid',customer_phone:'+34 91 442 5500', pax:8,  time:'15:00:00', status:'confirmed',   table:'60" Round', notes:'Reserva anual del club', allergy_alert:'' },
+    { id:'r7',  customer_name:'Familia López',      customer_phone:'+34 666 119 221', pax:4,  time:'20:30:00', status:'unconfirmed', table:'30"×48"',   notes:'', allergy_alert:'' },
+    { id:'r8',  customer_name:'Pedro Ramírez',      customer_phone:'+34 644 119 003', pax:2,  time:'21:00:00', status:'unconfirmed', table:'24"×42"',   notes:'', allergy_alert:'Celíaco' },
+    { id:'r9',  customer_name:'Cumpleaños Miriam',  customer_phone:'+34 611 998 007', pax:5,  time:'21:00:00', status:'confirmed',   table:'48" Round', notes:'Tarta sorpresa', allergy_alert:'' },
+    { id:'r10', customer_name:'Reunión Accenture',  customer_phone:'+34 91 882 0041', pax:6,  time:'21:30:00', status:'confirmed',   table:'30"×72"',   notes:'', allergy_alert:'' },
+    { id:'r11', customer_name:'Pareja Aniversario', customer_phone:'+34 655 003 771', pax:2,  time:'21:30:00', status:'confirmed',   table:'24"×24"',   notes:'Velas y flores', allergy_alert:'' },
+    { id:'r12', customer_name:'Cena Empresa TVC',   customer_phone:'+34 93 555 1100', pax:8,  time:'22:00:00', status:'confirmed',   table:'72" Round', notes:'', allergy_alert:'' },
+  ];
+  reservations.forEach(r => { r.date = iso(today); });
+  const extra = [
+    { id:'r13', customer_name:'Nuria Castro',        customer_phone:'+34 655 882 014', pax:2,  time:'21:00:00', status:'unconfirmed', table:'',           notes:'', allergy_alert:'', date:iso(addDays(1)) },
+    { id:'r14', customer_name:'Conf. Anual Mapfre',  customer_phone:'+34 91 581 1000', pax:10, time:'14:00:00', status:'confirmed',   table:'72" Round', notes:'Menú cerrado', allergy_alert:'', date:iso(addDays(3)) },
+    { id:'r15', customer_name:'Bautizo Martín',      customer_phone:'+34 600 332 109', pax:6,  time:'14:00:00', status:'confirmed',   table:'60" Round', notes:'Menú infantil x2', allergy_alert:'', date:iso(addDays(2)) },
+    { id:'r16', customer_name:'Hugo Ferrer',         customer_phone:'+34 633 110 558', pax:3,  time:'21:30:00', status:'unconfirmed', table:'',           notes:'', allergy_alert:'', date:iso(addDays(2)) },
+    { id:'r17', customer_name:'Cena antiguos alumnos',customer_phone:'+34 91 200 9911',pax:10, time:'21:00:00', status:'confirmed',   table:'48" Round', notes:'', allergy_alert:'', date:iso(addDays(4)) },
+  ];
+  reservations.push(...extra);
+
+  // kitchen tickets (active) — minutes ago sent
+  const mkTime = (minsAgo) => { const d = new Date(today); d.setMinutes(d.getMinutes() - minsAgo); return d.toISOString(); };
+  const kitchen = [
+    { id:'k1A2F', table_label:'30"×72"',   pax:6, status:'cooking', sent_at:mkTime(42), offset:42*60, items:[
+      { id:'ki001', quantity:2, name:'Croquetas caseras',  status:'ready'   },
+      { id:'ki002', quantity:3, name:'Gambas al ajillo',    status:'cooking' },
+      { id:'ki003', quantity:1, name:'Patatas bravas',      status:'pending' },
+    ]},
+    { id:'k2C8A', table_label:'60" Round',  pax:8, status:'ready',   sent_at:mkTime(28), offset:28*60, items:[
+      { id:'ki004', quantity:2, name:'Paella valenciana',   status:'ready'   },
+      { id:'ki005', quantity:2, name:'Cocido madrileño',    status:'ready'   },
+    ]},
+    { id:'k3F1D', table_label:'36"×36"',   pax:4, status:'pending', sent_at:mkTime(8),  offset:8*60,  items:[
+      { id:'ki006', quantity:1, name:'Chuletón de buey',    status:'pending' },
+      { id:'ki007', quantity:1, name:'Rabo de toro',         status:'pending' },
+    ]},
+    { id:'k4B9C', table_label:'30"×48"',   pax:4, status:'cooking', sent_at:mkTime(15), offset:15*60, items:[
+      { id:'ki008', quantity:2, name:'Bacalao al pil-pil',  status:'cooking' },
+      { id:'ki009', quantity:2, name:'Ensalada mixta',       status:'ready'   },
+    ]},
+    { id:'k5D2E', table_label:'24"×42"',   pax:2, status:'pending', sent_at:mkTime(3),  offset:3*60,  items:[
+      { id:'ki010', quantity:1, name:'Jamón ibérico D.O.',  status:'pending' },
+      { id:'ki011', quantity:2, name:'Pimientos de Padrón', status:'pending' },
+    ]},
+  ];
+  // store seconds-elapsed offset so timers can be re-based on each app boot (stays sensible after reload)
+  kitchen.forEach(t => { t.offset = Math.round((today.getTime() - new Date(t.sent_at).getTime()) / 1000); });
+
+  // open orders per occupied table for TPV
+  const orders = {
+    t1: [ { id: 'oi1', name: 'Croquetas caseras', price: 9.50, quantity: 2 }, { id: 'oi2', name: 'Vino Rioja Crianza', price: 4.50, quantity: 2 }, { id: 'oi3', name: 'Rabo de toro', price: 19.50, quantity: 2 } ],
+    t2: [ { id: 'oi4', name: 'Gambas al ajillo', price: 13.80, quantity: 1 }, { id: 'oi5', name: 'Bacalao al pil-pil', price: 21.50, quantity: 1 }, { id: 'oi6', name: 'Agua mineral', price: 2.20, quantity: 2 } ],
+    t7: [ { id: 'oi7', name: 'Croquetas caseras', price: 9.50, quantity: 3 }, { id: 'oi8', name: 'Cocido madrileño', price: 17.50, quantity: 2 }, { id: 'oi9', name: 'Paella valenciana', price: 16.80, quantity: 1 }, { id: 'oi10', name: 'Cerveza Mahou', price: 2.50, quantity: 4 } ],
+    t13: [ { id: 'oi11', name: 'Chuletón de buey', price: 42.00, quantity: 4 }, { id: 'oi12', name: 'Patatas bravas', price: 7.80, quantity: 6 }, { id: 'oi13', name: 'Vino Rioja Crianza', price: 4.50, quantity: 8 } ],
+  };
+
+  // weekly rota
+  const shiftTypes = ['morning', 'afternoon', 'night', 'off', 'leave'];
+  const rotaPattern = {
+    s1: ['morning', 'morning', 'morning', 'off', 'morning', 'morning', 'night'],
+    s2: ['afternoon', 'night', 'night', 'afternoon', 'off', 'night', 'night'],
+    s3: ['morning', 'morning', 'off', 'morning', 'morning', 'afternoon', 'off'],
+    s4: ['afternoon', 'afternoon', 'afternoon', 'leave', 'leave', 'afternoon', 'morning'],
+    s5: ['night', 'off', 'night', 'night', 'night', 'night', 'afternoon'],
+    s6: ['morning', 'afternoon', 'afternoon', 'afternoon', 'afternoon', 'off', 'morning'],
+    s7: ['off', 'afternoon', 'night', 'night', 'afternoon', 'afternoon', 'night'],
+    s8: ['morning', 'off', 'morning', 'morning', 'off', 'morning', 'morning'],
+  };
+  const shiftHours = { morning: 8, afternoon: 6, night: 6, off: 0, leave: 0 };
+
+  // clock-in state today
+  const clockState = { s1: 'in', s2: 'in', s3: 'break', s4: 'out', s5: 'in', s6: 'in', s7: 'out', s8: 'in' };
+  const clockIn = { s1: '08:45', s2: '12:50', s3: '08:30', s5: '19:40', s6: '09:05', s8: '08:55' };
+
+  const leave = [
+    { id: 'l1', staff_id: 's4', start_date: iso(addDays(2)), end_date: iso(addDays(3)), days: 2, reason: 'Asuntos propios', status: 'pending' },
+    { id: 'l2', staff_id: 's7', start_date: iso(addDays(10)), end_date: iso(addDays(17)), days: 8, reason: 'Vacaciones', status: 'approved' },
+    { id: 'l3', staff_id: 's2', start_date: iso(addDays(-4)), end_date: iso(addDays(-4)), days: 1, reason: 'Cita médica', status: 'approved' },
+    { id: 'l4', staff_id: 's5', start_date: iso(addDays(20)), end_date: iso(addDays(27)), days: 8, reason: 'Vacaciones', status: 'pending' },
+  ];
+
+  // payment method split (today)
+  const payments = [
+    { method: 'Tarjeta', value: 1932, pct: 68, icon: 'ti-credit-card' },
+    { method: 'Efectivo', value: 596, pct: 21, icon: 'ti-coins' },
+    { method: 'Bizum', value: 312, pct: 11, icon: 'ti-device-mobile' },
+  ];
+
+  // ── price helper (kitchen history totals) ──────────────────────────
+  const priceOf = (name) => { const m = menu.find(x => x.name === name); return m ? m.price : 0; };
+  const ticketTotal = (items) => items.reduce((s, i) => s + priceOf(i.name) * i.quantity, 0);
+
+  // ── kitchen history (served / cancelled comandas — the "papelera") ──
+  const histItems = (arr) => arr.map((x, i) => ({ id: 'hi' + Math.random().toString(36).slice(2, 7), quantity: x[0], name: x[1], status: 'served' }));
+  const kitchenHistory = [
+    { id: 'h1', table_label: '36"×36"', pax: 4, outcome: 'served', sent_at: mkTime(142), closed_at: mkTime(118), items: histItems([[1, 'Paella valenciana'], [2, 'Croquetas caseras'], [4, 'Cerveza Mahou']]) },
+    { id: 'h2', table_label: '60" Round', pax: 3, outcome: 'served', sent_at: mkTime(128), closed_at: mkTime(100), items: histItems([[3, 'Cocido madrileño'], [1, 'Tarta de queso'], [3, 'Vino Rioja Crianza']]) },
+    { id: 'h3', table_label: '24"×24"', pax: 2, outcome: 'served', sent_at: mkTime(96), closed_at: mkTime(74), items: histItems([[2, 'Rabo de toro'], [2, 'Croquetas caseras'], [2, 'Agua mineral']]) },
+    { id: 'h4', table_label: '30"×48"', pax: 4, outcome: 'cancelled', sent_at: mkTime(88), closed_at: mkTime(82), items: histItems([[1, 'Chuletón de buey'], [2, 'Patatas bravas']]) },
+    { id: 'h5', table_label: '30"×60"', pax: 2, outcome: 'served', sent_at: mkTime(64), closed_at: mkTime(41), items: histItems([[2, 'Bacalao al pil-pil'], [1, 'Crema catalana'], [2, 'Café solo']]) },
+    { id: 'h6', table_label: '42" Round', pax: 6, outcome: 'served', sent_at: mkTime(40), closed_at: mkTime(18), items: histItems([[3, 'Pollo asado'], [2, 'Ensalada mixta'], [6, 'Cerveza Mahou'], [3, 'Torrijas caseras']]) },
+  ];
+  kitchenHistory.forEach(t => { t.total = ticketTotal(t.items); t.sent_offset = Math.round((today.getTime() - new Date(t.sent_at).getTime()) / 1000); t.closed_offset = Math.round((today.getTime() - new Date(t.closed_at).getTime()) / 1000); });
+
+  // ── stock / inventory (Stocktake tab) ──────────────────────────────
+  const stock = [
+    { id: 'sk1',  name: 'Solomillo de buey',    category: 'Carne',    unit: 'kg',  qty: 14.5, par: 18, cost: 23.50 },
+    { id: 'sk2',  name: 'Pollo de corral',      category: 'Carne',    unit: 'ud',  qty: 22,   par: 20, cost: 5.80 },
+    { id: 'sk3',  name: 'Morcillo de ternera',  category: 'Carne',    unit: 'kg',  qty: 6.2,  par: 12, cost: 11.40 },
+    { id: 'sk4',  name: 'Gambas frescas',       category: 'Pescado',  unit: 'kg',  qty: 3.1,  par: 8,  cost: 18.90 },
+    { id: 'sk5',  name: 'Bacalao desalado',     category: 'Pescado',  unit: 'kg',  qty: 9.0,  par: 10, cost: 16.20 },
+    { id: 'sk6',  name: 'Mejillones',           category: 'Pescado',  unit: 'kg',  qty: 11.5, par: 10, cost: 4.30 },
+    { id: 'sk7',  name: 'Patata',               category: 'Verdura',  unit: 'kg',  qty: 38,   par: 30, cost: 0.95 },
+    { id: 'sk8',  name: 'Tomate maduro',        category: 'Verdura',  unit: 'kg',  qty: 7.4,  par: 15, cost: 1.80 },
+    { id: 'sk9',  name: 'Pimiento de Padrón',   category: 'Verdura',  unit: 'kg',  qty: 4.8,  par: 6,  cost: 6.50 },
+    { id: 'sk10', name: 'Garbanzo cocido',      category: 'Despensa', unit: 'kg',  qty: 19,   par: 15, cost: 2.10 },
+    { id: 'sk11', name: 'Arroz bomba',          category: 'Despensa', unit: 'kg',  qty: 24,   par: 20, cost: 3.40 },
+    { id: 'sk12', name: 'Aceite de oliva V.E.', category: 'Despensa', unit: 'L',   qty: 16,   par: 25, cost: 8.90 },
+    { id: 'sk13', name: 'Harina de trigo',      category: 'Despensa', unit: 'kg',  qty: 12,   par: 10, cost: 0.85 },
+    { id: 'sk14', name: 'Queso curado',         category: 'Lácteos',  unit: 'kg',  qty: 5.5,  par: 6,  cost: 12.60 },
+    { id: 'sk15', name: 'Leche entera',         category: 'Lácteos',  unit: 'L',   qty: 28,   par: 24, cost: 0.92 },
+    { id: 'sk16', name: 'Vino Rioja Crianza',   category: 'Bodega',   unit: 'bot', qty: 42,   par: 36, cost: 6.20 },
+    { id: 'sk17', name: 'Cerveza Mahou',        category: 'Bodega',   unit: 'bot', qty: 9,    par: 48, cost: 0.75 },
+    { id: 'sk18', name: 'Agua mineral 50cl',    category: 'Bodega',   unit: 'bot', qty: 64,   par: 60, cost: 0.35 },
+  ];
+
+  // hourly sales (today) — comida & cena services
+  const hourly = [
+    { hour: '13h', value: 380 }, { hour: '14h', value: 720 }, { hour: '15h', value: 540 },
+    { hour: '16h', value: 120 }, { hour: '17h', value: 60 }, { hour: '18h', value: 40 },
+    { hour: '19h', value: 90 }, { hour: '20h', value: 310 }, { hour: '21h', value: 480 },
+    { hour: '22h', value: 100 },
+  ];
+
+  window.DATA = {
+    venue, tables, categories, menu, staff, admin, dailySales, reservations, ALLERGENS,
+    kitchen, kitchenHistory, stock, orders, rotaPattern, shiftHours, clockState, clockIn, leave,
+    payments, hourly, priceOf, ticketTotal,
+    today, iso, addDays, pad,
+    TIMES: (() => { const out = []; for (let h = 13; h <= 23; h++) { out.push(pad(h) + ':00'); out.push(pad(h) + ':30'); } return out; })(),
+  };
 })();
