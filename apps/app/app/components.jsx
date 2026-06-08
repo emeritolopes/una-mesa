@@ -123,7 +123,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
         React.createElement('nav', { className:'hdr-nav', style:{marginLeft:'auto'} },
           React.createElement('a', { className:'hdr-link', onClick:()=>go('concierge') }, 'Conserje IA'),
           React.createElement('a', { className:'hdr-link', onClick:()=>go('results') }, 'Explorar'),
-          React.createElement('a', { className:'hdr-link', href:'Una Mesa Restaurantes.html' }, 'Para restaurantes'),
+          React.createElement('a', { className:'hdr-link', href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, 'Para restaurantes'),
           React.createElement('button', { className:'icon-btn', title:'Modo claro/oscuro', onClick:onTheme },
             React.createElement(Icon,{name: theme==='noche'?'sun':'moon'})),
           user
@@ -144,7 +144,7 @@ function Footer() {
       React.createElement('div', { className:'foot-in' },
         React.createElement('span', null, '© 2026 Una Mesa · La mesa que siempre te espera'),
         React.createElement('div', { className:'foot-links' },
-          React.createElement('a', { href:'Una Mesa Restaurantes.html' }, 'Para restaurantes'),
+          React.createElement('a', { href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, 'Para restaurantes'),
           React.createElement('a', { href:'#' }, 'Ayuda'),
           React.createElement('a', { href:'#' }, 'Privacidad'),
           React.createElement('a', { href:'#' }, 'Términos')
