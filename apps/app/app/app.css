@@ -881,3 +881,125 @@ input,select,textarea{font-family:inherit}
   .nearby-card{height:200px}
   .nb-name{font-size:16px}
 }
+
+/* ══════════════════════════════════════════
+   Results screen · Stitch redesign
+   ══════════════════════════════════════════ */
+
+/* ── Hero header ── */
+.res-hero{
+  background:linear-gradient(180deg,var(--bg-3) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--line-2);
+  padding:48px 0 36px;
+}
+.res-hero-inner{display:flex;flex-direction:column;gap:6px}
+.res-eyebrow{
+  font-size:11.5px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);
+}
+.res-hero-row{
+  display:flex;align-items:baseline;gap:14px;
+  flex-wrap:wrap;margin:4px 0 0;
+}
+.res-h1{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(28px,4vw,48px);font-weight:700;
+  letter-spacing:-.01em;line-height:1.1;
+}
+
+/* count badge */
+.res-count-pill{
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);border-radius:100px;
+  padding:5px 14px;font-size:12.5px;font-weight:700;white-space:nowrap;
+  align-self:center;
+}
+
+/* AI panel replaces old .aibanner in results */
+.res-ai-panel{
+  margin-top:22px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:var(--accent-soft);
+  border:1px solid var(--accent-line);
+  border-radius:18px;padding:16px 22px;
+}
+.res-ai-left{display:flex;align-items:center;gap:13px;flex:1;min-width:0}
+.res-ai-ico{
+  width:38px;height:38px;border-radius:12px;
+  background:var(--accent);color:var(--on-accent);
+  display:grid;place-items:center;flex-shrink:0;
+}
+.res-ai-ico svg{width:19px;height:19px}
+.res-ai-body{min-width:0}
+.res-ai-label{font-size:14.5px;font-weight:800;margin-bottom:2px}
+.res-ai-sub{font-size:12.5px;color:var(--muted);line-height:1.4}
+.res-clear-btn{
+  background:var(--bg-2);color:var(--text);
+  border:1.5px solid var(--line);border-radius:100px;
+  padding:8px 18px;font-size:13px;font-weight:700;
+  white-space:nowrap;flex-shrink:0;font-family:inherit;
+  transition:border-color .15s,background .15s;
+}
+.res-clear-btn:hover{border-color:var(--accent-line);color:var(--accent)}
+
+/* ── Filter sidebar · pill style ── */
+.res-fgroup{display:flex;flex-direction:column;gap:10px}
+.res-flabel{
+  font-size:11px;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);
+}
+.res-fpills{display:flex;flex-direction:column;gap:7px}
+.res-fpills-wrap{flex-direction:row;flex-wrap:wrap;gap:6px}
+.res-fpill{
+  background:var(--bg-2);border:1.5px solid var(--line);
+  border-radius:100px;padding:7px 16px;
+  font-size:13.5px;font-weight:600;color:var(--text);
+  text-align:left;transition:border-color .15s,color .15s,background .15s;
+  cursor:pointer;font-family:inherit;
+}
+.res-fpill:hover{border-color:var(--accent-line);color:var(--accent)}
+.res-fpill.on{
+  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
+}
+
+/* ── Sort pills ── */
+.res-sort-wrap{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.res-sort-pill{
+  background:var(--bg-2);border:1.5px solid var(--line);
+  border-radius:100px;padding:8px 18px;
+  font-size:13px;font-weight:700;color:var(--muted);
+  transition:all .15s;cursor:pointer;font-family:inherit;
+  white-space:nowrap;
+}
+.res-sort-pill:hover{color:var(--text);border-color:var(--dim)}
+.res-sort-pill.on{
+  background:var(--text);border-color:var(--text);color:var(--bg);
+}
+
+/* ── Empty state ── */
+.res-empty{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:80px 24px;text-align:center;gap:12px;
+}
+.res-empty-ico{
+  width:56px;height:56px;border-radius:18px;
+  background:var(--bg-3);border:1px solid var(--line);
+  display:grid;place-items:center;color:var(--dim);
+}
+.res-empty-ico svg{width:26px;height:26px}
+.res-empty-msg{font-size:16px;color:var(--muted)}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .res-sort-pill{padding:7px 13px;font-size:12px}
+  .res-sort-wrap{gap:6px}
+}
+@media(max-width:700px){
+  .res-hero{padding:32px 0 24px}
+  .res-h1{font-size:28px}
+  .res-ai-panel{flex-direction:column;align-items:flex-start}
+  .res-clear-btn{align-self:flex-end}
+}
