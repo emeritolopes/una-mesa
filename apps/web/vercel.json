@@ -1,0 +1,3 @@
+{
+  "redirects": [{ "source": "/(.*)", "destination": "https://app.unamesa.co/$1", "permanent": false }]
+}
