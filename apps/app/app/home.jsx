@@ -36,14 +36,13 @@ function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist }) {
   );
 }
 
-/* card del bento grid — no se exporta a window, solo usada en HomeScreen */
+/* bento card — sección Selección de la semana */
 function BentoCard({ r, big, onOpen }) {
   const bg = 'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')';
   return React.createElement('div', {
     className: 'stitch-bento-card'+(big?'':' small'),
     onClick: () => onOpen(r.id)
   },
-    /* fondo con gradiente + grain + glyph + image-slot */
     React.createElement('div', { className:'stitch-bento-bg', style:{ background:bg } },
       React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.10) 1px,transparent 1px)', backgroundSize:'14px 14px' } }),
       React.createElement('div', { style:{ position:'absolute', inset:0, display:'grid', placeItems:'center' } },
@@ -51,9 +50,7 @@ function BentoCard({ r, big, onOpen }) {
       ),
       React.createElement('image-slot', { id:'bento-'+r.id, shape:'rect', placeholder:'' })
     ),
-    /* overlay gradient de abajo hacia arriba */
     React.createElement('div', { className:'stitch-bento-overlay' }),
-    /* info en la parte inferior */
     React.createElement('div', { className:'stitch-bento-info' },
       React.createElement('div', null,
         React.createElement('p', { className:'stitch-bento-sub' }, r.cuisine+' · '+r.area),
@@ -64,11 +61,34 @@ function BentoCard({ r, big, onOpen }) {
   );
 }
 
+/* nearby card — sección Disponible hoy (bento pequeño con título visible) */
+function NearbyCard({ r, dist, onOpen }) {
+  const bg = 'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')';
+  return React.createElement('div', { className:'nearby-card', onClick:()=>onOpen(r.id) },
+    React.createElement('div', { className:'nb-bg', style:{ background:bg } },
+      React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.08) 1px,transparent 1px)', backgroundSize:'12px 12px' } }),
+      React.createElement('div', { style:{ position:'absolute', inset:0, display:'grid', placeItems:'center' } },
+        React.createElement(Icon, { name:r.glyph, style:{ width:'38%', height:'38%', color:'rgba(255,255,255,.10)' } })
+      ),
+      React.createElement('image-slot', { id:'nearby-'+r.id, shape:'rect', placeholder:'' })
+    ),
+    React.createElement('div', { className:'nb-overlay' }),
+    React.createElement('div', { className:'nb-info' },
+      React.createElement('div', { className:'nb-name' }, r.name),
+      React.createElement('div', { className:'nb-meta' }, r.cuisine+(dist!=null?' · a '+dist+' km':' · '+r.area))
+    ),
+    React.createElement('div', { className:'nb-pill' }, r.rating.toFixed(1)+' ★')
+  );
+}
+
 /* ════ HomeScreen ════ */
 function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation }) {
   const [q, setQ] = useState('');
   const [ai, setAi] = useState('');
   const [addr, setAddr] = useState('');
+  const [selParty, setSelParty] = useState(2);
+  const [selTime, setSelTime] = useState('');
+
   const data = window.UM_DATA;
   const ref = (geo && geo.ref) || {x:50,y:50};
   const withDist = [...data].map(r=>({ r, d: window.UM_DIST(r.coords, ref) }));
@@ -76,14 +96,24 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
   const byRating = [...data].sort((a,b)=>b.rating-a.rating);
   const byMatch  = [...data].sort((a,b)=>b.match-a.match);
   const aiPicks  = byMatch.slice(0,3);
-  const nearby   = [...withDist].sort((a,b)=>a.d-b.d).slice(0,3);
+  const nearby   = [...withDist].sort((a,b)=>a.d-b.d).slice(0,4);
 
-  const heroChips = ['Con terraza','Romántico','Marisco','Grupos','Brunch','Vegetariano'];
+  /* restaurante destacado (top rated) */
+  const dest       = byRating[0];
+  const destTimes  = [...(dest.times.dinner||[]), ...(dest.times.lunch||[])].slice(0,6);
+  const destMenu   = dest.menu && dest.menu[0] ? dest.menu[0].items.slice(0,3) : [];
+
+  const heroChips    = ['Con terraza','Romántico','Marisco','Grupos','Brunch','Vegetariano'];
   const aiSuggestions = ['Cerca de mí','Mesa para grupos','Con terraza','Sin gluten'];
 
   const submit     = e => { e.preventDefault(); search(q); };
   const submitAi   = e => { e.preventDefault(); if(ai.trim()) askConcierge(ai); };
   const submitAddr = e => { e.preventDefault(); if(addr.trim()) setManualLocation(addr.trim()); };
+  const confirmBook = () => {
+    const t = selTime || (destTimes[0] && destTimes[0][0]);
+    if(t) startBook(dest.id, t, selParty);
+    else openRest(dest.id);
+  };
 
   return React.createElement('div', { className:'view' },
 
@@ -91,20 +121,13 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
        1. HERO  —  fondo oscuro + Playfair h1 + glass search
     ═══════════════════════════════════════ */
     React.createElement('section', { className:'stitch-hero' },
-      /* fondo oscuro con blobs de brillo coral */
       React.createElement('div', { className:'stitch-hero-bg' },
         React.createElement('div', { className:'stitch-hero-blob b1' }),
         React.createElement('div', { className:'stitch-hero-blob b2' }),
-        /* grain sutil */
         React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px)', backgroundSize:'18px 18px', zIndex:0 } })
       ),
-
       React.createElement('div', { className:'stitch-hero-content' },
-        /* eyebrow */
-        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(255,87,51,.85)', marginBottom:'18px', display:'block' } },
-          'Reserva en Vigo'),
-
-        /* headline principal en Playfair Display */
+        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(255,87,51,.85)', marginBottom:'18px', display:'block' } }, 'Reserva en Vigo'),
         React.createElement('h1', {
           className:'display',
           style:{ fontSize:'clamp(52px,8vw,88px)', color:'#FAFAFA', marginBottom:'40px', letterSpacing:'-.02em', lineHeight:1.02 }
@@ -112,25 +135,14 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           'La mesa que ',
           React.createElement('span', { style:{ color:'var(--accent)' } }, 'te espera'),
           '.'),
-
-        /* barra de búsqueda glass */
         React.createElement('form', { className:'stitch-search', onSubmit:submit },
           React.createElement(Icon, { name:'search', style:{ width:20, height:20, color:'rgba(250,250,250,.50)', flexShrink:0 } }),
-          React.createElement('input', {
-            value:q, onChange:e=>setQ(e.target.value),
-            placeholder:'Restaurante, cocina, zona…'
-          }),
+          React.createElement('input', { value:q, onChange:e=>setQ(e.target.value), placeholder:'Restaurante, cocina, zona…' }),
           React.createElement('button', { type:'submit', className:'stitch-search-btn' }, 'Buscar')
         ),
-
-        /* chips de filtro rápido */
         React.createElement('div', { className:'stitch-chips' },
-          heroChips.map((c,i)=>React.createElement('button', {
-            key:i, className:'stitch-chip', type:'button', onClick:()=>search(c)
-          }, c))
+          heroChips.map((c,i)=>React.createElement('button', { key:i, className:'stitch-chip', type:'button', onClick:()=>search(c) }, c))
         ),
-
-        /* barra de geolocalización — dark variant */
         (geo && geo.status==='granted')
           ? React.createElement('div', { className:'stitch-loc' },
               React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
@@ -145,10 +157,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
         (geo && geo.status==='denied')
           ? React.createElement('form', { className:'stitch-loc', onSubmit:submitAddr },
               React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
-              React.createElement('input', {
-                value:addr, onChange:e=>setAddr(e.target.value),
-                placeholder:'Escribe tu dirección…'
-              }),
+              React.createElement('input', { value:addr, onChange:e=>setAddr(e.target.value), placeholder:'Escribe tu dirección…' }),
               React.createElement('button', { type:'submit', className:'stitch-loc-btn' }, 'Usar'))
           : null
       )
@@ -159,7 +168,6 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     ═══════════════════════════════════════ */
     React.createElement('section', { className:'stitch-bento-section' },
       React.createElement('div', { className:'wrap' },
-        /* cabecera de sección */
         React.createElement('div', { className:'stitch-sec-head' },
           React.createElement('div', null,
             React.createElement('span', { className:'stitch-eyebrow-coral' }, 'Curaduría'),
@@ -168,7 +176,6 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           React.createElement('button', { type:'button', className:'stitch-ver-todos', onClick:()=>go('results') },
             'Ver todos ', React.createElement(Icon,{ name:'arrow', style:{ width:16, height:16 } }))
         ),
-        /* bento 2/3 + 1/3 */
         React.createElement('div', { className:'stitch-bento-grid' },
           React.createElement(BentoCard, { r:byRating[0], big:true, onOpen:openRest }),
           React.createElement(BentoCard, { r:byRating[1], big:false, onOpen:openRest })
@@ -177,17 +184,88 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     ),
 
     /* ═══════════════════════════════════════
-       3. CONSERJE DIGITAL  —  sección fondo oscuro
+       3. DESTACADO  —  info restaurante + foto plato + widget reserva
+       Stitch: bg-desert-sand/30, grid 2/3 + 1/3
+    ═══════════════════════════════════════ */
+    React.createElement('section', { className:'detail-section' },
+      React.createElement('div', { className:'wrap' },
+        React.createElement('div', { className:'detail-grid' },
+
+          /* ── columna izquierda: info + menú + foto ── */
+          React.createElement('div', null,
+            /* eyebrow tags */
+            React.createElement('div', { className:'detail-tags' },
+              React.createElement('span', { className:'detail-tag-pill' }, 'Destacado'),
+              React.createElement('span', { className:'detail-tag-avail' }, 'Disponible hoy')
+            ),
+            /* nombre del restaurante */
+            React.createElement('h2', { className:'display detail-h2', onClick:()=>openRest(dest.id), style:{ cursor:'pointer' } }, dest.name),
+            /* descripción */
+            React.createElement('p', { className:'detail-about' }, dest.about),
+            /* grid menú + foto */
+            React.createElement('div', { className:'detail-inner-grid' },
+              /* destacados del menú */
+              React.createElement('div', null,
+                React.createElement('h4', { className:'detail-menu-title' }, 'Destacados del Menú'),
+                destMenu.map(([name,,price],i)=>
+                  React.createElement('div', { key:i, className:'detail-menu-item' },
+                    React.createElement('span', { className:'detail-menu-name' }, name),
+                    React.createElement('span', { className:'detail-menu-price' }, price)
+                  )
+                )
+              ),
+              /* foto del plato (placeholder con gradiente) */
+              React.createElement('div', { className:'detail-food-ph' },
+                React.createElement(Photo, { cz:dest.cz, glyph:dest.glyph, slotId:'dest-dish-'+dest.id, style:{ height:'100%' } })
+              )
+            )
+          ),
+
+          /* ── columna derecha: glass booking card ── */
+          React.createElement('div', { className:'booking-glass' },
+            React.createElement('h3', { className:'display' }, 'Reserva tu mesa'),
+            /* invitados */
+            React.createElement('span', { className:'bk-gl-label' }, 'Invitados'),
+            React.createElement('div', { className:'party-row' },
+              [1,2,3,4,'5+'].map((n,i)=>
+                React.createElement('button', {
+                  key:i, type:'button',
+                  className: 'party-btn'+(selParty===(i+1)?' on':''),
+                  onClick: ()=>setSelParty(i+1)
+                }, n)
+              )
+            ),
+            /* horarios */
+            React.createElement('span', { className:'bk-gl-label' }, 'Horarios disponibles'),
+            React.createElement('div', { className:'ts-grid' },
+              destTimes.map(([t,st],i)=>
+                React.createElement('button', {
+                  key:i, type:'button',
+                  className: 'ts-btn'+(selTime===t?' on':'')+(st==='full'?' full':''),
+                  onClick: ()=>{ if(st!=='full') setSelTime(t); }
+                }, t)
+              )
+            ),
+            /* nota depósito */
+            React.createElement('div', { className:'deposit-note' },
+              React.createElement(Icon,{ name:'info', style:{ width:16, height:16, color:'var(--accent)' } }),
+              React.createElement('span', null, 'Reserva con depósito reembolsable de ', React.createElement('b', null, '10 €'), ' para garantizar tu mesa.')
+            ),
+            /* confirmar */
+            React.createElement('button', { className:'book-cta', onClick:confirmBook }, 'Confirmar Reserva')
+          )
+        )
+      )
+    ),
+
+    /* ═══════════════════════════════════════
+       4. CONSERJE DIGITAL  —  sección fondo oscuro
     ═══════════════════════════════════════ */
     React.createElement('section', { className:'stitch-ai-section' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'stitch-ai-inner' },
-
           React.createElement('span', { className:'stitch-ai-eyebrow' }, 'Servicio Personalizado'),
-
           React.createElement('h2', { className:'display stitch-ai-h2' }, 'Conserje Digital'),
-
-          /* cita del asistente */
           React.createElement('div', { className:'stitch-quote' },
             React.createElement('div', { className:'stitch-quote-ico' },
               React.createElement(Icon, { name:'sparkle', style:{ width:18, height:18, color:'var(--accent)' } })
@@ -195,8 +273,6 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
             React.createElement('p', { className:'stitch-quote-text' },
               '"¿Buscas algo especial para esta noche? Describe tu antojo, el ambiente o la ocasión y te encuentro la mesa perfecta."')
           ),
-
-          /* textarea con borde inferior + botón enviar */
           React.createElement('form', { className:'stitch-ai-form', onSubmit:submitAi },
             React.createElement('textarea', {
               className:'stitch-ai-textarea',
@@ -207,8 +283,6 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
               React.createElement(Icon, { name:'arrow', style:{ width:24, height:24 } })
             )
           ),
-
-          /* chips de sugerencia */
           React.createElement('div', { className:'stitch-ai-chips' },
             aiSuggestions.map((s,i)=>React.createElement('button', {
               key:i, type:'button', className:'stitch-ai-chip', onClick:()=>askConcierge(s)
@@ -219,14 +293,13 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     ),
 
     /* ═══════════════════════════════════════
-       4. RECOMENDADO PARA TI  —  grid de tarjetas
+       5. RECOMENDADO PARA TI  —  grid de tarjetas
     ═══════════════════════════════════════ */
     React.createElement('section', { className:'stitch-picks-section' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'sec-head' },
           React.createElement('h2', { className:'display' }, 'Recomendado para ti'),
-          React.createElement('span', { className:'lnk', onClick:()=>go('results') },
-            'Ver más ', React.createElement(Icon,{name:'arrow'}))
+          React.createElement('span', { className:'lnk', onClick:()=>go('results') }, 'Ver más ', React.createElement(Icon,{name:'arrow'}))
         ),
         React.createElement('div', { className:'rgrid' },
           aiPicks.map(r=>React.createElement(RestaurantCard, {
@@ -237,18 +310,17 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     ),
 
     /* ═══════════════════════════════════════
-       5. MÁS CERCA DE TI  —  grid con distancia
+       6. DISPONIBLE HOY  —  bento pequeño con título visible
     ═══════════════════════════════════════ */
-    React.createElement('section', { style:{ background:'var(--bg-2)', padding:'0 0 72px' } },
+    React.createElement('section', { className:'dispo-section' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'sec-head' },
-          React.createElement('h2', { className:'display' }, 'Más opciones cerca de ti'),
-          React.createElement('span', { className:'lnk', onClick:()=>go('results') },
-            'Ver todo ', React.createElement(Icon,{name:'arrow'}))
+          React.createElement('h2', { className:'display' }, 'Disponible hoy'),
+          React.createElement('span', { className:'lnk', onClick:()=>go('results') }, 'Ver todo ', React.createElement(Icon,{name:'arrow'}))
         ),
-        React.createElement('div', { className:'rgrid' },
-          nearby.map(({r,d})=>React.createElement(RestaurantCard, {
-            key:r.id, r, fav:favs.includes(r.id), onFav:toggleFav, onOpen:openRest, onBook:startBook, dist:d
+        React.createElement('div', { className:'nearby-grid' },
+          nearby.map(({r,d})=>React.createElement(NearbyCard, {
+            key:r.id, r, dist:d, onOpen:openRest
           }))
         )
       )
