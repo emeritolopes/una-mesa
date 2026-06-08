@@ -115,6 +115,41 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     else openRest(dest.id);
   };
 
+  /* ── Geolocalización + reverse geocoding (Nominatim OSM) ── */
+  const [geoLoading, setGeoLoading] = useState(false);
+
+  const requestGeo = () => {
+    if (!('geolocation' in navigator)) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude +
+            '&lon=' + longitude + '&addressdetails=1&accept-language=es',
+            { headers: { 'User-Agent': 'una-mesa-app/1.0' } }
+          );
+          const json = await res.json();
+          const a = json.address || {};
+          const label = a.neighbourhood || a.suburb || a.city_district ||
+                        a.city || a.town || a.village || a.county || 'tu zona';
+          setManualLocation(label);
+        } catch (_) {
+          setManualLocation('tu ubicación');
+        }
+        setGeoLoading(false);
+      },
+      () => setGeoLoading(false),
+      { timeout: 10000, maximumAge: 300000 }
+    );
+  };
+
+  /* cuando app.jsx ya ha obtenido permiso en el background, reverse-geocodifica */
+  useEffect(() => {
+    if (geo.status === 'granted') requestGeo();
+  }, [geo.status]);
+
   return React.createElement('div', { className:'view' },
 
     /* ═══════════════════════════════════════
@@ -143,22 +178,35 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
         React.createElement('div', { className:'stitch-chips' },
           heroChips.map((c,i)=>React.createElement('button', { key:i, className:'stitch-chip', type:'button', onClick:()=>search(c) }, c))
         ),
-        (geo && geo.status==='granted')
+        /* ── barra de ubicación: idle → botón GPS | loading → spinner | manual → ciudad | denied → texto ── */
+        geoLoading
           ? React.createElement('div', { className:'stitch-loc' },
-              React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
-              'Cerca de ', React.createElement('b', null, 'tu ubicación actual'))
-          : null,
-        (geo && geo.status==='manual')
-          ? React.createElement('div', { className:'stitch-loc' },
-              React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
-              'Cerca de ', React.createElement('b', null, geo.label),
-              React.createElement('button', { className:'stitch-loc-btn', style:{ marginLeft:'auto' }, onClick:()=>setManualLocation('') }, 'cambiar'))
-          : null,
-        (geo && geo.status==='denied')
-          ? React.createElement('form', { className:'stitch-loc', onSubmit:submitAddr },
-              React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
-              React.createElement('input', { value:addr, onChange:e=>setAddr(e.target.value), placeholder:'Escribe tu dirección…' }),
-              React.createElement('button', { type:'submit', className:'stitch-loc-btn' }, 'Usar'))
+              React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0, opacity:.55 } }),
+              React.createElement('span', { style:{ opacity:.65 } }, 'Detectando ubicación…'))
+          : (!geo || geo.status==='idle')
+            ? React.createElement('button', {
+                type:'button', className:'stitch-loc', onClick:requestGeo,
+                style:{ cursor:'pointer', background:'none', border:'none', fontFamily:'inherit' }
+              },
+                React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
+                'Usar mi ubicación')
+          : (geo.status==='granted')
+            ? React.createElement('div', { className:'stitch-loc' },
+                React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0, opacity:.55 } }),
+                React.createElement('span', { style:{ opacity:.65 } }, 'Detectando ubicación…'))
+          : (geo.status==='manual')
+            ? React.createElement('div', { className:'stitch-loc' },
+                React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
+                'Cerca de ', React.createElement('b', null, geo.label),
+                React.createElement('button', {
+                  type:'button', className:'stitch-loc-btn', style:{ marginLeft:'auto' }, onClick:requestGeo
+                }, 'actualizar'))
+          : (geo.status==='denied')
+            ? React.createElement('form', { className:'stitch-loc', onSubmit:submitAddr },
+                React.createElement(Icon,{ name:'pin', style:{ width:15, height:15, color:'var(--accent)', flexShrink:0 } }),
+                React.createElement('input', { value:addr, onChange:e=>setAddr(e.target.value), placeholder:'Escribe tu dirección…' }),
+                React.createElement('button', { type:'button', className:'stitch-loc-btn', onClick:requestGeo, style:{ marginRight:'4px' } }, '⊕'),
+                React.createElement('button', { type:'submit', className:'stitch-loc-btn' }, 'Usar'))
           : null
       )
     ),

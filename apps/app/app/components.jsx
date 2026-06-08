@@ -121,24 +121,14 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
     React.createElement('div', { className:'wrap' },
       React.createElement('div', { className:'hdr-in' },
 
-        /* ── Logo + Wordmark "Una Mesa" ── */
+        /* ── Logo imagen ── */
         React.createElement('div', { className:'brand', onClick:()=>go('home') },
-          React.createElement('svg', {
-            width:28, height:28, viewBox:'0 0 24 24',
-            fill:'none', stroke:'currentColor', strokeWidth:1.75,
-            strokeLinecap:'round', strokeLinejoin:'round',
-            'aria-hidden':'true', style:{flexShrink:0}
-          },
-            /* tenedor: 2 dientes + mango */
-            React.createElement('path', { d:'M6.5 3v3.5M9.5 3v3.5' }),
-            React.createElement('path', { d:'M6.5 6.5c0 1.2 3 1.2 3 0' }),
-            React.createElement('path', { d:'M8 7.7V21' }),
-            /* plato: elipse central */
-            React.createElement('ellipse', { cx:12, cy:13.5, rx:3, ry:1.9 }),
-            /* cuchillo: hoja curva + mango recto */
-            React.createElement('path', { d:'M16.5 3c-2.5 1-2.5 5 0 6.5V21' })
-          ),
-          React.createElement('b', null, 'Una ', React.createElement('span', null, 'Mesa'))
+          React.createElement('img', {
+            src:'../../assets/logo/una-mesa-logo.png',
+            alt:'Una Mesa',
+            height:28,
+            style:{ display:'block', filter:'brightness(0)', flexShrink:0 }
+          })
         ),
 
         /* ── Links de navegación izquierda ── */
