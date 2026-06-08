@@ -97,39 +97,75 @@ function Toast({ msg }) {
   );
 }
 
-/* ── Header (search reveals on scroll) ── */
+/* ── Header · Stitch navbar (glass, wordmark, underline-active links) ── */
 function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }) {
   const [scrolled, setScrolled] = useState(false);
   const [q, setQ] = useState('');
+  const inputRef = useRef(null);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 300);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive:true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-  const submit = e => { e.preventDefault(); if (q.trim()) { onSearch(q.trim()); } };
+
+  const submit = e => { e.preventDefault(); if (q.trim()) onSearch(q.trim()); };
+  const v = route && route.view ? route.view : route;
+  const lnk = (view, label) => React.createElement('a', {
+    className: 'hdr-link' + (v === view ? ' on' : ''),
+    onClick: () => go(view)
+  }, label);
+
   return React.createElement('header', { className:'hdr' },
     React.createElement('div', { className:'wrap' },
       React.createElement('div', { className:'hdr-in' },
+
+        /* ── Wordmark "Una Mesa" — Manrope 800, negro, sin icono ── */
         React.createElement('div', { className:'brand', onClick:()=>go('home') },
-          React.createElement('span',{className:'mk'}),
           React.createElement('b', null, 'Una ', React.createElement('span', null, 'Mesa'))
         ),
-        React.createElement('form', { className:'hdr-search'+(scrolled?' show':''), onSubmit:submit, role:'search', 'aria-hidden': !scrolled },
-          React.createElement(Icon,{name:'search'}),
-          React.createElement('input', { value:q, onChange:e=>setQ(e.target.value), tabIndex: scrolled?0:-1,
-            placeholder:'Busca restaurante, cocina o zona…' })
+
+        /* ── Links de navegación izquierda ── */
+        React.createElement('nav', { className:'hdr-links' },
+          lnk('home',      'Descubrir'),
+          lnk('results',   'Explorar'),
+          lnk('concierge', 'Conserje IA'),
+          React.createElement('a', {
+            className:'hdr-link',
+            href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener'
+          }, 'Para restaurantes')
         ),
-        React.createElement('nav', { className:'hdr-nav', style:{marginLeft:'auto'} },
-          React.createElement('a', { className:'hdr-link', onClick:()=>go('concierge') }, 'Conserje IA'),
-          React.createElement('a', { className:'hdr-link', onClick:()=>go('results') }, 'Explorar'),
-          React.createElement('a', { className:'hdr-link', href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, 'Para restaurantes'),
-          React.createElement('button', { className:'icon-btn', title:'Modo claro/oscuro', onClick:onTheme },
-            React.createElement(Icon,{name: theme==='noche'?'sun':'moon'})),
+
+        /* ── Barra de búsqueda: se revela al hacer scroll ── */
+        React.createElement('form', {
+          className: 'hdr-search' + (scrolled ? ' show' : ''),
+          onSubmit: submit, role:'search', 'aria-hidden': String(!scrolled)
+        },
+          React.createElement(Icon, { name:'search' }),
+          React.createElement('input', {
+            ref: inputRef,
+            value:q, onChange:e=>setQ(e.target.value), tabIndex:scrolled?0:-1,
+            placeholder:'Busca restaurante, cocina o zona…'
+          })
+        ),
+
+        /* ── Acciones derecha: buscar · tema · usuario ── */
+        React.createElement('div', { className:'hdr-nav' },
+          React.createElement('button', {
+            className:'icon-btn', title:'Buscar',
+            onClick:() => { if (scrolled && inputRef.current) inputRef.current.focus(); else go('results'); }
+          }, React.createElement(Icon, { name:'search' })),
+
+          React.createElement('button', {
+            className:'icon-btn', title:theme==='noche'?'Modo claro':'Modo oscuro', onClick:onTheme
+          }, React.createElement(Icon, { name:theme==='noche'?'sun':'moon' })),
+
           user
             ? React.createElement('button', { className:'avatar-btn', onClick:onProfile },
-                React.createElement('span',{className:'av'}, user.name[0].toUpperCase()),
-                React.createElement('span',{className:'nm'}, user.name.split(' ')[0]))
+                React.createElement('span', { className:'av' }, user.name[0].toUpperCase()),
+                React.createElement('span', { className:'nm' }, user.name.split(' ')[0])
+              )
             : React.createElement('button', { className:'btn btn-acc btn-sm', onClick:onAuth }, 'Crear perfil')
         )
       )

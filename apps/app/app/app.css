@@ -102,13 +102,9 @@ input,select,textarea{font-family:inherit}
   background:color-mix(in srgb,var(--bg) 82%,transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--line-2)}
-.hdr-in{display:flex;align-items:center;gap:18px;height:68px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em;cursor:pointer;flex:none}
-.brand .mk{width:32px;height:32px;border-radius:9px;flex:none;position:relative;
-  background:var(--accent);display:grid;place-items:center;box-shadow:0 4px 14px var(--glow)}
-.brand .mk::before{content:"";position:absolute;left:8px;right:8px;top:9px;height:3px;border-radius:2px;background:var(--on-accent)}
-.brand .mk::after{content:"";position:absolute;left:8px;right:8px;bottom:8px;top:15px;border:2.5px solid var(--on-accent);border-top:none;border-radius:0 0 7px 7px}
-.brand b{font-weight:800}.brand b span{color:var(--accent)}
+.hdr-in{display:flex;align-items:center;gap:18px;height:80px}
+.brand{display:flex;align-items:center;font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text);cursor:pointer;flex:none;user-select:none;background:none;border:none;padding:0}
+.brand b{font-weight:800;color:var(--text)}.brand b span{color:var(--text)}
 /* nav search — slides in on scroll */
 .hdr-search{flex:0 1 380px;max-width:0;display:flex;align-items:center;gap:9px;
   background:var(--glass);border:1px solid transparent;border-radius:100px;padding:9px 0;
@@ -120,19 +116,26 @@ input,select,textarea{font-family:inherit}
 .hdr-search svg{width:17px;height:17px;color:var(--muted);flex:none}
 .hdr-search input{flex:1;border:none;background:none;color:var(--text);font-size:14.5px;outline:none}
 .hdr-search input::placeholder{color:var(--dim)}
-.hdr-nav{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
-.hdr-link{font-size:14.5px;font-weight:600;color:var(--muted);padding:8px 12px;border-radius:10px;transition:color .15s}
+.hdr-links{display:flex;align-items:center;gap:28px;margin-left:24px}
+.hdr-nav{display:flex;align-items:center;gap:4px;margin-left:auto;flex:none}
+/* nav links — Stitch: sin fondo, solo borde inferior activo */
+.hdr-link{font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:600;color:var(--muted);
+  padding:4px 0;background:none;border:none;border-bottom:2px solid transparent;
+  cursor:pointer;transition:color .2s,border-color .2s;text-decoration:none;display:inline-block;white-space:nowrap}
 .hdr-link:hover{color:var(--text)}
-.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
-  background:transparent;border:1px solid var(--line);color:var(--text);transition:all .15s}
-.icon-btn:hover{border-color:var(--accent-line);color:var(--accent)}
-.icon-btn svg{width:18px;height:18px}
-.avatar-btn{display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;
-  border-radius:100px;background:var(--bg-2);border:1px solid var(--line);transition:all .15s}
-.avatar-btn:hover{border-color:var(--accent-line)}
+.hdr-link.on{color:var(--text);border-bottom-color:var(--accent)}
+/* icon buttons — sin borde, circulares */
+.icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:transparent;border:none;color:var(--muted);cursor:pointer;transition:color .2s,background .2s}
+.icon-btn:hover{color:var(--text);background:rgba(26,22,18,.06)}
+.icon-btn svg{width:20px;height:20px}
+/* avatar + nombre */
+.avatar-btn{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;
+  border-radius:100px;background:transparent;border:1px solid var(--line);cursor:pointer;transition:all .15s}
+.avatar-btn:hover{background:var(--bg-2);border-color:var(--line)}
 .avatar-btn .av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);
   display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
-.avatar-btn .nm{font-size:13.5px;font-weight:700}
+.avatar-btn .nm{font-size:13.5px;font-weight:700;color:var(--text)}
 
 /* ── mobile menu ── */
 .hdr-burger{display:none}
@@ -713,6 +716,7 @@ input,select,textarea{font-family:inherit}
 }
 @media(max-width:720px){
   .hdr-search{display:none!important}
+  .hdr-links{display:none}
   .hdr-link{display:none}
   .rgrid,.rgrid.g4{grid-template-columns:repeat(2,1fr)}
   .gallery{grid-template-columns:1fr 1fr;height:300px}
