@@ -3,7 +3,7 @@
 /* ── intent parser (local, always works) ── */
 function parseIntent(text){
   const t = ' ' + text.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u0303\u0308]/g,'') + ' '; // strip accents (keep ñ)
+    .normalize('NFD').replace(/[̀-̃̈]/g,'') + ' '; // strip accents (keep ñ)
   let party = null;
   const numWords = { un:1, una:1, dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10 };
   // "pareja" always means 2 — check first so it wins over "una"
@@ -111,7 +111,7 @@ async function getReply(intent, picks){
   const local = templatedReply(intent, picks);
   if (!(window.claude && typeof window.claude.complete === 'function')) return local;
   const list = picks.slice(0,3).map(r=>`${r.name} (${r.cuisine}, ${r.area}, ${r.price})`).join('; ');
-  const prompt = `Eres el conserje de Una Mesa, una app de reservas de restaurantes en VIGO (Galicia). 
+  const prompt = `Eres el conserje de Una Mesa, una app de reservas de restaurantes en VIGO (Galicia).
 El usuario pidió: "${intent.raw}".
 Restaurantes que he seleccionado para él (usa SOLO estos, no inventes otros): ${list}.
 Responde en español, cálido y muy breve (máximo 2 frases). Resume qué has entendido (nº de personas, dieta, zona u ocasión si los mencionó) y presenta las opciones por su nombre. Si pidió una ciudad distinta de Vigo, acláralo con amabilidad (solo operamos en Vigo). No uses listas ni markdown, solo texto.`;
@@ -126,7 +126,7 @@ Responde en español, cálido y muy breve (máximo 2 frases). Resume qué has en
   } catch(e){ return local; }
 }
 
-/* ── Conserje screen ── */
+/* ════ Conserje screen · Stitch dark redesign ════ */
 function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, go }){
   const [msgs, setMsgs] = useState([
     { who:'ai', text:'¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta en Vigo.' }
@@ -155,14 +155,12 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
     setBusy(true);
     const intent = parseIntent(q);
     const picks = matchRestaurants(intent).slice(0,4);
-    // small delay so the "thinking" animation reads as the AI working
     await new Promise(r=>setTimeout(r, 700));
     const reply = await getReply(intent, picks);
     setMsgs(m => [...m, { who:'ai', text: reply, picks, intent }]);
     setBusy(false);
   }
 
-  /* seed from the home input, once */
   useEffect(()=>{
     if (!seeded.current && initialQuery && initialQuery.trim()){
       seeded.current = true;
@@ -174,63 +172,101 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
 
   return React.createElement('div', { className:'view cc-view' },
     React.createElement('div', { className:'wrap cc-wrap' },
+
+      /* ── Header ── */
       React.createElement('div', { className:'cc-head' },
         React.createElement('span', { className:'eyebrow' }, 'Conserje IA'),
-        React.createElement('h1', { className:'display' }, 'Dime qué te apetece y ', React.createElement('span',{className:'hl'},'yo reservo'), '.'),
-        React.createElement('p', { className:'muted' }, 'Pregunta con tus palabras — ocasión, personas, dieta, zona o presupuesto. El conserje entiende y te trae la mesa.')
+        React.createElement('h1', { className:'display' },
+          'Dime qué te apetece y ',
+          React.createElement('span',{className:'hl'},'yo reservo'),
+          '.'
+        ),
+        React.createElement('p', null,
+          'Pregunta con tus palabras — ocasión, personas, dieta, zona o presupuesto. El conserje entiende y te trae la mesa.'
+        )
       ),
+
+      /* ── Chat panel ── */
       React.createElement('div', { className:'cc-panel' },
+
+        /* Scroll area */
         React.createElement('div', { className:'cc-scroll', ref:scrollRef },
-          msgs.map((mm,i)=>React.createElement(ConciergeMsg, {
+          msgs.map((mm,i) => React.createElement(ConciergeMsg, {
             key:i, m:mm, openRest, favs, toggleFav, startBook
           })),
           busy ? React.createElement('div',{className:'cc-msg ai'},
-            React.createElement('div',{className:'cc-ava'},React.createElement(Icon,{name:'sparkle',fill:'currentColor'})),
+            React.createElement('div',{className:'cc-ava'},
+              React.createElement(Icon,{name:'sparkle',fill:'currentColor'})),
             React.createElement('div',{className:'cc-bub thinking'},
-              React.createElement('span',{className:'tdot'}),React.createElement('span',{className:'tdot'}),React.createElement('span',{className:'tdot'}))
+              React.createElement('span',{className:'tdot'}),
+              React.createElement('span',{className:'tdot'}),
+              React.createElement('span',{className:'tdot'}))
           ) : null
         ),
+
+        /* Suggestion chips */
         React.createElement('div', { className:'cc-examples' },
-          examples.map((ex,i)=>React.createElement('button',{ key:i, className:'chip', onClick:()=>ask(ex), disabled:busy }, ex))),
+          examples.map((ex,i) => React.createElement('button',{
+            key:i, className:'chip', onClick:()=>ask(ex), disabled:busy
+          }, ex))
+        ),
+
+        /* Input form — editorial border-bottom, icon send button */
         React.createElement('form', { className:'cc-input', onSubmit:submit },
           React.createElement(Icon,{ name:'sparkle' }),
-          React.createElement('input', { value:input, onChange:e=>setInput(e.target.value),
-            placeholder:'Escribe lo que te apetece…', disabled:busy, autoFocus:true }),
-          React.createElement('button', { className:'btn btn-acc', type:'submit', disabled:busy || !input.trim() },
-            busy ? 'Buscando…' : 'Preguntar')
+          React.createElement('input', {
+            value:input, onChange:e=>setInput(e.target.value),
+            placeholder:'Escribe lo que te apetece…', disabled:busy, autoFocus:true
+          }),
+          React.createElement('button', {
+            type:'submit',
+            className:'cc-send-btn',
+            disabled: busy || !input.trim(),
+            title: busy ? 'Buscando…' : 'Enviar'
+          },
+            React.createElement(Icon,{name:'arrow',style:{width:22,height:22}})
+          )
         )
       )
     )
   );
 }
 
-/* a single chat row (bubble + optional result cards) */
+/* ── A single chat row: bubble + optional result cards ── */
 function ConciergeMsg({ m, openRest, favs, toggleFav, startBook }){
   if (m.who === 'me')
     return React.createElement('div', { className:'cc-msg me' },
       React.createElement('div', { className:'cc-bub' }, m.text));
+
   const intent = m.intent || {};
   const presetParty = intent.party || null;
-  // map the parsed time-of-day to a concrete first available slot
   const slotFor = r => {
     const wantLunch = intent.time === 'comida';
     const pool = wantLunch ? (r.times.lunch||[]) : (r.times.dinner||r.times.lunch||[]);
     const free = pool.find(t=>Array.isArray(t)? t[1]!=='full' : true);
     return Array.isArray(free) ? free[0] : (free || null);
   };
+
   return React.createElement('div', { className:'cc-msg ai' },
-    React.createElement('div', { className:'cc-ava' }, React.createElement(Icon,{name:'sparkle',fill:'currentColor'})),
+    React.createElement('div', { className:'cc-ava' },
+      React.createElement(Icon,{name:'sparkle',fill:'currentColor'})),
     React.createElement('div', { className:'cc-ai-col' },
       React.createElement('div', { className:'cc-bub' }, m.text),
       (m.picks && m.picks.length) ? React.createElement('div', { className:'cc-results' },
-        m.picks.map((r,i)=>React.createElement('div', {
-            key:r.id, className:'cc-card-wrap', style:{ animationDelay:(i*90)+'ms' } },
+        m.picks.map((r,i) => React.createElement('div', {
+          key:r.id, className:'cc-card-wrap', style:{ animationDelay:(i*90)+'ms' }
+        },
           React.createElement(window.RestaurantCard, {
-            r, fav:favs.includes(r.id), onFav:toggleFav, onOpen:openRest, onBook:startBook, showMatch:true }),
-          React.createElement('button', { className:'cc-book btn btn-acc',
-            onClick:()=>startBook(r.id, slotFor(r), presetParty) },
+            r, fav:favs.includes(r.id), onFav:toggleFav,
+            onOpen:openRest, onBook:startBook, showMatch:true
+          }),
+          React.createElement('button', {
+            className:'cc-book btn btn-acc',
+            onClick:()=>startBook(r.id, slotFor(r), presetParty)
+          },
             React.createElement(Icon,{name:'cal'}),
-            presetParty ? ('Reservar para '+presetParty) : 'Reservar ahora')
+            presetParty ? ('Reservar para '+presetParty) : 'Reservar ahora'
+          )
         ))
       ) : null
     )

@@ -1245,3 +1245,144 @@ input,select,textarea{font-family:inherit}
   .bk-step-dot{width:28px;height:28px;font-size:12px}
   .bk-step-line{margin-top:13px}
 }
+
+/* ══════════════════════════════════════════
+   Concierge screen · Stitch dark redesign
+   All rules override originals by cascade
+   ══════════════════════════════════════════ */
+
+/* ── Dark full-page background ── */
+.cc-view{
+  background:#121212;
+  color:#FAFAFA;
+}
+[data-theme="noche"] .cc-view{background:#0A0A0A}
+
+/* ── Wrap & header: centered, generous ── */
+.cc-wrap{max-width:860px;padding-top:64px;padding-bottom:72px}
+.cc-head{
+  text-align:center;margin-bottom:48px;
+}
+.cc-head .eyebrow{color:#FF5733}
+.cc-head h1{
+  font-size:clamp(36px,5.5vw,64px);
+  letter-spacing:-.025em;line-height:1.08;
+  margin:14px 0 16px;color:#FAFAFA;
+}
+.cc-head p{
+  font-size:17px;font-style:italic;
+  color:rgba(250,250,250,.55);
+  max-width:520px;margin:0 auto;line-height:1.7;
+}
+
+/* ── Panel: transparent on dark bg ── */
+.cc-panel{
+  background:transparent;
+  border:none;box-shadow:none;border-radius:0;padding:0;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+
+/* ── Chat scroll area ── */
+.cc-scroll{
+  padding:0 0 32px;background:transparent;gap:24px;
+}
+
+/* ── AI bubble: glassmorphism on dark ── */
+.cc-msg.ai .cc-bub{
+  background:rgba(250,250,250,.07);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(250,250,250,.12);
+  color:#FAFAFA;font-size:15px;line-height:1.6;
+}
+
+/* ── User bubble: coral ── */
+.cc-msg.me .cc-bub{
+  background:#FF5733;color:#FFF5F2;
+}
+
+/* ── Avatar: coral ring on dark ── */
+.cc-ava{
+  background:rgba(255,87,51,.14);
+  border:1px solid rgba(255,87,51,.30);
+  color:#FF5733;
+  box-shadow:none;
+}
+
+/* ── Thinking dots: bright on dark ── */
+.cc-view .tdot{
+  background:rgba(250,250,250,.45);
+}
+
+/* ── Suggestion chips: italic glass ── */
+.cc-examples{padding:0 0 8px}
+.cc-examples .chip{
+  background:transparent;
+  border:1px solid rgba(250,250,250,.16);
+  color:rgba(250,250,250,.58);
+  font-style:italic;
+  font-size:13px;
+}
+.cc-examples .chip:hover:not(:disabled){
+  background:rgba(250,250,250,.07);
+  border-color:rgba(250,250,250,.32);
+  color:#FAFAFA;
+}
+
+/* ── Input: editorial border-bottom only ── */
+.cc-input{
+  border-top:none;
+  border-bottom:2px solid rgba(250,250,250,.12);
+  padding:20px 0 26px;margin-top:4px;
+  transition:border-color .22s;
+}
+.cc-input:focus-within{
+  border-bottom-color:#FF5733;
+}
+.cc-input>svg{
+  color:#FF5733;width:22px;height:22px;
+}
+.cc-input input{
+  font-size:17px;color:#FAFAFA;
+  font-style:italic;
+}
+.cc-input input::placeholder{
+  color:rgba(250,250,250,.30);font-style:italic;
+}
+.cc-input input:disabled{opacity:.5}
+
+/* ── Send icon button ── */
+.cc-send-btn{
+  background:none;border:none;
+  color:#FF5733;cursor:pointer;
+  display:grid;place-items:center;
+  padding:6px;flex-shrink:0;
+  transition:transform .16s,opacity .16s;
+}
+.cc-send-btn:hover:not(:disabled){
+  transform:translateX(4px);
+}
+.cc-send-btn:disabled{opacity:.28;cursor:not-allowed}
+
+/* ── Restaurant cards: dark glass wrapper ── */
+.cc-card-wrap{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:22px;overflow:hidden;
+  padding:0;
+}
+.cc-card-wrap .rcard{
+  border-radius:20px 20px 0 0;
+  border:none;box-shadow:none;
+  margin:0;
+}
+.cc-book{
+  border-radius:0 0 20px 20px;
+  margin-top:0;
+}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+  .cc-wrap{padding-top:40px;padding-bottom:48px}
+  .cc-head h1{font-size:clamp(28px,7vw,40px)}
+  .cc-head p{font-size:15px}
+}
