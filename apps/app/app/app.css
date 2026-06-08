@@ -729,3 +729,86 @@ input,select,textarea{font-family:inherit}
   .bk-card{padding:22px 18px}
   .daygrid,.dow-row{gap:4px}
 }
+
+/* ════ HOME · Stitch design sections ════ */
+
+/* ── Hero oscuro ── */
+.stitch-hero{position:relative;min-height:88vh;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:80px 0}
+.stitch-hero-bg{position:absolute;inset:0;z-index:0;background:linear-gradient(160deg,#1a0d08 0%,#2e1410 42%,#0d0505 100%)}
+.stitch-hero-blob{position:absolute;border-radius:50%;pointer-events:none}
+.stitch-hero-blob.b1{width:700px;height:700px;top:-220px;right:-120px;background:radial-gradient(circle,rgba(255,87,51,.10),transparent 65%);filter:blur(70px)}
+.stitch-hero-blob.b2{width:550px;height:550px;bottom:-170px;left:-120px;background:radial-gradient(circle,rgba(255,87,51,.07),transparent 65%);filter:blur(70px)}
+.stitch-hero-content{position:relative;z-index:2;text-align:center;max-width:880px;padding:0 24px;width:100%}
+
+/* glass search bar in hero */
+.stitch-search{display:flex;align-items:center;gap:12px;background:rgba(250,250,250,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(250,250,250,.20);border-radius:100px;padding:8px 8px 8px 24px;max-width:680px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.stitch-search input{flex:1;border:none;background:none;outline:none;font-size:16px;color:#FAFAFA;font-family:inherit}
+.stitch-search input::placeholder{color:rgba(250,250,250,.45)}
+.stitch-search-btn{background:#FAFAFA;color:#1A1411;border:none;border-radius:100px;padding:13px 26px;font-weight:700;font-size:15px;cursor:pointer;flex-shrink:0;font-family:inherit;transition:transform .16s,box-shadow .16s}
+.stitch-search-btn:hover{transform:scale(1.03);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+
+/* filter chips in hero */
+.stitch-chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+.stitch-chip{background:rgba(250,250,250,.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(250,250,250,.18);border-radius:100px;padding:8px 18px;color:#FAFAFA;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s}
+.stitch-chip:hover{background:rgba(250,250,250,.22);border-color:rgba(250,250,250,.35)}
+
+/* geo bar on dark hero */
+.stitch-loc{display:flex;align-items:center;gap:9px;margin:16px auto 0;font-size:13.5px;color:rgba(250,250,250,.65);background:rgba(250,250,250,.10);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(250,250,250,.15);border-radius:100px;padding:9px 18px;max-width:480px}
+.stitch-loc b{color:#FAFAFA}
+.stitch-loc input{flex:1;border:none;background:none;outline:none;font-size:13.5px;color:#FAFAFA;font-family:inherit}
+.stitch-loc input::placeholder{color:rgba(250,250,250,.4)}
+.stitch-loc-btn{background:none;border:none;color:var(--accent);font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+/* ── Bento grid (Selección de la semana) ── */
+.stitch-bento-section{background:var(--bg-2);padding:80px 0}
+.stitch-sec-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px}
+.stitch-sec-head h2{margin:0}
+.stitch-eyebrow-coral{font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px}
+.stitch-bento-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;height:500px}
+.stitch-bento-card{position:relative;border-radius:24px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,.06)}
+.stitch-bento-bg{position:absolute;inset:0;transition:transform .7s cubic-bezier(.22,.61,.36,1);transform:translateZ(0)}
+.stitch-bento-card:hover .stitch-bento-bg{transform:scale(1.05) translateZ(0)}
+.stitch-bento-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,4,.85) 0%,rgba(10,6,4,.15) 55%,transparent 100%);z-index:1}
+.stitch-bento-info{position:absolute;bottom:0;left:0;right:0;padding:28px 32px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;z-index:2}
+.stitch-bento-card.small .stitch-bento-info{padding:22px 24px}
+.stitch-bento-sub{font-size:12.5px;color:rgba(250,250,250,.68);font-weight:500;margin-bottom:6px;letter-spacing:.02em}
+.stitch-bento-name{font-family:'Playfair Display',Georgia,serif;font-weight:700;color:#FAFAFA;line-height:1.15;letter-spacing:-.01em}
+.stitch-bento-pill{background:rgba(250,250,250,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(250,250,250,.2);border-radius:100px;padding:6px 14px;font-size:14px;font-weight:700;color:#FAFAFA;flex-shrink:0}
+.stitch-ver-todos{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── Conserje IA (sección oscura) ── */
+.stitch-ai-section{background:#121212;color:#FAFAFA;padding:80px 0;text-align:center}
+.stitch-ai-inner{max-width:760px;margin:0 auto}
+.stitch-ai-eyebrow{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:20px}
+.stitch-ai-h2{font-size:clamp(40px,6vw,72px)!important;color:#FAFAFA!important;margin-bottom:48px;letter-spacing:-.02em!important;line-height:1.05!important}
+.stitch-quote{display:flex;gap:20px;align-items:flex-start;text-align:left;margin-bottom:40px}
+.stitch-quote-ico{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,87,51,.3);display:grid;place-items:center;flex-shrink:0}
+.stitch-quote-text{font-family:'Playfair Display',Georgia,serif;font-size:clamp(20px,2.5vw,28px);font-style:italic;color:rgba(244,239,230,.82);line-height:1.35;margin:0}
+.stitch-ai-form{position:relative;border-bottom:2px solid rgba(255,255,255,.12);margin-bottom:36px;transition:border-color .3s}
+.stitch-ai-form:focus-within{border-color:var(--accent)}
+.stitch-ai-textarea{width:100%;box-sizing:border-box;background:transparent;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:18px;color:#FAFAFA;padding:20px 52px 20px 0;resize:none;line-height:1.5}
+.stitch-ai-textarea::placeholder{color:rgba(250,250,250,.32)}
+.stitch-ai-send{position:absolute;right:0;bottom:14px;background:none;border:none;color:var(--accent);cursor:pointer;display:grid;place-items:center;transition:transform .2s}
+.stitch-ai-send:hover{transform:scale(1.15)}
+.stitch-ai-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;opacity:.55}
+.stitch-ai-chip{font-size:13px;font-style:italic;border:1px solid rgba(250,250,250,.2);border-radius:100px;padding:6px 16px;color:rgba(250,250,250,.8);cursor:pointer;background:none;font-family:inherit;transition:opacity .15s}
+.stitch-ai-chip:hover{opacity:1}
+
+/* ── Sección recomendados (fondo neutro debajo del conserje) ── */
+.stitch-picks-section{background:var(--bg);padding:72px 0 64px}
+
+/* responsive bento */
+@media(max-width:800px){
+  .stitch-bento-grid{grid-template-columns:1fr;height:auto}
+  .stitch-bento-card{height:300px}
+  .stitch-bento-section{padding:56px 0}
+  .stitch-bento-card.small .stitch-bento-info{padding:20px 22px}
+}
+@media(max-width:600px){
+  .stitch-hero{min-height:75vh;padding:60px 0}
+  .stitch-search{padding:6px 6px 6px 18px}
+  .stitch-search-btn{padding:10px 18px;font-size:14px}
+  .stitch-ai-section{padding:56px 0}
+  .stitch-picks-section{padding:48px 0 40px}
+  .stitch-sec-head{flex-direction:column;align-items:flex-start;gap:12px}
+}
