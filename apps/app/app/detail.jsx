@@ -1,4 +1,4 @@
-/* ════ UNA MESA · Detail screen ════ */
+/* ════ UNA MESA · Detail screen · Stitch design system ════ */
 
 function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
   const data = window.UM_DATA;
@@ -10,24 +10,46 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
 
   return React.createElement('div', { className:'view' },
     React.createElement('div', { className:'wrap' },
+
+      /* ── Back button ── */
       React.createElement('div', { className:'detail-back', onClick:back },
         React.createElement(Icon,{name:'chevL'}), 'Volver a resultados'),
-      /* gallery */
+
+      /* ── Gallery: 2fr | 1fr 1fr bento grid ── */
       React.createElement('div', { className:'gallery' },
-        React.createElement(Photo,{ cz:r.cz, glyph:r.glyph, slotId:'um-'+r.id+'-g0', className:'g-main' }),
-        React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from}, glyph:r.glyph, slotId:'um-'+r.id+'-g1' }),
-        React.createElement(Photo,{ cz:r.cz, glyph:'wine', slotId:'um-'+r.id+'-g2' }),
-        React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from}, glyph:'pot', slotId:'um-'+r.id+'-g3' }),
-        React.createElement(Photo,{ cz:r.cz, glyph:r.glyph, slotId:'um-'+r.id+'-g4' })
+        React.createElement(Photo,{ cz:r.cz, glyph:r.glyph,          slotId:'um-'+r.id+'-g0', className:'g-main' }),
+        React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from},  glyph:r.glyph, slotId:'um-'+r.id+'-g1' }),
+        React.createElement(Photo,{ cz:r.cz,                          glyph:'wine',  slotId:'um-'+r.id+'-g2' }),
+        React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from},  glyph:'pot',   slotId:'um-'+r.id+'-g3' }),
+        React.createElement(Photo,{ cz:r.cz,                          glyph:r.glyph, slotId:'um-'+r.id+'-g4' })
       ),
+
+      /* ── Two-column layout: main · booking sidebar ── */
       React.createElement('div', { className:'detail-layout' },
-        /* main */
+
+        /* ═══════ Main column ═══════ */
         React.createElement('div', { className:'detail-main' },
+
+          /* Eyebrow pills */
+          React.createElement('div', { className:'det-eyebrow' },
+            React.createElement('span', { className:'detail-tag-pill' }, 'Destacado'),
+            React.createElement('span', { className:'det-avail-pill' },
+              React.createElement(Icon,{name:'clock',style:{width:11,height:11,flexShrink:0}}),
+              'Disponible hoy'
+            ),
+            React.createElement('span', { className:'det-match-pill' },
+              React.createElement(Icon,{name:'sparkle',fill:'currentColor',style:{width:11,height:11,flexShrink:0}}),
+              r.match+'% afinidad'
+            )
+          ),
+
+          /* Title + fav button */
           React.createElement('div', { className:'detail-title' },
             React.createElement('div', null,
               React.createElement('h1', { className:'display' }, r.name),
               React.createElement('div', { className:'detail-sub' },
-                React.createElement('span', { className:'rt' }, React.createElement(Icon,{name:'star',fill:'currentColor'}), r.rating.toFixed(1)),
+                React.createElement('span', { className:'rt' },
+                  React.createElement(Icon,{name:'star',fill:'currentColor'}), r.rating.toFixed(1)),
                 React.createElement('span',{className:'muted'},'('+r.reviews+' reseñas)'),
                 React.createElement('span',{className:'dot-sep'}),
                 React.createElement('span',null, r.cuisine),
@@ -37,29 +59,62 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                 React.createElement('span',null, r.area)
               )
             ),
-            React.createElement('button', { className:'icon-btn'+(fav?' on':''), onClick:()=>toggleFav(r.id),
-              style: fav?{background:'var(--accent)',color:'var(--on-accent)',borderColor:'var(--accent)'}:null },
-              React.createElement(Icon,{name:'heart', fill:fav?'currentColor':'none'}))
+            React.createElement('button', {
+              className:'icon-btn'+(fav?' on':''), onClick:()=>toggleFav(r.id),
+              style: fav ? {background:'var(--accent)',color:'var(--on-accent)',borderColor:'var(--accent)'} : null
+            }, React.createElement(Icon,{name:'heart', fill:fav?'currentColor':'none'}))
           ),
+
+          /* Tag pills */
           React.createElement('div', { className:'detail-tags' },
-            React.createElement('span',{className:'rc-match',style:{position:'static'}}, React.createElement(Icon,{name:'sparkle',fill:'currentColor'}), r.match+'% afinidad'),
-            r.tags.map((t,i)=>React.createElement('span',{key:i,className:'tagpill'},t))),
-          React.createElement('p', { className:'about', style:{margin:'4px 0 6px'} }, r.about),
-          /* info */
+            r.tags.map((t,i)=>React.createElement('span',{key:i,className:'tagpill'},t))
+          ),
+
+          /* About */
+          React.createElement('p', { className:'det-about' }, r.about),
+
+          /* ── Info block ── */
           React.createElement('div', { className:'detail-block' },
             React.createElement('div', { className:'info-grid' },
-              React.createElement('div',{className:'info-item'},React.createElement(Icon,{name:'pin'}),React.createElement('div',null,React.createElement('div',{className:'k'},'Dirección'),React.createElement('div',{className:'v'},r.address))),
-              React.createElement('div',{className:'info-item'},React.createElement(Icon,{name:'clock'}),React.createElement('div',null,React.createElement('div',{className:'k'},'Horario'),React.createElement('div',{className:'v'},r.hours))),
-              React.createElement('div',{className:'info-item'},React.createElement(Icon,{name:'bell'}),React.createElement('div',null,React.createElement('div',{className:'k'},'Teléfono'),React.createElement('div',{className:'v'},r.phone))),
-              React.createElement('div',{className:'info-item'},React.createElement(Icon,{name:'euro'}),React.createElement('div',null,React.createElement('div',{className:'k'},'Precio medio'),React.createElement('div',{className:'v'}, r.price==='€€€'?'35–55€':'18–30€')))
+              React.createElement('div',{className:'info-item'},
+                React.createElement(Icon,{name:'pin'}),
+                React.createElement('div',null,
+                  React.createElement('div',{className:'k'},'Dirección'),
+                  React.createElement('div',{className:'v'},r.address))),
+              React.createElement('div',{className:'info-item'},
+                React.createElement(Icon,{name:'clock'}),
+                React.createElement('div',null,
+                  React.createElement('div',{className:'k'},'Horario'),
+                  React.createElement('div',{className:'v'},r.hours))),
+              React.createElement('div',{className:'info-item'},
+                React.createElement(Icon,{name:'bell'}),
+                React.createElement('div',null,
+                  React.createElement('div',{className:'k'},'Teléfono'),
+                  React.createElement('div',{className:'v'},r.phone))),
+              React.createElement('div',{className:'info-item'},
+                React.createElement(Icon,{name:'euro'}),
+                React.createElement('div',null,
+                  React.createElement('div',{className:'k'},'Precio medio'),
+                  React.createElement('div',{className:'v'}, r.price==='€€€'?'35–55€':'18–30€')))
             )
           ),
-          /* tabs: menu / reviews */
+
+          /* ── Tabs: Carta / Reseñas ── */
           React.createElement('div', { className:'detail-block' },
-            React.createElement('div', { className:'tabs' },
-              React.createElement('div',{className:'tab'+(tab==='menu'?' on':''),onClick:()=>setTab('menu')},'Carta'),
-              React.createElement('div',{className:'tab'+(tab==='revs'?' on':''),onClick:()=>setTab('revs')},'Reseñas ('+r.reviews+')')
+            React.createElement('div', { className:'det-tabs' },
+              React.createElement('button', {
+                type:'button',
+                className:'det-tab'+(tab==='menu'?' on':''),
+                onClick:()=>setTab('menu')
+              }, 'Carta'),
+              React.createElement('button', {
+                type:'button',
+                className:'det-tab'+(tab==='revs'?' on':''),
+                onClick:()=>setTab('revs')
+              }, 'Reseñas ('+r.reviews+')')
             ),
+
+            /* Menu */
             tab==='menu'
               ? r.menu.map((sec,i)=>React.createElement('div',{key:i,className:'menu-sec'},
                   React.createElement('h4',null,sec.s),
@@ -68,12 +123,15 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                       React.createElement('div',{className:'mn'},it[0]),
                       it[1]?React.createElement('div',{className:'md'},it[1]):null),
                     React.createElement('div',{className:'mp'},it[2])))))
+
+              /* Reviews */
               : React.createElement('div', null,
                   React.createElement('div', { className:'rev-summary' },
                     React.createElement('div',null,
                       React.createElement('div',{className:'rev-big display'},r.rating.toFixed(1)),
                       React.createElement(Stars,{value:r.rating,size:18}),
-                      React.createElement('div',{className:'muted',style:{fontSize:'13px',marginTop:'4px'}},r.reviews+' reseñas')
+                      React.createElement('div',{className:'muted',style:{fontSize:'13px',marginTop:'4px'}},
+                        r.reviews+' reseñas')
                     )
                   ),
                   r.revs.map((rv,i)=>React.createElement('div',{key:i,className:'rev-card'},
@@ -82,26 +140,55 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                       React.createElement('div',null,
                         React.createElement('div',{className:'rev-name'},rv[0]),
                         React.createElement('div',{className:'rev-date'},rv[2])),
-                      React.createElement('span',{className:'rev-stars-sm'},React.createElement(Stars,{value:rv[1],size:13}))),
-                    React.createElement('div',{className:'rev-text'},rv[3]))))
+                      React.createElement('span',{className:'rev-stars-sm'},
+                        React.createElement(Stars,{value:rv[1],size:13}))),
+                    React.createElement('div',{className:'rev-text'},rv[3])))
+                )
           )
         ),
-        /* sticky booking widget */
+
+        /* ═══════ Booking sidebar ═══════ */
         React.createElement('aside', null,
-          React.createElement('div', { className:'book-widget' },
-            React.createElement('div', { className:'bw-price' }, 'Reserva tu mesa en ', React.createElement('b',null,r.name)),
-            React.createElement('div', { className:'bw-dep' },
-              React.createElement(Icon,{name:'shield'}),
-              React.createElement('span',null,'Depósito de 10€/persona — se descuenta del total de tu cuenta.')),
-            React.createElement('div', { style:{fontSize:'12px',fontWeight:700,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--dim)',marginBottom:'9px'} }, 'Horarios disponibles hoy'),
+          React.createElement('div', { className:'det-bw' },
+
+            /* Headline */
+            React.createElement('h3', { className:'det-bw-title' }, 'Reserva tu mesa'),
+            React.createElement('p',  { className:'det-bw-sub' },
+              'en ', React.createElement('b',null,r.name)
+            ),
+
+            /* Deposit note · coral */
+            React.createElement('div', { className:'det-bw-dep' },
+              React.createElement(Icon,{name:'shield',style:{width:16,height:16,flexShrink:0,marginTop:1}}),
+              React.createElement('span',null,
+                'Depósito de ', React.createElement('b',null,'10€/persona'),
+                ' — se descuenta del total.'
+              )
+            ),
+
+            /* Available time slots */
+            React.createElement('p', { className:'det-bw-times-label' }, 'Horarios disponibles hoy'),
             allTimes.length
-              ? React.createElement('div', { className:'bw-times' },
-                  allTimes.map(([t,st],i)=>React.createElement('button', {
-                    key:i, className:'tslot'+(st==='few'?' few':st==='full'?' full':''),
-                    disabled: st==='full', onClick:()=>startBook(r.id,t) }, t)))
-              : React.createElement('p',{className:'muted',style:{fontSize:'14px',margin:'4px 0 14px'}},'Sin disponibilidad hoy. Prueba otra fecha.'),
-            React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>startBook(r.id,null) },
-              React.createElement(Icon,{name:'cal'}), 'Elegir fecha y hora')
+              ? React.createElement('div', { className:'det-bw-times-grid' },
+                  allTimes.map(([t,st],i) => React.createElement('button', {
+                    key:i,
+                    type:'button',
+                    className:'det-tslot'+(st==='few'?' few':st==='full'?' full':''),
+                    disabled: st==='full',
+                    onClick: ()=>startBook(r.id,t)
+                  }, t))
+                )
+              : React.createElement('p',{className:'muted',style:{fontSize:'14px',margin:'4px 0 14px'}},
+                  'Sin disponibilidad hoy. Prueba otra fecha.'),
+
+            /* Primary CTA */
+            React.createElement('button', {
+              type:'button', className:'det-bw-cta',
+              onClick:()=>startBook(r.id,null)
+            },
+              React.createElement(Icon,{name:'cal',style:{width:17,height:17}}),
+              'Elegir fecha y hora'
+            )
           )
         )
       )

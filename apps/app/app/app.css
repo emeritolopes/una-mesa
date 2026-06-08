@@ -1003,3 +1003,140 @@ input,select,textarea{font-family:inherit}
   .res-ai-panel{flex-direction:column;align-items:flex-start}
   .res-clear-btn{align-self:flex-end}
 }
+
+/* ══════════════════════════════════════════
+   Detail screen · Stitch redesign
+   ══════════════════════════════════════════ */
+
+/* ── Eyebrow pills ── */
+.det-eyebrow{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin:20px 0 14px;
+}
+.det-avail-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--ok-soft);color:var(--ok);
+  border:1px solid color-mix(in srgb,var(--ok) 30%,transparent);
+  border-radius:100px;padding:4px 12px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+}
+.det-match-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-line);
+  border-radius:100px;padding:4px 12px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+}
+
+/* ── About text ── */
+.det-about{
+  font-size:16px;color:var(--muted);line-height:1.78;
+  max-width:640px;margin:4px 0 6px;
+}
+
+/* ── Pill tabs ── */
+.det-tabs{
+  display:flex;gap:4px;margin:18px 0 26px;
+  background:var(--bg-3);border-radius:100px;padding:4px;
+  width:fit-content;
+}
+.det-tab{
+  padding:9px 22px;border-radius:100px;border:none;
+  font-size:14px;font-weight:700;color:var(--muted);
+  background:none;cursor:pointer;font-family:inherit;
+  transition:background .18s,color .18s;white-space:nowrap;
+}
+.det-tab:not(.on):hover{color:var(--text)}
+.det-tab.on{background:var(--text);color:var(--bg)}
+
+/* ── Stitch booking widget ── */
+.det-bw{
+  position:sticky;top:84px;
+  background:rgba(250,250,250,.80);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(26,22,18,.07);
+  border-radius:28px;padding:32px;
+  box-shadow:0 24px 64px rgba(40,20,10,.13);
+}
+[data-theme="noche"] .det-bw{
+  background:rgba(18,18,18,.84);
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 24px 64px rgba(0,0,0,.54);
+}
+
+.det-bw-title{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:23px;font-weight:700;letter-spacing:-.01em;
+  margin-bottom:4px;
+}
+.det-bw-sub{font-size:13.5px;color:var(--muted);margin-bottom:22px}
+.det-bw-sub b{color:var(--text);font-weight:700}
+
+/* Deposit note · coral tint */
+.det-bw-dep{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--accent-soft);
+  border:1px solid var(--accent-line);
+  border-radius:14px;padding:12px 14px;
+  font-size:13px;color:var(--text);line-height:1.5;
+  margin-bottom:22px;
+}
+.det-bw-dep svg{color:var(--accent)}
+.det-bw-dep b{font-weight:800}
+
+/* Times label */
+.det-bw-times-label{
+  font-size:10.5px;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--dim);
+  margin-bottom:10px;display:block;
+}
+
+/* 3-column pill grid */
+.det-bw-times-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:7px;margin-bottom:20px;
+}
+.det-tslot{
+  padding:10px 4px;border-radius:100px;
+  border:1.5px solid var(--line);
+  background:var(--bg-2);
+  font-size:12.5px;font-weight:700;color:var(--text);
+  cursor:pointer;font-family:inherit;text-align:center;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.det-tslot:not(.full):hover{
+  border-color:var(--accent);color:var(--accent);
+  background:var(--accent-soft);
+}
+.det-tslot.few{border-color:var(--warn-soft);color:var(--warn)}
+.det-tslot.full{opacity:.36;text-decoration:line-through;cursor:not-allowed}
+
+/* Primary CTA */
+.det-bw-cta{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:var(--text);color:var(--bg);
+  border:none;border-radius:100px;
+  padding:16px 24px;margin-top:10px;
+  font-size:15px;font-weight:700;font-family:inherit;
+  cursor:pointer;letter-spacing:.01em;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  transition:transform .16s,box-shadow .16s;
+}
+.det-bw-cta:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.26)}
+.det-bw-cta:active{transform:scale(.98)}
+.det-bw-cta svg{flex-shrink:0}
+
+/* ── Gallery refinement ── */
+.gallery{gap:10px;height:420px;border-radius:28px}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .det-bw{position:static;top:auto}
+  .gallery{height:360px}
+}
+@media(max-width:700px){
+  .det-bw{border-radius:20px;padding:22px}
+  .gallery{height:300px;gap:6px;border-radius:20px}
+  .det-eyebrow{margin:16px 0 10px}
+  .det-bw-times-grid{grid-template-columns:repeat(3,1fr)}
+}
