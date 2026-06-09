@@ -1,10 +1,13 @@
 /* ════ UNA MESA · Booking flow · Stitch design system ════ */
 
+const STRIPE_PK = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
+const SUPA_PAY_FUNC = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/stripe-payment';
+const SUPA_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
 function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
 
-  /* ── All existing state & logic UNCHANGED ── */
   const startStep = (presetTime && presetParty) ? 3 : (presetTime ? 2 : 0);
   const today0 = new Date(2026,5,2);
   const [step,    setStep]    = useState(startStep);
@@ -17,8 +20,15 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   const [hold,    setHold]    = useState(360);
   const [expired, setExpired] = useState(false);
 
+  /* ── Stripe state ── */
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError,   setPayError]   = useState('');
+  const cardMountRef = useRef(null); // DOM div Stripe mounts into
+  const cardElRef    = useRef(null); // { stripe, card } live Stripe objects
+
   if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},'Restaurante no encontrado.');
 
+  /* ── Countdown timer ── */
   React.useEffect(()=>{
     if (step!==3) return;
     if (expired) return;
@@ -27,35 +37,130 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
     return ()=>clearTimeout(id);
   }, [step, hold, expired]);
 
-  const mmss = s => Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-  const holdLow = hold<=60;
+  /* ── Mount Stripe card element when step 3 + card method is active ── */
+  React.useEffect(() => {
+    if (step !== 3 || pay !== 'card') return;
+    if (!window.Stripe) return;
 
-  const today = today0;
-  const dows  = ['D','L','M','X','J','V','S'];
-  const days  = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
+    let card = null;
+    let mounted = false;
+
+    const mount = () => {
+      const el = cardMountRef.current;
+      if (!el || mounted) return;
+      const isDark = document.documentElement.getAttribute('data-theme') === 'noche';
+      const stripe  = window.Stripe(STRIPE_PK);
+      const elements = stripe.elements();
+      card = elements.create('card', {
+        style: {
+          base: {
+            fontSize: '15px',
+            fontFamily: '"Manrope", sans-serif',
+            color: isDark ? '#FAFAFA' : '#121212',
+            '::placeholder': { color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(18,18,18,.35)' },
+          },
+          invalid: { color: '#FF5733' },
+        },
+      });
+      card.mount(el);
+      cardElRef.current = { stripe, card };
+      mounted = true;
+    };
+
+    const raf = requestAnimationFrame(mount);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (card && mounted) {
+        try { card.unmount(); } catch (_) {}
+        cardElRef.current = null;
+      }
+    };
+  }, [step, pay]);
+
+  const mmss   = s => Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  const holdLow = hold<=60;
+  const today  = today0;
+  const dows   = ['D','L','M','X','J','V','S'];
+  const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
   const deposit  = party*10;
 
-  const goStep = n => setStep(n);
-  const confirm = () => { if (!user){ requireAuth(()=>finish()); return; } finish(); };
-  const finish  = () => {
-    const code = 'UM-'+Math.random().toString(36).slice(2,7).toUpperCase();
-    setConfCode(code);
+  const goStep = n => { setPayError(''); setStep(n); };
+
+  const finish = (paymentIntentId, code) => {
+    const id = code || 'UM-'+Math.random().toString(36).slice(2,7).toUpperCase();
+    setConfCode(id);
     const booking = {
-      id:code, rid:r.id, name:r.name, cz:r.cz, glyph:r.glyph, area:r.area,
-      day:    day ? day.toISOString() : today.toISOString(),
+      id, rid:r.id, name:r.name, cz:r.cz, glyph:r.glyph, area:r.area,
+      day:      day ? day.toISOString() : today.toISOString(),
       dayLabel: day ? (dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)) : 'Hoy',
-      time, party, deposit, status:'up', created:Date.now(), member:!!user, notify
+      time, party, deposit, status:'up', created:Date.now(), member:!!user, notify,
+      paymentIntentId: paymentIntentId || null,
     };
     onConfirm(booking);
     setStep(4);
   };
 
-  /* ════ NEW: Numbered step indicator ════ */
+  /* ── Stripe payment orchestration ── */
+  const stripeConfirm = async () => {
+    /* non-card methods: skip Stripe for now */
+    if (pay !== 'card' || !window.Stripe || !cardElRef.current) {
+      finish(null);
+      return;
+    }
+
+    const reservationCode = 'UM-'+Math.random().toString(36).slice(2,7).toUpperCase();
+    setPayError('');
+    setPayLoading(true);
+
+    try {
+      /* 1 · Create PaymentIntent via Edge Function (authorize only — manual capture) */
+      const res = await fetch(SUPA_PAY_FUNC, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + SUPA_ANON_KEY,
+        },
+        body: JSON.stringify({
+          amount:         deposit * 100,  // smallest unit: €10/person → 1000 per person
+          currency:       'eur',
+          restaurant_id:  r.id,
+          user_id:        user?.id || '',
+          reservation_id: reservationCode,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'No se pudo iniciar el pago');
+
+      const { client_secret, payment_intent_id } = json;
+
+      /* 2 · Confirm card with Stripe.js (result: requires_capture — card not charged yet) */
+      const { error } = await cardElRef.current.stripe.confirmCardPayment(client_secret, {
+        payment_method: { card: cardElRef.current.card },
+      });
+
+      if (error) throw new Error(error.message);
+
+      /* 3 · Authorization OK → finalise booking */
+      finish(payment_intent_id, reservationCode);
+
+    } catch (err) {
+      setPayError(err.message || 'Error al procesar el pago. Inténtalo de nuevo.');
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
+  const confirm = () => {
+    if (!user) { requireAuth(()=>stripeConfirm()); return; }
+    stripeConfirm();
+  };
+
+  /* ════ Numbered step indicator ════ */
   const stepDefs = ['Fecha','Hora','Personas','Depósito'];
   const Steps = React.createElement('div', { className:'bk-steps' },
     stepDefs.map((label, i) => React.createElement(React.Fragment, { key:i },
-      /* connecting line before each step except first */
       i > 0 ? React.createElement('div', {
         className:'bk-step-line' + (i <= step ? ' done' : '')
       }) : null,
@@ -123,7 +228,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
         React.createElement('button',{className:'btn btn-acc',disabled:!day,onClick:()=>goStep(1)},'Continuar'))
     );
 
-  /* ── Step 1 · Time picker with lunch / dinner sections ── */
+  /* ── Step 1 · Time picker ── */
   } else if (step===1) {
     body = React.createElement(React.Fragment, null,
       React.createElement('div',{className:'bk-h'},'¿A qué hora?'),
@@ -186,7 +291,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
             React.createElement('span',null,'Guardamos tu mesa durante ',
               React.createElement('b',{className:'hold-count'}, mmss(hold)),' minutos. Completa el depósito antes de que acabe.')),
 
-      /* Booking summary (glass card) */
+      /* Booking summary */
       React.createElement('div',{className:'dep-box'},
         React.createElement('div',{className:'dep-row'},
           React.createElement('span',null,'Día'),
@@ -206,7 +311,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
           React.createElement('span',{className:'amt'}, deposit+'€'))
       ),
 
-      /* Shield note (coral) */
+      /* Shield note */
       React.createElement('div',{className:'bw-dep',style:{marginBottom:'16px'}},
         React.createElement(Icon,{name:'shield'}),
         React.createElement('span',null,
@@ -228,10 +333,41 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
         React.createElement('button',{className:'pay-m'+(pay==='bizum'?' on':''),onClick:()=>setPay('bizum')},
           React.createElement(Icon,{name:'euro'}),'Bizum')),
 
+      /* ── Stripe card element (only when card method selected) ── */
+      pay === 'card' ? React.createElement('div', { style:{marginTop:'18px'} },
+        React.createElement('p', { className:'bk-section-label' }, 'Datos de la tarjeta'),
+        React.createElement('div', {
+          ref: cardMountRef,
+          style: {
+            padding: '12px 14px',
+            border: '1.5px solid var(--bdr)',
+            borderRadius: '10px',
+            background: 'var(--surface)',
+            minHeight: '42px',
+          }
+        })
+      ) : null,
+
+      /* Payment error */
+      payError ? React.createElement('p', {
+        style:{ color:'var(--coral,#FF5733)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 }
+      }, payError) : null,
+
       React.createElement('div',{className:'bk-actions'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(2)},'Atrás'),
-        React.createElement('button',{className:'btn btn-acc',style:{flex:1},disabled:expired,onClick:confirm},
-          expired ? 'Tiempo agotado' : (user ? ('Pagar '+deposit+'€ y reservar') : 'Iniciar sesión y reservar')))
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(2),disabled:payLoading},'Atrás'),
+        React.createElement('button',{
+          className:'btn btn-acc',
+          style:{flex:1},
+          disabled: expired || payLoading,
+          onClick: confirm
+        },
+          payLoading ? React.createElement(React.Fragment, null,
+            React.createElement('span', { style:{opacity:.7} }, 'Procesando…')
+          ) :
+          expired ? 'Tiempo agotado' :
+          user    ? ('Pagar '+deposit+'€ y reservar') :
+                    'Iniciar sesión y reservar'
+        ))
     );
 
   /* ── Step 4 · Confirmation ── */
