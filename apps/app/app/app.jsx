@@ -46,6 +46,19 @@ function App() {
   /* scroll to top on view change */
   useEffect(()=>{ window.scrollTo(0,0); }, [route.view, route.rid]);
 
+  /* sync auth state with Supabase session (handles page reload + sign-in/out) */
+  useEffect(() => {
+    if (!window.UMAuth) return;
+    const sub = window.UMAuth.onAuthStateChange((event, appUser) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (appUser) {
+        setUser(appUser);
+      }
+    });
+    return () => sub && sub.unsubscribe();
+  }, []);
+
   /* geolocation — sort nearby restaurants by distance, manual fallback */
   useEffect(()=>{
     if(!('geolocation' in navigator)){ setGeo({status:'denied',label:'',ref:{x:50,y:50}}); return; }
@@ -107,7 +120,10 @@ function App() {
   };
   onConfirm._goProfile = () => go('profile');
 
-  const logout = () => { setUser(null); go('home'); flash('Sesión cerrada'); };
+  const logout = () => {
+    if (window.UMAuth) window.UMAuth.signOut().catch(() => {});
+    setUser(null); go('home'); flash('Sesión cerrada');
+  };
 
   let screen;
   if (route.view==='home')

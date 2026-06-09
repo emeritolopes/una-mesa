@@ -13,23 +13,6 @@ const RESERVE_BENEFITS = [
   { text:'Reserva más rápido la próxima vez' }
 ];
 
-/* semilla + lectura del conjunto de correos "registrados" (demo) */
-function knownEmails(){
-  try {
-    const seed = ['ana@unamesa.co','carlos@unamesa.co','demo@unamesa.co'];
-    const saved = JSON.parse(localStorage.getItem('um-registered')||'[]');
-    return new Set([...seed, ...saved].map(e=>e.toLowerCase()));
-  } catch(e){ return new Set(['demo@unamesa.co']); }
-}
-function rememberEmail(email){
-  try {
-    const saved = JSON.parse(localStorage.getItem('um-registered')||'[]');
-    if (!saved.map(e=>e.toLowerCase()).includes(email.toLowerCase())){
-      saved.push(email); localStorage.setItem('um-registered', JSON.stringify(saved));
-    }
-  } catch(e){}
-}
-
 function Benefit({ b }){
   return React.createElement('li', { className:'rb-row' },
     React.createElement('span', { className:'rb-ck' }, React.createElement(Icon,{name:'check'})),
@@ -41,26 +24,71 @@ function Benefit({ b }){
 
 /* ── gate principal de reserva ── */
 function ReserveAuthModal({ onClose, onAccount, onGuest }){
-  const [view, setView] = useState('intro'); // intro | signup | signin | welcomeback
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [view,     setView]     = useState('intro'); // intro | signup | signin | welcomeback
+  const [name,     setName]     = useState('');
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
 
-  const finishAccount = (displayName, mail) => {
-    const nm = (displayName||mail.split('@')[0]||'Comensal');
-    rememberEmail(mail);
-    onAccount({ name: nm.charAt(0).toUpperCase()+nm.slice(1), email: mail });
+  /* clear transient state when switching views */
+  const switchView = v => { setError(''); setPassword(''); setView(v); };
+
+  const finishAccount = appUser => onAccount(appUser);
+
+  const submitSignup = async e => {
+    e.preventDefault();
+    /* fallback to demo mode if Supabase is not loaded */
+    if (!window.UMAuth) {
+      finishAccount({ name: (name.trim() || email.split('@')[0] || 'Comensal'), email: email.trim() });
+      return;
+    }
+    setError(''); setLoading(true);
+    try {
+      const appUser = await window.UMAuth.signUp(email.trim().toLowerCase(), password, name.trim());
+      if (!appUser) {
+        /* email confirmation required — no session yet */
+        setError('Revisa tu bandeja de entrada para confirmar tu cuenta y luego inicia sesión.');
+        return;
+      }
+      finishAccount(appUser);
+    } catch (err) {
+      const msg = err.message || '';
+      if (/already registered|already been registered/i.test(msg)) {
+        switchView('welcomeback');
+      } else {
+        setError(msg || 'Error al crear la cuenta. Inténtalo de nuevo.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const submitSignup = e => {
+  const submitSignin = async e => {
     e.preventDefault();
-    const mail = email.trim().toLowerCase();
-    if (knownEmails().has(mail)) { setView('welcomeback'); return; }
-    finishAccount(name, mail);
+    if (!window.UMAuth) {
+      finishAccount({ name: (email.split('@')[0] || 'Comensal'), email: email.trim() });
+      return;
+    }
+    setError(''); setLoading(true);
+    try {
+      const appUser = await window.UMAuth.signIn(email.trim().toLowerCase(), password);
+      finishAccount(appUser);
+    } catch (err) {
+      const msg = err.message || '';
+      setError(
+        /not confirmed/i.test(msg)
+          ? 'Confirma tu email antes de iniciar sesión.'
+          : (msg || 'Correo o contraseña incorrectos.')
+      );
+    } finally {
+      setLoading(false);
+    }
   };
-  const submitSignin = e => {
-    e.preventDefault();
-    finishAccount(name, email.trim()||'tu@unamesa.co');
-  };
+
+  const ErrMsg = error
+    ? React.createElement('p', { style:{ color:'var(--coral,#FF5733)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 } }, error)
+    : null;
 
   /* ---- INTRO ---- */
   if (view === 'intro')
@@ -71,11 +99,11 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
         React.createElement('p', { className:'msub' }, 'Reserva como invitado o crea una cuenta para desbloquear ventajas exclusivas.')),
       React.createElement('ul', { className:'rb-list' },
         RESERVE_BENEFITS.map((b,i)=>React.createElement(Benefit,{ key:i, b }))),
-      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setView('signup') }, 'Crear cuenta gratis'),
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>switchView('signup') }, 'Crear cuenta gratis'),
       React.createElement('button', { className:'btn btn-ghost btn-block', style:{marginTop:'10px'}, onClick:onGuest }, 'Continuar como invitado'),
       React.createElement('p', { className:'rb-foot' },
         '¿Ya tienes cuenta? ',
-        React.createElement('button', { className:'rb-link', onClick:()=>setView('signin') }, 'Inicia sesión'))
+        React.createElement('button', { className:'rb-link', onClick:()=>switchView('signin') }, 'Inicia sesión'))
     );
 
   /* ---- BIENVENIDO DE NUEVO ---- */
@@ -86,51 +114,55 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
         React.createElement('h2', null, 'Bienvenido de nuevo'),
         React.createElement('p', { className:'msub' }, 'Ya existe una cuenta con este correo. Inicia sesión para sumar tus Cucharas de Oro de esta reserva y acceder a tu experiencia gastronómica personalizada.')),
       React.createElement('div', { className:'rb-email-chip' }, React.createElement(Icon,{name:'user'}), email),
-      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setView('signin') }, 'Iniciar sesión'),
-      React.createElement('button', { className:'btn btn-ghost btn-block', style:{marginTop:'10px'}, onClick:()=>{ setEmail(''); setView('signup'); } }, 'Usar otro correo')
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>switchView('signin') }, 'Iniciar sesión'),
+      React.createElement('button', { className:'btn btn-ghost btn-block', style:{marginTop:'10px'}, onClick:()=>{ setEmail(''); switchView('signup'); } }, 'Usar otro correo')
     );
 
   /* ---- INICIAR SESIÓN ---- */
   if (view === 'signin')
     return React.createElement(Modal, { onClose, max:420 },
-      React.createElement('button', { className:'rb-back', onClick:()=>setView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
+      React.createElement('button', { className:'rb-back', onClick:()=>switchView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
       React.createElement('h2', null, 'Iniciar sesión'),
       React.createElement('p', { className:'msub' }, 'Bienvenido de nuevo — inicia sesión para sumar tus Cucharas de Oro.'),
-      React.createElement('button',{className:'sso-btn',style:{marginBottom:'16px'},onClick:()=>finishAccount('Tú','tu@gmail.com')},
-        React.createElement(Icon,{name:'google'}),'Continuar con Google'),
-      React.createElement('div',{className:'divider'},'o con tu correo'),
+      React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:()=>finishAccount({name:'Tú',email:'tu@gmail.com'}) },
+        React.createElement(Icon,{name:'google'}), 'Continuar con Google'),
+      React.createElement('div', { className:'divider' }, 'o con tu correo'),
       React.createElement('form', { onSubmit:submitSignin },
-        React.createElement('div',{className:'field'},
-          React.createElement('label',null,'Correo'),
-          React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:'tu@correo.com',required:true})),
-        React.createElement('div',{className:'field'},
-          React.createElement('label',null,'Contraseña'),
-          React.createElement('input',{type:'password',placeholder:'••••••••',required:true})),
-        React.createElement('button',{className:'btn btn-acc btn-block btn-lg',type:'submit',style:{marginTop:'4px'}},'Iniciar sesión'))
+        React.createElement('div', { className:'field' },
+          React.createElement('label', null, 'Correo'),
+          React.createElement('input', { type:'email', value:email, onChange:e=>setEmail(e.target.value), placeholder:'tu@correo.com', required:true, disabled:loading })),
+        React.createElement('div', { className:'field' },
+          React.createElement('label', null, 'Contraseña'),
+          React.createElement('input', { type:'password', value:password, onChange:e=>setPassword(e.target.value), placeholder:'••••••••', required:true, disabled:loading })),
+        ErrMsg,
+        React.createElement('button', { className:'btn btn-acc btn-block btn-lg', type:'submit', style:{marginTop:'12px'}, disabled:loading },
+          loading ? 'Iniciando sesión…' : 'Iniciar sesión'))
     );
 
   /* ---- CREAR CUENTA ---- */
   return React.createElement(Modal, { onClose, max:430 },
-    React.createElement('button', { className:'rb-back', onClick:()=>setView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
+    React.createElement('button', { className:'rb-back', onClick:()=>switchView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
     React.createElement('h2', null, 'Crear cuenta gratis'),
     React.createElement('p', { className:'msub' }, 'Únete gratis y empieza a ganar Cucharas de Oro con esta reserva.'),
-    React.createElement('button',{className:'sso-btn',style:{marginBottom:'16px'},onClick:()=>finishAccount('Tú','tu@gmail.com')},
-      React.createElement(Icon,{name:'google'}),'Continuar con Google'),
-    React.createElement('div',{className:'divider'},'o con tu correo'),
+    React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:()=>finishAccount({name:'Tú',email:'tu@gmail.com'}) },
+      React.createElement(Icon,{name:'google'}), 'Continuar con Google'),
+    React.createElement('div', { className:'divider' }, 'o con tu correo'),
     React.createElement('form', { onSubmit:submitSignup },
-      React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Nombre'),
-        React.createElement('input',{value:name,onChange:e=>setName(e.target.value),placeholder:'Tu nombre',required:true})),
-      React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Correo'),
-        React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:'tu@correo.com',required:true})),
-      React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Contraseña'),
-        React.createElement('input',{type:'password',placeholder:'••••••••',required:true})),
-      React.createElement('button',{className:'btn btn-acc btn-block btn-lg',type:'submit',style:{marginTop:'4px'}},'Crear cuenta gratis')),
+      React.createElement('div', { className:'field' },
+        React.createElement('label', null, 'Nombre'),
+        React.createElement('input', { value:name, onChange:e=>setName(e.target.value), placeholder:'Tu nombre', required:true, disabled:loading })),
+      React.createElement('div', { className:'field' },
+        React.createElement('label', null, 'Correo'),
+        React.createElement('input', { type:'email', value:email, onChange:e=>setEmail(e.target.value), placeholder:'tu@correo.com', required:true, disabled:loading })),
+      React.createElement('div', { className:'field' },
+        React.createElement('label', null, 'Contraseña'),
+        React.createElement('input', { type:'password', value:password, onChange:e=>setPassword(e.target.value), placeholder:'••••••••', required:true, minLength:6, disabled:loading })),
+      ErrMsg,
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', type:'submit', style:{marginTop:'12px'}, disabled:loading },
+        loading ? 'Creando cuenta…' : 'Crear cuenta gratis')),
     React.createElement('p', { className:'rb-foot' },
       '¿Ya tienes cuenta? ',
-      React.createElement('button', { className:'rb-link', onClick:()=>setView('signin') }, 'Inicia sesión'))
+      React.createElement('button', { className:'rb-link', onClick:()=>switchView('signin') }, 'Inicia sesión'))
   );
 }
 
