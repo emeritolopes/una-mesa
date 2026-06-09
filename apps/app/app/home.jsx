@@ -237,46 +237,32 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'detail-grid' },
 
-          /* ── columna izquierda: info + menú · foto de fondo ── */
-          React.createElement('div', {
-            style:{
-              position:'relative',
-              backgroundImage:"url('./dish.jpg')",
-              backgroundSize:'cover',
-              backgroundPosition:'center',
-              borderRadius:'28px',
-              overflow:'hidden'
-            }
-          },
-            /* overlay oscuro para legibilidad */
-            React.createElement('div', { style:{ position:'absolute', inset:0, background:'rgba(0,0,0,.3)', zIndex:0 } }),
-            /* contenido sobre el overlay */
-            React.createElement('div', { style:{ position:'relative', zIndex:1, padding:'36px 32px', color:'#FAFAFA' } },
-              /* eyebrow tags */
-              React.createElement('div', { className:'detail-tags' },
-                React.createElement('span', { className:'detail-tag-pill' }, 'Destacado'),
-                React.createElement('span', { className:'detail-tag-avail' }, 'Disponible hoy')
-              ),
-              /* nombre del restaurante */
-              React.createElement('h2', { className:'display detail-h2', onClick:()=>openRest(dest.id), style:{ cursor:'pointer', color:'#FAFAFA' } }, dest.name),
-              /* descripción */
-              React.createElement('p', { className:'detail-about', style:{ color:'rgba(255,255,255,.78)' } }, dest.about),
-              /* grid menú + foto */
-              React.createElement('div', { className:'detail-inner-grid' },
-                /* destacados del menú */
-                React.createElement('div', null,
-                  React.createElement('h4', { className:'detail-menu-title', style:{ color:'rgba(255,255,255,.55)', borderBottomColor:'rgba(255,255,255,.12)' } }, 'Destacados del Menú'),
-                  destMenu.map(([name,,price],i)=>
-                    React.createElement('div', { key:i, className:'detail-menu-item', style:{ borderBottomColor:'rgba(255,255,255,.08)' } },
-                      React.createElement('span', { className:'detail-menu-name', style:{ color:'#FAFAFA' } }, name),
-                      React.createElement('span', { className:'detail-menu-price' }, price)
-                    )
+          /* ── columna izquierda: info + menú + foto ── */
+          React.createElement('div', null,
+            /* eyebrow tags */
+            React.createElement('div', { className:'detail-tags' },
+              React.createElement('span', { className:'detail-tag-pill' }, 'Destacado'),
+              React.createElement('span', { className:'detail-tag-avail' }, 'Disponible hoy')
+            ),
+            /* nombre del restaurante */
+            React.createElement('h2', { className:'display detail-h2', onClick:()=>openRest(dest.id), style:{ cursor:'pointer' } }, dest.name),
+            /* descripción */
+            React.createElement('p', { className:'detail-about' }, dest.about),
+            /* grid menú + foto */
+            React.createElement('div', { className:'detail-inner-grid' },
+              /* destacados del menú */
+              React.createElement('div', null,
+                React.createElement('h4', { className:'detail-menu-title' }, 'Destacados del Menú'),
+                destMenu.map(([name,,price],i)=>
+                  React.createElement('div', { key:i, className:'detail-menu-item' },
+                    React.createElement('span', { className:'detail-menu-name' }, name),
+                    React.createElement('span', { className:'detail-menu-price' }, price)
                   )
-                ),
-                /* foto del plato */
-                React.createElement('div', { className:'detail-food-ph' },
-                  React.createElement(Photo, { cz:dest.cz, glyph:dest.glyph, slotId:'dest-dish-'+dest.id, style:{ height:'100%' } })
                 )
+              ),
+              /* foto del plato */
+              React.createElement('div', { className:'detail-food-ph' },
+                React.createElement('img', { src:'./dish.jpg', style:{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'12px' } })
               )
             )
           ),
