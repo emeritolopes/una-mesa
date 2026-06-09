@@ -1,11 +1,13 @@
 /* ════ UNA MESA · RestaurantCard + Home screen ════ */
 
 /* shared restaurant card — usado en results, profile, concierge */
-function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist }) {
+function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img }) {
   const firstTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])].slice(0,3);
   return React.createElement('div', { className:'rcard', onClick:()=>onOpen(r.id) },
     React.createElement('div', { className:'rc-photo' },
-      React.createElement(Photo, { cz:r.cz, glyph:r.glyph, slotId:'rphoto-'+r.id }),
+      img
+        ? React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' } })
+        : React.createElement(Photo, { cz:r.cz, glyph:r.glyph, slotId:'rphoto-'+r.id }),
       showMatch ? React.createElement('span', { className:'rc-match' },
         React.createElement(Icon,{name:'sparkle',fill:'currentColor'}), r.match+'%') : null,
       React.createElement('button', { className:'rc-fav'+(fav?' on':''), title:'Guardar',
@@ -37,19 +39,15 @@ function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist }) {
 }
 
 /* bento card — sección Selección de la semana */
-function BentoCard({ r, big, onOpen }) {
-  const bg = 'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')';
+function BentoCard({ r, big, onOpen, img }) {
+  const bgStyle = img
+    ? { backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' }
+    : { background:'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')' };
   return React.createElement('div', {
     className: 'stitch-bento-card'+(big?'':' small'),
     onClick: () => onOpen(r.id)
   },
-    React.createElement('div', { className:'stitch-bento-bg', style:{ background:bg } },
-      React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.10) 1px,transparent 1px)', backgroundSize:'14px 14px' } }),
-      React.createElement('div', { style:{ position:'absolute', inset:0, display:'grid', placeItems:'center' } },
-        React.createElement(Icon, { name:r.glyph, style:{ width:'30%', height:'30%', color:'rgba(255,255,255,.11)' } })
-      ),
-      React.createElement('image-slot', { id:'bento-'+r.id, shape:'rect', placeholder:'' })
-    ),
+    React.createElement('div', { className:'stitch-bento-bg', style:bgStyle }),
     React.createElement('div', { className:'stitch-bento-overlay' }),
     React.createElement('div', { className:'stitch-bento-info' },
       React.createElement('div', null,
@@ -62,16 +60,12 @@ function BentoCard({ r, big, onOpen }) {
 }
 
 /* nearby card — sección Disponible hoy (bento pequeño con título visible) */
-function NearbyCard({ r, dist, onOpen }) {
-  const bg = 'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')';
+function NearbyCard({ r, dist, onOpen, img }) {
+  const bgStyle = img
+    ? { backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' }
+    : { background:'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')' };
   return React.createElement('div', { className:'nearby-card', onClick:()=>onOpen(r.id) },
-    React.createElement('div', { className:'nb-bg', style:{ background:bg } },
-      React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.08) 1px,transparent 1px)', backgroundSize:'12px 12px' } }),
-      React.createElement('div', { style:{ position:'absolute', inset:0, display:'grid', placeItems:'center' } },
-        React.createElement(Icon, { name:r.glyph, style:{ width:'38%', height:'38%', color:'rgba(255,255,255,.10)' } })
-      ),
-      React.createElement('image-slot', { id:'nearby-'+r.id, shape:'rect', placeholder:'' })
-    ),
+    React.createElement('div', { className:'nb-bg', style:bgStyle }),
     React.createElement('div', { className:'nb-overlay' }),
     React.createElement('div', { className:'nb-info' },
       React.createElement('div', { className:'nb-name' }, r.name),
@@ -105,6 +99,10 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
 
   const heroChips    = ['Con terraza','Romántico','Marisco','Grupos','Brunch','Vegetariano'];
   const aiSuggestions = ['Cerca de mí','Mesa para grupos','Con terraza','Sin gluten'];
+
+  /* fotos reales por sección (posición fija) */
+  const PICKS_IMGS  = ['chris-liverani-oCsaxvGCehM-unsplash.jpg','clem-onojeghuo-zlABb6Gke24-unsplash.jpg','igor-rand-wfM1Fi-kMaY-unsplash.jpg'];
+  const NEARBY_IMGS = ['k8-sWEpcc0Rm0U-unsplash.jpg','nick-karvounis-Ciqxn7FE4vE-unsplash.jpg','pablo-merchan-montes-Orz90t6o0e4-unsplash.jpg','simon-karemann-p85-MG66GRY-unsplash.jpg'];
 
   const submit     = e => { e.preventDefault(); search(q); };
   const submitAi   = e => { e.preventDefault(); if(ai.trim()) askConcierge(ai); };
@@ -225,8 +223,8 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
             'Ver todos ', React.createElement(Icon,{ name:'arrow', style:{ width:16, height:16 } }))
         ),
         React.createElement('div', { className:'stitch-bento-grid' },
-          React.createElement(BentoCard, { r:byRating[0], big:true, onOpen:openRest }),
-          React.createElement(BentoCard, { r:byRating[1], big:false, onOpen:openRest })
+          React.createElement(BentoCard, { r:byRating[0], big:true,  onOpen:openRest, img:'dish.jpg' }),
+          React.createElement(BentoCard, { r:byRating[1], big:false, onOpen:openRest, img:'albert-YYZU0Lo1uXE-unsplash.jpg' })
         )
       )
     ),
@@ -350,8 +348,8 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           React.createElement('span', { className:'lnk', onClick:()=>go('results') }, 'Ver más ', React.createElement(Icon,{name:'arrow'}))
         ),
         React.createElement('div', { className:'rgrid' },
-          aiPicks.map(r=>React.createElement(RestaurantCard, {
-            key:r.id, r, fav:favs.includes(r.id), onFav:toggleFav, onOpen:openRest, onBook:startBook, showMatch:true
+          aiPicks.map((r,i)=>React.createElement(RestaurantCard, {
+            key:r.id, r, fav:favs.includes(r.id), onFav:toggleFav, onOpen:openRest, onBook:startBook, showMatch:true, img:PICKS_IMGS[i]
           }))
         )
       )
@@ -367,8 +365,8 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           React.createElement('span', { className:'lnk', onClick:()=>go('results') }, 'Ver todo ', React.createElement(Icon,{name:'arrow'}))
         ),
         React.createElement('div', { className:'nearby-grid' },
-          nearby.map(({r,d})=>React.createElement(NearbyCard, {
-            key:r.id, r, dist:d, onOpen:openRest
+          nearby.map(({r,d},i)=>React.createElement(NearbyCard, {
+            key:r.id, r, dist:d, onOpen:openRest, img:NEARBY_IMGS[i]
           }))
         )
       )
