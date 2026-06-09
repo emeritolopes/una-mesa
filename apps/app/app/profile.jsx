@@ -51,11 +51,54 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
   );
 }
 
+function mapSupaBooking(r) {
+  const today = new Date().toISOString().split('T')[0];
+  const isPast = r.date < today || r.status === 'cancelled';
+  const d = new Date(r.date + 'T12:00:00');
+  const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const DAYS = ['dom','lun','mar','mié','jue','vie','sáb'];
+  return {
+    id:       r.id.toString().slice(0, 8).toUpperCase(),
+    rid:      r.venue_id,
+    name:     r.venues?.name || 'Restaurante',
+    cz:       null,
+    glyph:    null,
+    dayLabel: `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`,
+    time:     (r.time || '').slice(0, 5),
+    party:    r.pax,
+    deposit:  r.pax * 10,
+    status:   isPast ? 'past' : 'up',
+  };
+}
+
 function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startBook, go, spoons, onRedeem }) {
   const [tab, setTab] = useState('reservas');
+  const [supaBookings, setSupaBookings] = useState(null);
+
+  useEffect(() => {
+    async function loadBookings() {
+      if (!window.UMAuth?.sb) return;
+      try {
+        const { data: { user: authUser } } = await window.UMAuth.sb.auth.getUser();
+        if (!authUser) return;
+        const { data: rows, error } = await window.UMAuth.sb
+          .from('reservations')
+          .select('*, venues(name, address, cuisine)')
+          .eq('user_id', authUser.id)
+          .order('date', { ascending: false });
+        if (error) { console.warn('[UNA MESA] loadBookings:', error.message); return; }
+        setSupaBookings((rows || []).map(mapSupaBooking));
+      } catch(e) {
+        console.warn('[UNA MESA] loadBookings:', e.message);
+      }
+    }
+    loadBookings();
+  }, []);
+
   const now = Date.now();
-  const upcoming = bookings.filter(b=>b.status==='up');
-  const past = bookings.filter(b=>b.status==='past');
+  const activeBookings = supaBookings !== null ? supaBookings : bookings;
+  const upcoming = activeBookings.filter(b=>b.status==='up');
+  const past = activeBookings.filter(b=>b.status==='past');
   const favList = data.filter(r=>favs.includes(r.id));
   const points = Math.min(100, bookings.length*18 + favs.length*4);
   const visits = bookings.length;

@@ -85,5 +85,5 @@ window.formatName = function(user) {
     if (error) throw error;
   }
 
-  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation };
+  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation, sb };
 })();

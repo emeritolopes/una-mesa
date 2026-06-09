@@ -160,6 +160,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
         try {
           await window.UMAuth.saveReservation({
             venue_id:          r.id,
+            user_id:           user?.id || null,
             customer_name:     user ? (user.name || user.email) : 'Invitado',
             customer_phone:    null,
             pax:               party,
