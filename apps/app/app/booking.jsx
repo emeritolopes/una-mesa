@@ -1,8 +1,10 @@
 /* ════ UNA MESA · Booking flow · Stitch design system ════ */
 
-const STRIPE_PK = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
-const SUPA_PAY_FUNC = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/stripe-payment';
-const SUPA_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+const STRIPE_PK      = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
+const SUPA_BASE      = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1';
+const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
+const SUPA_EMAIL_FUNC= SUPA_BASE + '/send-email';
+const SUPA_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
 function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
@@ -172,7 +174,26 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
         }
       }
 
-      /* 4 · Authorization OK → finalise booking */
+      /* 4 · Send confirmation email — non-fatal */
+      const recipientEmail = user && user.email;
+      if (recipientEmail) {
+        const dayLabel = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+        fetch(SUPA_EMAIL_FUNC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
+          body: JSON.stringify({
+            to:              recipientEmail,
+            customer_name:   user.name || user.email,
+            restaurant_name: r.name,
+            date:            dayLabel,
+            time:            time,
+            pax:             party,
+            deposit_amount:  deposit,
+          }),
+        }).catch(e => console.warn('[UNA MESA] send-email:', e.message));
+      }
+
+      /* 5 · Authorization OK → finalise booking */
       finish(payment_intent_id, reservationCode);
 
     } catch (err) {
