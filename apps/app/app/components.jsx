@@ -134,7 +134,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           React.createElement('img', {
             src:'./una-mesa-logo.svg',
             alt:'Una Mesa',
-            style:{ height:'22px', width:'auto', filter:theme==='noche'?'brightness(0) invert(1)':'brightness(0)', display:'inline-block', verticalAlign:'middle', flexShrink:0 }
+            style:{ height:'36px', width:'auto', filter:theme==='noche'?'brightness(0) invert(1)':'brightness(0)', display:'inline-block', verticalAlign:'middle', flexShrink:0 }
           })
         ),
 
