@@ -8,15 +8,21 @@ function Panel({ go }) {
   useEffect(() => {
     if (!window.sb) return;
     const today = new Date().toISOString().split('T')[0];
-    window.sb.from('reservations')
+    window.sb
+      .from('reservations')
       .select('*')
       .eq('date', today)
+      .neq('status', 'cancelled')
       .order('time', { ascending: true })
-      .then(({ data }) => { if (data && data.length) setSupaRes(data); })
+      .then(({ data, error }) => {
+        if (error) { console.warn('[BOH] panel:', error.message); return; }
+        setSupaRes(data || []);
+      })
       .catch(e => console.warn('[BOH] panel:', e.message));
   }, []);
 
-  const liveReservations = supaRes || D.reservations;
+  /* null = not yet loaded (show mock); [] or [...] = Supabase answered (use it) */
+  const liveReservations = supaRes !== null ? supaRes : D.reservations;
   const todaySales = D.dailySales[D.dailySales.length - 1];
   const occupied = D.tables.filter(t => t.status === 'occupied').length;
   const kitchenPending = D.kitchen.filter(t => t.status === 'pending' || t.status === 'cooking').length;
