@@ -2,8 +2,6 @@
    Una Mesa — modules: Reservas · TPV · Cocina · Personal
    All state lives in the persistent Store (survives navigation + reload)
    ───────────────────────────────────────────────────────────── */
-const BOH_SUPA_URL = typeof window.BOH_SUPA_URL !== 'undefined' ? window.BOH_SUPA_URL : 'https://rkaytcmyaaighozxatod.supabase.co';
-const BOH_SUPA_KEY = typeof window.BOH_SUPA_KEY !== 'undefined' ? window.BOH_SUPA_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
 function mapSupaRes(r) {
   return {
@@ -137,10 +135,9 @@ function Reservas() {
 
   /* Load today's real reservations from Supabase and merge into the local list */
   useEffect(() => {
-    if (!window.supabase) return;
-    const sb = window.supabase.createClient(BOH_SUPA_URL, BOH_SUPA_KEY);
+    if (!window.sb) return;
     const today = new Date().toISOString().split('T')[0];
-    sb.from('reservations')
+    window.sb.from('reservations')
       .select('*')
       .eq('date', today)
       .order('time', { ascending: true })

@@ -1,23 +1,19 @@
 /* ─────────────────────────────────────────────────────────────
    Una Mesa — Panel (dashboard)
    ───────────────────────────────────────────────────────────── */
-const BOH_SUPA_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
-const BOH_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
-
 function Panel({ go }) {
   const D = window.DATA;
   const [supaRes, setSupaRes] = useState(null);
 
   useEffect(() => {
-    if (!window.supabase) return;
-    const sb = window.supabase.createClient(BOH_SUPA_URL, BOH_SUPA_KEY);
+    if (!window.sb) return;
     const today = new Date().toISOString().split('T')[0];
-    sb.from('reservations')
+    window.sb.from('reservations')
       .select('*')
       .eq('date', today)
       .order('time', { ascending: true })
       .then(({ data }) => { if (data && data.length) setSupaRes(data); })
-      .catch(e => console.warn('[BOH] panel fetch:', e.message));
+      .catch(e => console.warn('[BOH] panel:', e.message));
   }, []);
 
   const liveReservations = supaRes || D.reservations;

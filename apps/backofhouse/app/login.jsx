@@ -1,13 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    Una Mesa — Login (split screen: manager password + staff PIN)
    ───────────────────────────────────────────────────────────── */
-const BOH_LOGIN_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
-const BOH_LOGIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
-
-/* Shared client exposed so shell.jsx can call signOut */
-if (window.supabase) {
-  window.BOH_SB = window.supabase.createClient(BOH_LOGIN_URL, BOH_LOGIN_KEY);
-}
 
 function toAppUser(supaUser) {
   const meta = supaUser.user_metadata || {};
@@ -79,7 +72,7 @@ function PasswordForm({ onLogin }) {
     if (!email.includes('@') || pw.length < 4) { setErr('Revisa tu correo y contraseña.'); return; }
     setErr(''); setLoading(true);
     try {
-      const sb = window.BOH_SB || window.supabase.createClient(BOH_LOGIN_URL, BOH_LOGIN_KEY);
+      const sb = window.sb;
       const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pw });
       if (error) throw error;
       onLogin(toAppUser(data.user));
@@ -208,11 +201,11 @@ function PinForm({ onLogin }) {
 
 function Login({ onLogin }) {
   const [mode, setMode] = useState('password');
-  const [checking, setChecking] = useState(!!window.BOH_SB);
+  const [checking, setChecking] = useState(!!window.sb);
 
   useEffect(() => {
-    if (!window.BOH_SB) return;
-    window.BOH_SB.auth.getSession()
+    if (!window.sb) return;
+    window.sb.auth.getSession()
       .then(({ data: { session } }) => {
         if (session) onLogin(toAppUser(session.user));
         else setChecking(false);

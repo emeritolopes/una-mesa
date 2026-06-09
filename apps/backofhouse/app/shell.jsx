@@ -130,7 +130,7 @@ function App() {
   }, []);
   const login = (u) => { setUser(u); localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
   const logout = () => {
-    if (window.BOH_SB) window.BOH_SB.auth.signOut().catch(() => {});
+    if (window.sb) window.sb.auth.signOut().catch(() => {});
     setUser(null);
     localStorage.removeItem('unamesa.user');
   };
