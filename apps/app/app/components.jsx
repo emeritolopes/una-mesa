@@ -99,7 +99,8 @@ function Toast({ msg }) {
 
 /* ── Header · Stitch navbar (glass, wordmark, underline-active links) ── */
 function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }) {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled,  setScrolled]  = useState(false);
+  const [menuOpen,  setMenuOpen]  = useState(false);
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
 
@@ -112,17 +113,24 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
 
   const submit = e => { e.preventDefault(); if (q.trim()) onSearch(q.trim()); };
   const v = route && route.view ? route.view : route;
+
   const lnk = (view, label) => React.createElement('a', {
     className: 'hdr-link' + (v === view ? ' on' : ''),
     onClick: () => go(view)
+  }, label);
+
+  /* mobile nav link — closes menu on tap */
+  const mlnk = (view, label) => React.createElement('button', {
+    className: 'hdr-mobile-link' + (v === view ? ' on' : ''),
+    onClick: () => { go(view); setMenuOpen(false); }
   }, label);
 
   return React.createElement('header', { className:'hdr' },
     React.createElement('div', { className:'wrap' },
       React.createElement('div', { className:'hdr-in' },
 
-        /* ── Logo imagen ── */
-        React.createElement('div', { className:'brand', onClick:()=>go('home') },
+        /* ── Logo ── */
+        React.createElement('div', { className:'brand', onClick:()=>{ go('home'); setMenuOpen(false); } },
           React.createElement('img', {
             src:'../../assets/logo/una-mesa-logo.png',
             alt:'Una Mesa',
@@ -131,7 +139,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           })
         ),
 
-        /* ── Links de navegación izquierda ── */
+        /* ── Links de navegación (desktop) ── */
         React.createElement('nav', { className:'hdr-links' },
           lnk('home',      'Descubrir'),
           lnk('results',   'Explorar'),
@@ -142,7 +150,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           }, 'Para restaurantes')
         ),
 
-        /* ── Barra de búsqueda: se revela al hacer scroll ── */
+        /* ── Barra de búsqueda scroll ── */
         React.createElement('form', {
           className: 'hdr-search' + (scrolled ? ' show' : ''),
           onSubmit: submit, role:'search', 'aria-hidden': String(!scrolled)
@@ -155,7 +163,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           })
         ),
 
-        /* ── Acciones derecha: buscar · tema · usuario ── */
+        /* ── Acciones derecha ── */
         React.createElement('div', { className:'hdr-nav' },
           React.createElement('button', {
             className:'icon-btn', title:'Buscar',
@@ -172,8 +180,32 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
                 React.createElement('span', { className:'nm' }, user.name.split(' ')[0])
               )
             : React.createElement('button', { className:'btn btn-acc btn-sm', onClick:onAuth }, 'Crear perfil')
+        ),
+
+        /* ── Hamburger (mobile only) ── */
+        React.createElement('button', {
+          type:'button',
+          className: 'hdr-burger' + (menuOpen ? ' open' : ''),
+          onClick: () => setMenuOpen(o => !o),
+          'aria-label': menuOpen ? 'Cerrar menú' : 'Abrir menú'
+        },
+          React.createElement('span', null),
+          React.createElement('span', null),
+          React.createElement('span', null)
         )
       )
+    ),
+
+    /* ── Panel de navegación móvil ── */
+    React.createElement('nav', { className: 'hdr-mobile-menu' + (menuOpen ? ' open' : ''), 'aria-hidden': String(!menuOpen) },
+      mlnk('home',      'Descubrir'),
+      mlnk('results',   'Explorar'),
+      mlnk('concierge', 'Conserje IA'),
+      React.createElement('a', {
+        className: 'hdr-mobile-link',
+        href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener',
+        onClick: () => setMenuOpen(false)
+      }, 'Para restaurantes')
     )
   );
 }

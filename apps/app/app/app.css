@@ -1590,3 +1590,135 @@ input,select,textarea{font-family:inherit}
 
 /* Los blobs de gradiente coral no aplican sobre la foto */
 .stitch-hero-blob{display:none}
+
+/* ══════════════════════════════════════════
+   Mobile responsive — ≤768px
+   Solo breakpoints, diseño desktop intacto
+   ══════════════════════════════════════════ */
+
+/* ── Hamburger button ── */
+.hdr-burger{
+  display:none;
+  flex-direction:column;justify-content:center;align-items:center;
+  gap:5px;width:36px;height:36px;flex-shrink:0;
+  background:none;border:none;cursor:pointer;
+  border-radius:10px;padding:0;
+  transition:background .15s;
+}
+.hdr-burger:hover{background:rgba(26,22,18,.06)}
+[data-theme="noche"] .hdr-burger:hover{background:rgba(255,255,255,.07)}
+.hdr-burger span{
+  display:block;width:21px;height:2px;
+  background:var(--text);border-radius:2px;
+  transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s;
+  transform-origin:center;
+}
+.hdr-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hdr-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hdr-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── Mobile nav panel ── */
+.hdr-mobile-menu{
+  display:none;
+  position:absolute;left:0;right:0;top:100%;z-index:59;
+  background:var(--bg);
+  border-top:1px solid var(--line-2);
+  box-shadow:0 24px 48px rgba(0,0,0,.14);
+  padding:20px 24px 28px;
+  flex-direction:column;
+}
+.hdr-mobile-menu.open{
+  display:flex;
+  animation:mobileMenuIn .2s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes mobileMenuIn{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:none}
+}
+.hdr-mobile-link{
+  display:block;padding:15px 0;
+  font-size:17px;font-weight:700;color:var(--muted);
+  background:none;border:none;
+  border-bottom:1px solid var(--line-2);
+  text-align:left;cursor:pointer;font-family:inherit;
+  text-decoration:none;
+  transition:color .15s,padding-left .15s;
+}
+.hdr-mobile-link:last-child{border-bottom:none}
+.hdr-mobile-link:hover{color:var(--text);padding-left:6px}
+.hdr-mobile-link.on{color:var(--accent)}
+
+/* ── Breakpoint principal: ≤768px ── */
+@media(max-width:768px){
+
+  /* Navbar */
+  .hdr-in{height:64px}
+  .hdr-links{display:none}
+  .hdr-search{display:none!important}
+  .hdr-burger{display:flex}
+
+  /* Hero — título con clamp más pequeño, search full-width, chips en scroll */
+  .stitch-hero{min-height:72vh;padding:52px 0 44px}
+  .stitch-hero-content .display{
+    font-size:clamp(32px,9vw,52px)!important;
+    margin-bottom:28px!important;
+  }
+  .stitch-search{max-width:100%;padding:6px 6px 6px 18px}
+  .stitch-search-btn{padding:10px 18px;font-size:14px}
+  .stitch-chips{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    justify-content:flex-start;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:4px;
+    margin-top:16px;
+    gap:8px;
+  }
+  .stitch-chips::-webkit-scrollbar{display:none}
+  .stitch-chip{flex-shrink:0}
+  .stitch-loc{max-width:100%}
+
+  /* Bento grid — columna única */
+  .stitch-bento-section{padding:48px 0}
+  .stitch-bento-grid{grid-template-columns:1fr;height:auto}
+  .stitch-bento-card{height:260px}
+  .stitch-sec-head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:28px}
+
+  /* Sección Destacado — columna única */
+  .detail-section{padding:48px 0}
+  .detail-grid{grid-template-columns:1fr;gap:28px}
+  .booking-glass{position:static;top:auto}
+  .detail-inner-grid{grid-template-columns:1fr}
+  .detail-food-ph{display:none}
+
+  /* Recomendados */
+  .stitch-picks-section{padding:48px 0 40px}
+  .sec-head{margin-bottom:20px}
+  .rgrid{grid-template-columns:repeat(2,1fr)}
+
+  /* Disponible hoy — 1 columna */
+  .dispo-section{padding:48px 0 56px}
+  .nearby-grid{grid-template-columns:1fr}
+  .nearby-card{height:220px}
+
+  /* Conserje IA */
+  .stitch-ai-section{padding:48px 0}
+  .stitch-ai-h2{font-size:clamp(28px,8vw,48px)!important;margin-bottom:32px!important}
+  .stitch-quote-text{font-size:clamp(16px,4.5vw,22px)}
+  .stitch-ai-textarea{font-size:16px;padding:16px 44px 16px 0}
+
+  /* Generales */
+  .wrap{padding:0 18px}
+  .foot{padding:22px 0;margin-top:36px}
+}
+
+/* ── ≤480px — ajustes extra finos ── */
+@media(max-width:480px){
+  .stitch-hero-content .display{font-size:clamp(26px,10vw,38px)!important}
+  .stitch-bento-card{height:220px}
+  .rgrid{grid-template-columns:1fr}
+  .nearby-card{height:200px}
+  .wrap{padding:0 16px}
+  .hdr-mobile-link{font-size:16px;padding:13px 0}
+}
