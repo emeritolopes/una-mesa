@@ -1,6 +1,21 @@
 /* ─────────────────────────────────────────────────────────────
    Una Mesa — Login (split screen: manager password + staff PIN)
    ───────────────────────────────────────────────────────────── */
+const BOH_LOGIN_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+const BOH_LOGIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
+/* Shared client exposed so shell.jsx can call signOut */
+if (window.supabase) {
+  window.BOH_SB = window.supabase.createClient(BOH_LOGIN_URL, BOH_LOGIN_KEY);
+}
+
+function toAppUser(supaUser) {
+  const meta = supaUser.user_metadata || {};
+  const rawName = (meta.name || meta.full_name || supaUser.email.split('@')[0]).trim();
+  const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'U';
+  return { id: supaUser.id, email: supaUser.email, name, initials, role: meta.role || 'Gerente', access: 'manager' };
+}
 function Wordmark({ light }) {
   return (
     <div className={`font-['Syne'] font-black tracking-tight ${light ? 'text-white' : 'text-brand'}`}>
@@ -59,11 +74,19 @@ function PasswordForm({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!email.includes('@') || pw.length < 4) { setErr('Revisa tu correo y contraseña.'); return; }
     setErr(''); setLoading(true);
-    setTimeout(() => onLogin(window.DATA.admin), 650);
+    try {
+      const sb = window.BOH_SB || window.supabase.createClient(BOH_LOGIN_URL, BOH_LOGIN_KEY);
+      const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pw });
+      if (error) throw error;
+      onLogin(toAppUser(data.user));
+    } catch (e) {
+      setErr(e.message || 'Correo o contraseña incorrectos.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -185,6 +208,20 @@ function PinForm({ onLogin }) {
 
 function Login({ onLogin }) {
   const [mode, setMode] = useState('password');
+  const [checking, setChecking] = useState(!!window.BOH_SB);
+
+  useEffect(() => {
+    if (!window.BOH_SB) return;
+    window.BOH_SB.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session) onLogin(toAppUser(session.user));
+        else setChecking(false);
+      })
+      .catch(() => setChecking(false));
+  }, []);
+
+  if (checking) return null;
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-white">
       <BrandPanel />
