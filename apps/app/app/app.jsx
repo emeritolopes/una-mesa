@@ -9,7 +9,7 @@ function animateThemeTo(t){
 }
 
 function App() {
-  const data = window.UM_DATA;
+  const [restaurants, setRestaurants] = useState(window.UM_DATA);
   const [route, setRoute] = useState({ view:'home', rid:null, query:'', presetTime:null });
   const [theme, setTheme] = useState(()=>{ try{return localStorage.getItem('um-theme')||'crema';}catch(e){return 'crema';} });
   const [user, setUser] = useState(null);
@@ -45,6 +45,17 @@ function App() {
 
   /* scroll to top on view change */
   useEffect(()=>{ window.scrollTo(0,0); }, [route.view, route.rid]);
+
+  /* load real restaurants from Supabase; keep mock data as fallback */
+  useEffect(() => {
+    if (!window.loadRestaurants) return;
+    window.loadRestaurants().then(rows => {
+      if (rows && rows.length) {
+        window.UM_DATA = rows;
+        setRestaurants(rows);
+      }
+    });
+  }, []);
 
   /* sync auth state with Supabase session (handles page reload + sign-in/out) */
   useEffect(() => {
@@ -137,7 +148,7 @@ function App() {
   else if (route.view==='booking')
     screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, back:()=>go('home'), user, requireAuth, onConfirm });
   else if (route.view==='profile')
-    screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data, openRest, toggleFav, startBook, go, spoons, onRedeem:redeemReward });
+    screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go, spoons, onRedeem:redeemReward });
 
   return React.createElement('div', { className:'app' },
     React.createElement(window.Header, {

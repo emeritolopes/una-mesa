@@ -207,4 +207,79 @@
   window.UM_AREAS = AREAS;
   window.UM_DIST = distKm;
   window.UM_GEOCODE = geocode;
+
+  /* ══════════════════════════════════════════════
+     Supabase loader — maps venues rows → SPA shape
+     Falls back to mock data if fetch fails
+  ══════════════════════════════════════════════ */
+  const SUPA_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
+  function glyphFromCuisine(c) {
+    c = (c||'').toLowerCase();
+    if (/marisco|pescado|sushi|jap/.test(c)) return 'fish';
+    if (/carne|asador|brasa|grill/.test(c))  return 'flame';
+    if (/vegetar|vegano|mercado/.test(c))     return 'leaf';
+    if (/caf|brunch|coffee/.test(c))          return 'coffee';
+    if (/vino|tapas|pincho/.test(c))          return 'wine';
+    if (/arroz|paella/.test(c))               return 'pot';
+    return 'sparkle';
+  }
+
+  function czFromCuisine(c) {
+    c = (c||'').toLowerCase();
+    if (/marisco|mediterr|pescado/.test(c)) return cz('marisco');
+    if (/asador|carne/.test(c))             return cz('asador');
+    if (/gallego|pulpo/.test(c))            return cz('pulpo');
+    if (/arroz|paella/.test(c))             return cz('arroz');
+    if (/tapas|bar|pincho/.test(c))         return cz('tapas');
+    if (/fusion|asian|contemp/.test(c))     return cz('fusion');
+    if (/vegetar|vegano|mercado/.test(c))   return cz('vegetal');
+    if (/japon|sushi/.test(c))              return cz('japones');
+    if (/caf|brunch|coffee/.test(c))        return cz('cafe');
+    return cz('bistro');
+  }
+
+  function mapVenue(v) {
+    const cuisine = v.cuisine || v.cuisine_type || '';
+    return {
+      id:      String(v.id || v.slug || Math.random().toString(36).slice(2)),
+      name:    v.name || 'Restaurante',
+      cuisine,
+      price:   v.price || v.price_range || '€€',
+      area:    v.neighborhood || v.area || v.district || '',
+      city:    v.city || '',
+      rating:  parseFloat(v.rating || v.avg_rating || 4.0),
+      reviews: parseInt(v.review_count || v.reviews || 0, 10),
+      match:   parseInt(v.match || v.match_score || 80, 10),
+      coords:  v.coords || { x: 50, y: 50 },
+      glyph:   v.glyph || v.icon || glyphFromCuisine(cuisine),
+      cz:      v.cz || (v.color_key ? cz(v.color_key) : czFromCuisine(cuisine)),
+      tags:    v.tags || [],
+      about:   v.about || v.description || '',
+      address: v.address || '',
+      hours:   v.hours || v.opening_hours || '',
+      phone:   v.phone || '',
+      times:   v.times || { lunch: [], dinner: [] },
+      menu:    v.menu || [],
+      revs:    v.revs || v.reviews_list || [],
+      kw:      v.kw || v.keywords || [],
+    };
+  }
+
+  async function loadRestaurants() {
+    if (!window.supabase) return null;
+    try {
+      const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      const { data: rows, error } = await sb.from('venues').select('*').eq('city', 'Madrid');
+      if (error) throw error;
+      if (!rows || !rows.length) return null;
+      return rows.map(mapVenue);
+    } catch (e) {
+      console.warn('[UNA MESA] loadRestaurants:', e.message || e);
+      return null;
+    }
+  }
+
+  window.loadRestaurants = loadRestaurants;
 })();
