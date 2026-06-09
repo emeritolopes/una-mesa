@@ -175,8 +175,8 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
 
           user
             ? React.createElement('button', { className:'avatar-btn', onClick:onProfile },
-                React.createElement('span', { className:'av' }, user.name[0].toUpperCase()),
-                React.createElement('span', { className:'nm' }, user.name.split(' ')[0])
+                React.createElement('span', { className:'av' }, formatName(user)[0].toUpperCase()),
+                React.createElement('span', { className:'nm' }, formatName(user).split(' ')[0])
               )
             : React.createElement(React.Fragment, null,
                 React.createElement('button', { className:'btn btn-ghost btn-sm hdr-signin', onClick:()=>onAuth('login') }, 'Iniciar sesión'),

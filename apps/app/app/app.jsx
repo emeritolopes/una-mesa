@@ -96,7 +96,7 @@ function App() {
   const redeemReward = cost => { let ok=false; setSpoons(s=>{ if(s>=cost){ ok=true; const t=s-cost; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; } return s; }); if(ok) flash('Recompensa canjeada · −'+cost+' Cucharas'); return ok; };
   const onAuth = u => {
     setUser(u); setAuthOpen(null); setReserveGate(false);
-    flash('¡Hola, '+u.name.split(' ')[0]+'!');
+    flash('¡Hola, '+formatName(u).split(' ')[0]+'!');
     if (pendingRef.current) { const cb = pendingRef.current; pendingRef.current=null; setTimeout(cb, 60); }
   };
   /* reservation gate outcomes */

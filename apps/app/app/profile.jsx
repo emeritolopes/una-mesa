@@ -11,7 +11,7 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
   const togglePref = p => setPrefs(s => s.includes(p) ? s.filter(x=>x!==p) : [...s, p]);
   const submit = e => {
     e.preventDefault();
-    const display = mode==='signup' ? (name.trim()||'Comensal') : (email.split('@')[0]||'Comensal');
+    const display = mode==='signup' ? (name.trim()||'Comensal') : formatName({ name:'', email:email.trim() });
     onAuth({ name: display.charAt(0).toUpperCase()+display.slice(1), email: email||'tú@unamesa.co', prefs, location: loc });
   };
   const isSignup = mode==='signup';
@@ -104,9 +104,9 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   return React.createElement('div', { className:'view' },
     React.createElement('div', { className:'wrap' },
       React.createElement('div', { className:'prof-hero' },
-        React.createElement('div',{className:'prof-av'}, user.name[0].toUpperCase()),
+        React.createElement('div',{className:'prof-av'}, formatName(user)[0].toUpperCase()),
         React.createElement('div',null,
-          React.createElement('div',{className:'prof-name display'}, '¡Hola, '+user.name.split(' ')[0]+'!'),
+          React.createElement('div',{className:'prof-name display'}, '¡Hola, '+formatName(user).split(' ')[0]+'!'),
           React.createElement('div',{className:'prof-mail'}, user.email)),
         React.createElement('div',{className:'loyalty'},
           React.createElement('div',{className:'ll'},'Programa Mesa'),

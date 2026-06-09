@@ -1,4 +1,15 @@
 /* ════ UNA MESA · Supabase Auth ════ */
+
+/* Defined outside the IIFE so it works even if Supabase fails to load */
+window.formatName = function(user) {
+  if (user && user.name) return user.name;
+  var email = (user && user.email) || '';
+  return email.split('@')[0]
+    .split('.')
+    .map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); })
+    .join(' ') || 'Comensal';
+};
+
 (function () {
   const SUPA_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
