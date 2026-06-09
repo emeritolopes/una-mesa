@@ -91,7 +91,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   const dows   = ['D','L','M','X','J','V','S'];
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
-  const deposit  = party*10;
+  const deposit  = party * (r.deposit || 10);
 
   const goStep = n => { setPayError(''); setStep(n); };
 
