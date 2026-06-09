@@ -135,21 +135,25 @@ function Reservas() {
 
   /* Load all reservations from Supabase — replaces any mock/store data */
   useEffect(() => {
-    console.log('[BOH] Reservas mounted, window.sb =', !!window.sb);
-    if (!window.sb) return;
-    window.sb
-      .from('reservations')
-      .select('*')
-      .neq('status', 'cancelled')
-      .order('date', { ascending: true })
-      .then(({ data, error }) => {
+    async function load() {
+      console.log('[BOH] Reservas mounted, window.sb =', !!window.sb);
+      if (!window.sb) return;
+      try {
+        const { data, error } = await window.sb
+          .from('reservations')
+          .select('*')
+          .neq('status', 'cancelled')
+          .order('date', { ascending: true });
         console.log('reservas cargadas:', data, 'error:', error);
         if (error) { console.warn('[BOH] loadReservations:', error.message); return; }
         const mapped = (data || []).map(mapSupaRes);
         console.log('[BOH] mapped rows:', mapped.length, mapped);
         setList(mapped);
-      })
-      .catch(e => console.warn('[BOH] loadReservations catch:', e.message));
+      } catch(e) {
+        console.warn('[BOH] loadReservations:', e.message);
+      }
+    }
+    load();
   }, []);
 
   const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar' };
@@ -209,18 +213,26 @@ function Reservas() {
     setShowForm(false); setNr({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
     toast('Reserva guardada');
   };
-  const patch = (id, fields) => {
+  const patch = async (id, fields) => {
     setList(arr => arr.map(r => r.id === id ? { ...r, ...fields } : r));
     setSelectedRes(s => s && s.id === id ? { ...s, ...fields } : s);
     if (window.sb) {
-      window.sb.from('reservations').update(fields).eq('id', id)
-        .catch(e => console.warn('[BOH] patch reservation:', e.message));
+      try {
+        const { error } = await window.sb.from('reservations').update(fields).eq('id', id);
+        if (error) console.warn('[BOH] patch reservation:', error.message);
+      } catch(e) {
+        console.warn('[BOH] patch reservation:', e.message);
+      }
     }
   };
-  const del = (id) => {
+  const del = async (id) => {
     if (window.sb) {
-      window.sb.from('reservations').update({ status: 'cancelled' }).eq('id', id)
-        .catch(e => console.warn('[BOH] cancel reservation:', e.message));
+      try {
+        const { error } = await window.sb.from('reservations').update({ status: 'cancelled' }).eq('id', id);
+        if (error) console.warn('[BOH] cancel reservation:', error.message);
+      } catch(e) {
+        console.warn('[BOH] cancel reservation:', e.message);
+      }
     }
     setList(arr => arr.filter(r => r.id !== id));
     setSelectedRes(null);
