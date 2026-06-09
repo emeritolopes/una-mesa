@@ -144,7 +144,7 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           lnk('results',   'Explorar'),
           lnk('concierge', 'Conserje IA'),
           React.createElement('a', {
-            className:'hdr-link',
+            className:'hdr-link hdr-link-b2b',
             href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener'
           }, 'Para restaurantes')
         ),
