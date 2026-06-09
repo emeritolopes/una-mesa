@@ -5,16 +5,22 @@
 
   const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
+  function formatNameFromEmail(email) {
+    return email.split('@')[0]
+      .split('.')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
   /* Supabase auth user → app user shape { id, name, email } */
   function toAppUser(sbUser) {
     if (!sbUser) return null;
     const meta = sbUser.user_metadata || {};
-    const raw = meta.name || meta.full_name || sbUser.email.split('@')[0] || 'Comensal';
-    return {
-      id: sbUser.id,
-      name: raw.charAt(0).toUpperCase() + raw.slice(1),
-      email: sbUser.email
-    };
+    const explicit = (meta.name || meta.full_name || '').trim();
+    const name = explicit
+      ? explicit.charAt(0).toUpperCase() + explicit.slice(1)
+      : formatNameFromEmail(sbUser.email);
+    return { id: sbUser.id, name, email: sbUser.email };
   }
 
   async function signUp(email, password, name) {
