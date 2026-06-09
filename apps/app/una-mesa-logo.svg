@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="348" height="96" viewBox="0 0 348 96" fill="none">
+  
+  <g transform="translate(16 16)">
+    <rect x="2" y="2" width="60" height="60" rx="20" fill="none" stroke="#1A1411" stroke-width="4"></rect>
+    <rect x="17" y="18" width="30" height="6" rx="3" fill="#1A1411"></rect>
+    <path d="M19 30 L19 33 Q19 46 32 46 Q45 46 45 33 L45 30" stroke="#1A1411" stroke-width="5.2" stroke-linecap="butt" stroke-linejoin="round" fill="none"></path>
+  </g>
+  
+  <text y="60" font-family="Manrope, &#39;Arial Black&#39;, &#39;Helvetica Neue&#39;, Arial, sans-serif" font-weight="800" font-size="42" letter-spacing="-1.2" fill="#1A1411">
+    <tspan x="98">Una</tspan><tspan dx="7">Mesa</tspan>
+  </text>
+</svg>

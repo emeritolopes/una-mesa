@@ -132,10 +132,9 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
         /* ── Logo ── */
         React.createElement('div', { className:'brand', onClick:()=>{ go('home'); setMenuOpen(false); } },
           React.createElement('img', {
-            src:'../../assets/logo/una-mesa-logo.png',
+            src:'./una-mesa-logo.svg',
             alt:'Una Mesa',
-            height:28,
-            style:{ display:'block', filter:'brightness(0)', flexShrink:0 }
+            style:{ height:'28px', width:'auto', filter:'brightness(0)', display:'block', flexShrink:0 }
           })
         ),
 
