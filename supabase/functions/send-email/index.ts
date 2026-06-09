@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
             'Content-Type':  'application/json',
           },
           body: JSON.stringify({
-            from:    'onboarding@resend.dev',
+            from:    'reservas@unamesa.co',
             to:      [to],
             subject: `¡Tu mesa en ${restaurant_name} está confirmada!`,
             html,

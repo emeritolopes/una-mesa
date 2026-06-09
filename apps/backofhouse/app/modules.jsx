@@ -2,6 +2,24 @@
    Una Mesa — modules: Reservas · TPV · Cocina · Personal
    All state lives in the persistent Store (survives navigation + reload)
    ───────────────────────────────────────────────────────────── */
+const BOH_SUPA_URL = typeof window.BOH_SUPA_URL !== 'undefined' ? window.BOH_SUPA_URL : 'https://rkaytcmyaaighozxatod.supabase.co';
+const BOH_SUPA_KEY = typeof window.BOH_SUPA_KEY !== 'undefined' ? window.BOH_SUPA_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
+function mapSupaRes(r) {
+  return {
+    id:             String(r.id),
+    customer_name:  r.customer_name || 'Cliente',
+    customer_phone: r.customer_phone || '',
+    pax:            Number(r.pax) || 2,
+    time:           r.time || '14:00:00',
+    date:           r.date || '',
+    status:         r.status || 'confirmed',
+    table:          r.table_label || r.table || '',
+    notes:          r.notes || '',
+    allergy_alert:  '',
+  };
+}
+
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const DSHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 const DCAP = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -116,6 +134,27 @@ function Reservas() {
   const [quickTipModal, setQuickTipModal] = useState(null);
   const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
   const stripRef = useRef(null);
+
+  /* Load today's real reservations from Supabase and merge into the local list */
+  useEffect(() => {
+    if (!window.supabase) return;
+    const sb = window.supabase.createClient(BOH_SUPA_URL, BOH_SUPA_KEY);
+    const today = new Date().toISOString().split('T')[0];
+    sb.from('reservations')
+      .select('*')
+      .eq('date', today)
+      .order('time', { ascending: true })
+      .then(({ data }) => {
+        if (!data || !data.length) return;
+        const mapped = data.map(mapSupaRes);
+        setList(prev => {
+          const ids = new Set(prev.map(r => String(r.id)));
+          const fresh = mapped.filter(r => !ids.has(r.id));
+          return fresh.length ? [...prev, ...fresh] : prev;
+        });
+      })
+      .catch(e => console.warn('[BOH] loadReservations:', e.message));
+  }, []);
 
   const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar' };
   const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-red-100 text-red-700 border-red-200' };

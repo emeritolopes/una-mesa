@@ -1,8 +1,26 @@
 /* ─────────────────────────────────────────────────────────────
    Una Mesa — Panel (dashboard)
    ───────────────────────────────────────────────────────────── */
+const BOH_SUPA_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+const BOH_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
 function Panel({ go }) {
   const D = window.DATA;
+  const [supaRes, setSupaRes] = useState(null);
+
+  useEffect(() => {
+    if (!window.supabase) return;
+    const sb = window.supabase.createClient(BOH_SUPA_URL, BOH_SUPA_KEY);
+    const today = new Date().toISOString().split('T')[0];
+    sb.from('reservations')
+      .select('*')
+      .eq('date', today)
+      .order('time', { ascending: true })
+      .then(({ data }) => { if (data && data.length) setSupaRes(data); })
+      .catch(e => console.warn('[BOH] panel fetch:', e.message));
+  }, []);
+
+  const liveReservations = supaRes || D.reservations;
   const todaySales = D.dailySales[D.dailySales.length - 1];
   const occupied = D.tables.filter(t => t.status === 'occupied').length;
   const kitchenPending = D.kitchen.filter(t => t.status === 'pending' || t.status === 'cooking').length;
@@ -25,14 +43,14 @@ function Panel({ go }) {
   const statusBar = [
     { dot: 'bg-green-500', label: 'Estado', value: 'Abierto' },
     { dot: 'bg-amber-400', label: 'Mesas ocupadas', value: `${occupied} / ${D.tables.length}` },
-    { dot: 'bg-green-500', label: 'Reservas hoy', value: `${D.reservations.length}` },
+    { dot: 'bg-green-500', label: 'Reservas hoy', value: `${liveReservations.length}` },
     { dot: kitchenPending > 0 ? 'bg-red-500' : 'bg-green-500', label: 'Cocina', value: `${kitchenPending} pendientes` },
     { dot: 'bg-green-500', label: 'Personal', value: `${activeStaff} en turno` },
   ];
 
   const kpis = [
     { label: 'Ventas hoy', value: eur(todaySales.total_revenue), icon: 'ti-currency-euro', highlight: true },
-    { label: 'Reservas hoy', value: `${D.reservations.length}`, icon: 'ti-calendar' },
+    { label: 'Reservas hoy', value: `${liveReservations.length}`, icon: 'ti-calendar' },
     { label: 'Ticket medio', value: eur(todaySales.avg_ticket), icon: 'ti-receipt' },
     { label: 'Rotación mesas', value: `${todaySales.table_turns}×`, icon: 'ti-rotate' },
   ];
@@ -78,7 +96,7 @@ function Panel({ go }) {
           <div className="px-5 py-3.5 border-b border-black/7 flex items-center justify-between">
             <div>
               <div className="font-['Syne'] text-sm font-black text-gray-900">Próximas reservas</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">{D.reservations.length} reservas hoy</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">{liveReservations.length} reservas hoy</div>
             </div>
             <button onClick={() => go('reservas')} className="text-[11px] text-brand font-semibold hover:underline">Ver todas</button>
           </div>
@@ -91,7 +109,7 @@ function Panel({ go }) {
               </tr>
             </thead>
             <tbody>
-              {D.reservations.slice(0, 6).map(r => (
+              {liveReservations.slice(0, 6).map(r => (
                 <tr key={r.id} className="border-t border-black/5 hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3 text-sm font-medium text-gray-900">{r.customer_name}</td>
                   <td className="px-5 py-3 text-sm text-gray-600">{r.time.slice(0, 5)}</td>
