@@ -209,8 +209,23 @@ function Reservas() {
     setShowForm(false); setNr({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
     toast('Reserva guardada');
   };
-  const patch = (id, fields) => { setList(arr => arr.map(r => r.id === id ? { ...r, ...fields } : r)); setSelectedRes(s => s && s.id === id ? { ...s, ...fields } : s); };
-  const del = (id) => { setList(arr => arr.filter(r => r.id !== id)); setSelectedRes(null); toast('Reserva eliminada'); };
+  const patch = (id, fields) => {
+    setList(arr => arr.map(r => r.id === id ? { ...r, ...fields } : r));
+    setSelectedRes(s => s && s.id === id ? { ...s, ...fields } : s);
+    if (window.sb) {
+      window.sb.from('reservations').update(fields).eq('id', id)
+        .catch(e => console.warn('[BOH] patch reservation:', e.message));
+    }
+  };
+  const del = (id) => {
+    if (window.sb) {
+      window.sb.from('reservations').update({ status: 'cancelled' }).eq('id', id)
+        .catch(e => console.warn('[BOH] cancel reservation:', e.message));
+    }
+    setList(arr => arr.filter(r => r.id !== id));
+    setSelectedRes(null);
+    toast('Reserva eliminada');
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
