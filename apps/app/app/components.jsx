@@ -178,7 +178,10 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
                 React.createElement('span', { className:'av' }, user.name[0].toUpperCase()),
                 React.createElement('span', { className:'nm' }, user.name.split(' ')[0])
               )
-            : React.createElement('button', { className:'btn btn-acc btn-sm', onClick:onAuth }, 'Crear perfil')
+            : React.createElement(React.Fragment, null,
+                React.createElement('button', { className:'btn btn-ghost btn-sm hdr-signin', onClick:()=>onAuth('login') }, 'Iniciar sesión'),
+                React.createElement('button', { className:'btn btn-acc btn-sm', onClick:()=>onAuth('register') }, 'Crear perfil')
+              )
         ),
 
         /* ── Hamburger (mobile only) ── */

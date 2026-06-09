@@ -15,7 +15,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [favs, setFavs] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [authOpen, setAuthOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(null); // null | 'login' | 'register'
   const [reserveGate, setReserveGate] = useState(false);
   const [claimOpen, setClaimOpen] = useState(false);
   const [spoons, setSpoons] = useState(0);
@@ -95,7 +95,7 @@ function App() {
   const awardSpoons = n => { setSpoons(s=>{ const t=s+n; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; }); };
   const redeemReward = cost => { let ok=false; setSpoons(s=>{ if(s>=cost){ ok=true; const t=s-cost; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; } return s; }); if(ok) flash('Recompensa canjeada · −'+cost+' Cucharas'); return ok; };
   const onAuth = u => {
-    setUser(u); setAuthOpen(false); setReserveGate(false);
+    setUser(u); setAuthOpen(null); setReserveGate(false);
     flash('¡Hola, '+u.name.split(' ')[0]+'!');
     if (pendingRef.current) { const cb = pendingRef.current; pendingRef.current=null; setTimeout(cb, 60); }
   };
@@ -111,7 +111,7 @@ function App() {
     setClaimOpen(false);
     pendingRef.current = null;
     awardSpoons(25);
-    setAuthOpen(true);
+    setAuthOpen('register');
   };
   const onConfirm = booking => {
     setBookings(b => [booking, ...b]);
@@ -142,7 +142,7 @@ function App() {
   return React.createElement('div', { className:'app' },
     React.createElement(window.Header, {
       go, route:route.view, user,
-      onAuth:()=>setAuthOpen(true),
+      onAuth:(mode)=>setAuthOpen(mode||'register'),
       onProfile:()=>go('profile'),
       theme, onTheme:toggleTheme,
       onSearch:search
@@ -154,7 +154,7 @@ function App() {
       onAccount:gateCreateAccount, onGuest:gateGuest }) : null,
     claimOpen ? React.createElement(window.ClaimSpoonsModal, {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
-    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(false), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'Vigo' : geo.label }) : null,
+    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'Vigo' : geo.label, initialMode:authOpen }) : null,
     React.createElement(window.Toast, { msg:toast }),
     /* logout affordance when on profile */
     (user && route.view==='profile') ? React.createElement('div',{style:{position:'fixed',bottom:'20px',right:'20px',zIndex:50}},
