@@ -240,6 +240,41 @@
     return cz('bistro');
   }
 
+  /* Build [[time, status], ...] slots every 30 min between from and to ('HH:MM') */
+  function generateSlots(from, to) {
+    const slots = [];
+    const [fh, fm] = from.split(':').map(Number);
+    const [th, tm] = to.split(':').map(Number);
+    let h = fh, m = fm;
+    while (h * 60 + m < th * 60 + tm) {
+      slots.push([String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0'), '']);
+      m += 30;
+      if (m >= 60) { h++; m -= 60; }
+    }
+    return slots;
+  }
+
+  /* Parse opening_hours string like "13:00-16:00, 20:00-23:00" → { lunch, dinner } */
+  function parseOpeningHours(str) {
+    if (!str || typeof str !== 'string') return null;
+    const re = /(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/g;
+    const lunch = [], dinner = [];
+    let m;
+    while ((m = re.exec(str)) !== null) {
+      const fromHour = parseInt(m[1], 10);
+      const slots = generateSlots(m[1], m[2]);
+      (fromHour < 17 ? lunch : dinner).push(...slots);
+    }
+    return (lunch.length || dinner.length) ? { lunch, dinner } : null;
+  }
+
+  function defaultTimes() {
+    return {
+      lunch:  generateSlots('13:00', '16:00'),
+      dinner: generateSlots('20:00', '23:00'),
+    };
+  }
+
   function mapVenue(v) {
     const cuisine = v.cuisine || v.cuisine_type || '';
     return {
@@ -260,7 +295,7 @@
       address: v.address || '',
       hours:   v.hours || v.opening_hours || '',
       phone:   v.phone || '',
-      times:   v.times || { lunch: [], dinner: [] },
+      times:   v.times || parseOpeningHours(v.opening_hours || v.hours) || defaultTimes(),
       menu:    v.menu || [],
       revs:    v.revs || v.reviews_list || [],
       kw:      v.kw || v.keywords || [],
