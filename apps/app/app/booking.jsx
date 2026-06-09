@@ -23,8 +23,11 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   /* ── Stripe state ── */
   const [payLoading, setPayLoading] = useState(false);
   const [payError,   setPayError]   = useState('');
-  const cardMountRef = useRef(null); // DOM div Stripe mounts into
-  const cardElRef    = useRef(null); // { stripe, card } live Stripe objects
+  const [postalCode, setPostalCode] = useState('');
+  const cardNumberRef = useRef(null); // DOM div for Stripe cardNumber element
+  const cardExpiryRef = useRef(null); // DOM div for Stripe cardExpiry element
+  const cardCvcRef    = useRef(null); // DOM div for Stripe cardCvc element
+  const cardElRef     = useRef(null); // { stripe, cardNumber } — live objects
 
   if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},'Restaurante no encontrado.');
 
@@ -46,12 +49,11 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
     let mounted = false;
 
     const mount = () => {
-      const el = cardMountRef.current;
-      if (!el || mounted) return;
-      const isDark = document.documentElement.getAttribute('data-theme') === 'noche';
-      const stripe  = window.Stripe(STRIPE_PK);
+      if (!cardNumberRef.current || !cardExpiryRef.current || !cardCvcRef.current || mounted) return;
+      const isDark   = document.documentElement.getAttribute('data-theme') === 'noche';
+      const stripe   = window.Stripe(STRIPE_PK);
       const elements = stripe.elements();
-      card = elements.create('card', {
+      const stripeStyle = {
         style: {
           base: {
             fontSize: '15px',
@@ -61,9 +63,15 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
           },
           invalid: { color: '#FF5733' },
         },
-      });
-      card.mount(el);
-      cardElRef.current = { stripe, card };
+      };
+      const cardNumber = elements.create('cardNumber', stripeStyle);
+      const cardExpiry = elements.create('cardExpiry', stripeStyle);
+      const cardCvc    = elements.create('cardCvc',    stripeStyle);
+      cardNumber.mount(cardNumberRef.current);
+      cardExpiry.mount(cardExpiryRef.current);
+      cardCvc.mount(cardCvcRef.current);
+      card = { cardNumber, cardExpiry, cardCvc };
+      cardElRef.current = { stripe, cardNumber };
       mounted = true;
     };
 
@@ -71,7 +79,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
     return () => {
       cancelAnimationFrame(raf);
       if (card && mounted) {
-        try { card.unmount(); } catch (_) {}
+        try { card.cardNumber.unmount(); card.cardExpiry.unmount(); card.cardCvc.unmount(); } catch (_) {}
         cardElRef.current = null;
       }
     };
@@ -137,7 +145,10 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
 
       /* 2 · Confirm card with Stripe.js (result: requires_capture — card not charged yet) */
       const { error } = await cardElRef.current.stripe.confirmCardPayment(client_secret, {
-        payment_method: { card: cardElRef.current.card },
+        payment_method: {
+          card: cardElRef.current.cardNumber,
+          billing_details: { address: { postal_code: postalCode, country: 'ES' } },
+        },
       });
 
       if (error) throw new Error(error.message);
@@ -333,19 +344,36 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
         React.createElement('button',{className:'pay-m'+(pay==='bizum'?' on':''),onClick:()=>setPay('bizum')},
           React.createElement(Icon,{name:'euro'}),'Bizum')),
 
-      /* ── Stripe card element (only when card method selected) ── */
+      /* ── Stripe card elements (separate fields + Spanish postal code) ── */
       pay === 'card' ? React.createElement('div', { style:{marginTop:'18px'} },
         React.createElement('p', { className:'bk-section-label' }, 'Datos de la tarjeta'),
+        /* Card number */
         React.createElement('div', {
-          ref: cardMountRef,
-          style: {
-            padding: '12px 14px',
-            border: '1.5px solid var(--bdr)',
-            borderRadius: '10px',
-            background: 'var(--surface)',
-            minHeight: '42px',
-          }
-        })
+          ref: cardNumberRef,
+          style:{ padding:'12px 14px', border:'1.5px solid var(--bdr)', borderRadius:'10px', background:'var(--surface)', minHeight:'42px' }
+        }),
+        /* Expiry · CVC · Postal code — row */
+        React.createElement('div', { style:{ display:'flex', gap:'10px', marginTop:'10px' } },
+          React.createElement('div', {
+            ref: cardExpiryRef,
+            style:{ flex:'1 1 0', padding:'12px 14px', border:'1.5px solid var(--bdr)', borderRadius:'10px', background:'var(--surface)', minHeight:'42px' }
+          }),
+          React.createElement('div', {
+            ref: cardCvcRef,
+            style:{ flex:'1 1 0', padding:'12px 14px', border:'1.5px solid var(--bdr)', borderRadius:'10px', background:'var(--surface)', minHeight:'42px' }
+          }),
+          React.createElement('input', {
+            type:'text', inputMode:'numeric', maxLength:5, pattern:'[0-9]{5}',
+            placeholder:'Cód. postal',
+            value: postalCode,
+            onChange: e => setPostalCode(e.target.value.replace(/\D/g,'').slice(0,5)),
+            style:{
+              flex:'1 1 0', minWidth:0, padding:'12px 14px',
+              border:'1.5px solid var(--bdr)', borderRadius:'10px', background:'var(--surface)',
+              color:'var(--ink)', font:'15px "Manrope",sans-serif', outline:'none', boxSizing:'border-box',
+            }
+          })
+        )
       ) : null,
 
       /* Payment error */
