@@ -1,5 +1,8 @@
 /* ════ UNA MESA · Conserje IA (interactive chat) ════ */
 
+const CONCIERGE_URL = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/concierge';
+const CONCIERGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
 /* ── intent parser (local, always works) ── */
 function parseIntent(text){
   const t = ' ' + text.toLowerCase()
@@ -107,25 +110,6 @@ function templatedReply(intent, picks){
   return head + '. Estas son mis recomendaciones: ' + names + '.';
 }
 
-async function getReply(intent, picks){
-  const local = templatedReply(intent, picks);
-  if (!(window.claude && typeof window.claude.complete === 'function')) return local;
-  const list = picks.slice(0,3).map(r=>`${r.name} (${r.cuisine}, ${r.area}, ${r.price})`).join('; ');
-  const prompt = `Eres el conserje de Una Mesa, una app de reservas de restaurantes en VIGO (Galicia).
-El usuario pidió: "${intent.raw}".
-Restaurantes que he seleccionado para él (usa SOLO estos, no inventes otros): ${list}.
-Responde en español, cálido y muy breve (máximo 2 frases). Resume qué has entendido (nº de personas, dieta, zona u ocasión si los mencionó) y presenta las opciones por su nombre. Si pidió una ciudad distinta de Vigo, acláralo con amabilidad (solo operamos en Vigo). No uses listas ni markdown, solo texto.`;
-  try {
-    const r = await Promise.race([
-      window.claude.complete({ messages:[{ role:'user', content: prompt }] }),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), 9000))
-    ]);
-    const txt = (typeof r === 'string' ? r : (r && r.content) || '').trim()
-      .replace(/\*\*(.+?)\*\*/g,'$1').replace(/[*_`#]/g,'').replace(/\s+/g,' ').trim();
-    return txt && txt.length > 8 ? txt : local;
-  } catch(e){ return local; }
-}
-
 /* ════ Conserje screen · Stitch dark redesign ════ */
 function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, go }){
   const [msgs, setMsgs] = useState([
@@ -147,18 +131,60 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [msgs, busy]);
 
-  async function ask(text){
+  async function ask(text) {
     const q = (text || '').trim();
     if (!q || busy) return;
     setInput('');
+    const intent  = parseIntent(q);
+    const picks   = matchRestaurants(intent).slice(0, 4);
+    const history = msgs; // capture before state update — this is the API history
     setMsgs(m => [...m, { who:'me', text:q }]);
     setBusy(true);
-    const intent = parseIntent(q);
-    const picks = matchRestaurants(intent).slice(0,4);
-    await new Promise(r=>setTimeout(r, 700));
-    const reply = await getReply(intent, picks);
-    setMsgs(m => [...m, { who:'ai', text: reply, picks, intent }]);
-    setBusy(false);
+
+    const restaurants = (window.UM_DATA || []).map(r => ({
+      name: r.name, cuisine: r.cuisine, area: r.area, price: r.price,
+    }));
+
+    try {
+      const res = await fetch(CONCIERGE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CONCIERGE_KEY },
+        body: JSON.stringify({ message: q, history, restaurants }),
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+      let aiMsgAdded  = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        if (!aiMsgAdded) {
+          aiMsgAdded = true;
+          setBusy(false);
+          setMsgs(m => [...m, { who:'ai', text: accumulated, picks, intent }]);
+        } else {
+          setMsgs(m => {
+            const copy = [...m];
+            copy[copy.length - 1] = { ...copy[copy.length - 1], text: accumulated };
+            return copy;
+          });
+        }
+      }
+
+      if (!aiMsgAdded) {
+        setBusy(false);
+        setMsgs(m => [...m, { who:'ai', text: templatedReply(intent, picks), picks, intent }]);
+      }
+    } catch (e) {
+      console.warn('[UNA MESA] concierge:', e.message);
+      setBusy(false);
+      setMsgs(m => [...m, { who:'ai', text: templatedReply(intent, picks), picks, intent }]);
+    }
   }
 
   useEffect(()=>{
