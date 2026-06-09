@@ -153,7 +153,26 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
 
       if (error) throw new Error(error.message);
 
-      /* 3 · Authorization OK → finalise booking */
+      /* 3 · Save reservation to Supabase — non-fatal if it fails */
+      if (window.UMAuth && window.UMAuth.saveReservation) {
+        try {
+          await window.UMAuth.saveReservation({
+            venue_id:          r.id,
+            customer_name:     user ? (user.name || user.email) : 'Invitado',
+            customer_phone:    null,
+            pax:               party,
+            date:              (day || today).toISOString().split('T')[0],
+            time:              time,
+            status:            'confirmed',
+            notes:             null,
+            payment_intent_id: payment_intent_id,
+          });
+        } catch (e) {
+          console.warn('[UNA MESA] saveReservation:', e.message || e);
+        }
+      }
+
+      /* 4 · Authorization OK → finalise booking */
       finish(payment_intent_id, reservationCode);
 
     } catch (err) {

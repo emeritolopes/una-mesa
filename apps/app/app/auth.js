@@ -80,5 +80,10 @@ window.formatName = function(user) {
     return subscription;
   }
 
-  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange };
+  async function saveReservation(reservation) {
+    const { error } = await sb.from('reservations').insert([reservation]);
+    if (error) throw error;
+  }
+
+  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation };
 })();
