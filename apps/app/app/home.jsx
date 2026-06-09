@@ -148,6 +148,11 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     if (geo.status === 'granted') requestGeo();
   }, [geo.status]);
 
+  const geoCity = (!geoLoading && geo && geo.status !== 'idle' && geo.label &&
+                   geo.label !== 'tu ubicación' && geo.label !== 'tu ubicación actual')
+    ? geo.label : null;
+  const heroEyebrow = geoCity ? 'Reserva en ' + geoCity : 'Reserva cerca de ti';
+
   return React.createElement('div', { className:'view' },
 
     /* ═══════════════════════════════════════
@@ -160,7 +165,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
         React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px)', backgroundSize:'18px 18px', zIndex:0 } })
       ),
       React.createElement('div', { className:'stitch-hero-content' },
-        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(255,87,51,.85)', marginBottom:'18px', display:'block' } }, 'Reserva en Vigo'),
+        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(255,87,51,.85)', marginBottom:'18px', display:'block' } }, heroEyebrow),
         React.createElement('h1', {
           className:'display',
           style:{ fontSize:'clamp(52px,8vw,88px)', color:'#FAFAFA', marginBottom:'40px', letterSpacing:'-.02em', lineHeight:1.02 }
