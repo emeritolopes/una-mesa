@@ -133,22 +133,17 @@ function Reservas() {
   const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
   const stripRef = useRef(null);
 
-  /* Load today's real reservations from Supabase and merge into the local list */
+  /* Load all reservations from Supabase — replaces any mock/store data */
   useEffect(() => {
     if (!window.sb) return;
-    const today = new Date().toISOString().split('T')[0];
-    window.sb.from('reservations')
+    window.sb
+      .from('reservations')
       .select('*')
-      .eq('date', today)
-      .order('time', { ascending: true })
-      .then(({ data }) => {
-        if (!data || !data.length) return;
-        const mapped = data.map(mapSupaRes);
-        setList(prev => {
-          const ids = new Set(prev.map(r => String(r.id)));
-          const fresh = mapped.filter(r => !ids.has(r.id));
-          return fresh.length ? [...prev, ...fresh] : prev;
-        });
+      .neq('status', 'cancelled')
+      .order('date', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) { console.warn('[BOH] loadReservations:', error.message); return; }
+        setList((data || []).map(mapSupaRes));
       })
       .catch(e => console.warn('[BOH] loadReservations:', e.message));
   }, []);
