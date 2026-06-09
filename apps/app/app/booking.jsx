@@ -462,7 +462,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
           React.createElement('span',{className:'v'}, party)),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},'Depósito'),
-          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, deposit+'€ · reembolsable')),
+          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, deposit+'€/persona — se descuenta del total al llegar.')),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},'Confirmación'),
           React.createElement('span',{className:'v'}, notify==='sms'?'Por SMS':'Por correo electrónico'))

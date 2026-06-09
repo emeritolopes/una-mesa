@@ -32,9 +32,16 @@ function buildHtml(opts: {
           <!-- Header -->
           <tr>
             <td align="center" style="padding:0 0 28px 0;">
-              <span style="font-family:'Manrope',Arial,sans-serif;font-size:22px;font-weight:800;color:#FF5733;letter-spacing:-0.5px;">
-                Una Mesa
-              </span>
+              <table cellpadding="0" cellspacing="0" style="display:inline-table;">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 96 96" fill="none"><g transform="translate(16 16)"><rect width="64" height="64" rx="22" fill="#D8552E"></rect><rect x="17" y="18" width="30" height="6" rx="3" fill="#FDEFE6"></rect><path d="M19 30 L19 33 Q19 46 32 46 Q45 46 45 33 L45 30" stroke="#FDEFE6" stroke-width="5.2" stroke-linecap="butt" stroke-linejoin="round" fill="none"></path></g></svg>
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="font-family:'Manrope',Arial,sans-serif;font-size:22px;font-weight:800;color:#FF5733;letter-spacing:-0.5px;">Una Mesa</span>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -118,7 +125,7 @@ function buildHtml(opts: {
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            Tu depósito de <strong style="color:#121212;">${deposit_amount}€</strong> se aplicará a tu cuenta cuando llegues al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación.
+                            Tu depósito de <strong style="color:#121212;">${deposit_amount}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación para recuperarlo íntegro.
                           </p>
                         </td>
                       </tr>
