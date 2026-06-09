@@ -1570,3 +1570,23 @@ input,select,textarea{font-family:inherit}
   .pp-rank{font-size:22px}
   .sb-n{font-size:28px}
 }
+
+/* ══════════════════════════════════════════
+   Hero · Foto real (reemplaza gradiente)
+   ══════════════════════════════════════════ */
+
+/* Sustituye el gradiente oscuro por la foto */
+.stitch-hero-bg{
+  background: url('../volkan-buyukvardar-1H30uRC1plc-unsplash.jpg') center / cover no-repeat;
+}
+
+/* Overlay oscuro semitransparente para legibilidad del texto */
+.stitch-hero-bg::after{
+  content:'';
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:1;
+}
+
+/* Los blobs de gradiente coral no aplican sobre la foto */
+.stitch-hero-blob{display:none}
