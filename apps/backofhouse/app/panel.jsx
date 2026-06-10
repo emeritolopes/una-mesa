@@ -7,7 +7,7 @@ function Panel({ go }) {
 
   useEffect(() => {
     if (!window.sb) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD en zona local (no UTC)
     window.sb
       .from('reservations')
       .select('*')
