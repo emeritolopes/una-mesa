@@ -168,9 +168,8 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const toNext = Math.max(0, 5 - (visits%5||0));
 
   const BookingRow = (b, isPast) => {
-    console.log('[CANCEL DEBUG]', { id: b.id, status: b.status, rawStatus: b.rawStatus, isCancellable: b.isCancellable, isPast: isPast });
     return React.createElement('div', { key:b.id, className:'booking-row' },
-    React.createElement(Photo,{cz:b.cz,glyph:b.glyph}),
+    React.createElement('div', { className:'booking-thumb', style:{ width:56, height:56, borderRadius:12, background:'linear-gradient(150deg, #2D2420, #4A3728)', flexShrink:0 } }),
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
       React.createElement('div',{className:'br-meta'}, (b.dayLabel||'Hoy')+' · '+b.time+' · '+b.party+(b.party===1?' comensal':' comensales')),
