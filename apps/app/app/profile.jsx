@@ -122,7 +122,12 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           const { data, error } = await sb.functions.invoke('stripe-refund', {
             body: { payment_intent_id: b.paymentIntentId },
           });
-          console.log('[REFUND]', { data, error, paymentIntentId: b.paymentIntentId });
+          if (error) {
+            const errText = await error.context?.text?.();
+            console.log('[REFUND ERROR]', errText, b.paymentIntentId);
+          } else {
+            console.log('[REFUND OK]', data);
+          }
         } catch(e) {
           console.warn('[UNA MESA] stripe-refund:', e.message);
         }
