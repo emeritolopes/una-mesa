@@ -6,6 +6,12 @@ const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
 const SUPA_EMAIL_FUNC= SUPA_BASE + '/send-email';
 const SUPA_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
+/* Fecha local YYYY-MM-DD — evita el retroceso de día que provoca toISOString() (UTC) en España */
+const formatDate = (d) => {
+  const date = new Date(d);
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+};
+
 function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
@@ -164,7 +170,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
             customer_name:     user ? (user.name || user.email) : 'Invitado',
             customer_phone:    null,
             pax:               party,
-            date:              (day || today).toISOString().split('T')[0],
+            date:              formatDate(day || today),
             time:              time,
             status:            'confirmed',
             notes:             null,
