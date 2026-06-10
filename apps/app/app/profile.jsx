@@ -72,7 +72,7 @@ function mapSupaBooking(r) {
     paymentIntentId: r.payment_intent_id || null,
     userId:          r.user_id || null,
     status:          isPast ? 'past' : 'up',
-    isCancellable:   (r.status === 'confirmed' || r.status === 'pending') && !isPast,
+    isCancellable:   r.status === 'confirmed' || r.status === 'pending',
   };
 }
 
