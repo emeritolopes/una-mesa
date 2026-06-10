@@ -299,7 +299,8 @@
       menu:    v.menu || [],
       revs:    v.revs || v.reviews_list || [],
       kw:      v.kw || v.keywords || [],
-      deposit:   parseFloat(v.deposit_amount || v.deposit_per_person || v.deposit || 10),
+      deposit_amount: parseInt(v.deposit_amount, 10) || 1000,           // céntimos, tal cual Supabase (1000 = 10€)
+      deposit:        (parseInt(v.deposit_amount, 10) || 1000) / 100,   // euros, solo para mostrar
       photo_url: v.photo_url || v.image_url || v.photo || null,
     };
   }

@@ -98,7 +98,9 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   const dows   = ['D','L','M','X','J','V','S'];
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
-  const deposit  = party * (r.deposit || 10);
+  /* Depósito fijo por reserva — deposit_amount viene en céntimos de Supabase (1000 = 10€) */
+  const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
+  const deposit      = depositCents / 100;   // euros, para mostrar en UI y email
 
   const goStep = n => { setPayError(''); setStep(n); };
 
@@ -137,7 +139,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
           'Authorization': 'Bearer ' + SUPA_ANON_KEY,
         },
         body: JSON.stringify({
-          amount:         deposit * 100,  // smallest unit: €10/person → 1000 per person
+          amount:         depositCents,   // céntimos, exactamente r.deposit_amount sin modificar
           currency:       'eur',
           restaurant_id:  r.id,
           user_id:        user?.id || '',
@@ -470,7 +472,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
           React.createElement('span',{className:'v'}, party)),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},'Depósito'),
-          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, deposit+'€/persona — se descuenta del total al llegar.')),
+          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, deposit+'€ — se descuenta del total al llegar.')),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},'Confirmación'),
           React.createElement('span',{className:'v'}, notify==='sms'?'Por SMS':'Por correo electrónico'))
