@@ -58,7 +58,7 @@ function Photo({ cz, glyph, slotId, className, style }) {
   const grad = `linear-gradient(150deg, ${safeCz.from}, ${safeCz.to})`;
   return React.createElement('div', { className:'photo '+(className||''), style:{ background:grad, ...style } },
     React.createElement('div',{className:'ph-grain'}),
-    React.createElement('div',{className:'ph-art'}, React.createElement(Icon,{name:glyph||'fish'})),
+    React.createElement('div',{className:'ph-art'}, React.createElement(Icon,{name:glyph||'spoon'})),
     slotId ? React.createElement('image-slot',{ id:slotId, shape:'rect', placeholder:'' }) : null
   );
 }
