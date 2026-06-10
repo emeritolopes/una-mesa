@@ -119,9 +119,10 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       /* 1 · Refund via Stripe Edge Function — non-fatal */
       if (b.paymentIntentId) {
         try {
-          await sb.functions.invoke('stripe-refund', {
+          const { data, error } = await sb.functions.invoke('stripe-refund', {
             body: { payment_intent_id: b.paymentIntentId },
           });
+          console.log('[REFUND]', { data, error, paymentIntentId: b.paymentIntentId });
         } catch(e) {
           console.warn('[UNA MESA] stripe-refund:', e.message);
         }
