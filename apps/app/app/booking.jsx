@@ -17,7 +17,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   const r = data.find(x=>x.id===rid);
 
   const startStep = (presetTime && presetParty) ? 3 : (presetTime ? 2 : 0);
-  const today0 = new Date(2026,5,2);
+  const today0 = new Date();
   const [step,    setStep]    = useState(startStep);
   const [day,     setDay]     = useState(startStep>0 ? today0 : null);
   const [time,    setTime]    = useState(presetTime || null);
