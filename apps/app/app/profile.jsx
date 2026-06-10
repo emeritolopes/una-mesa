@@ -85,28 +85,24 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const [cancelError, setCancelError] = useState('');
 
   useEffect(() => {
-    if (!window.UMAuth?.sb) { setSupaBookings([]); return; }
-    const { data: { subscription } } = window.UMAuth.sb.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        try {
-          const emailPrefix = session.user.email.split('@')[0];
-          const { data: rows, error } = await window.UMAuth.sb
-            .from('reservations')
-            .select('*, venues(name, address, cuisine)')
-            .or(`user_id.eq.${session.user.id},customer_name.ilike.%${emailPrefix}%`)
-            .order('date', { ascending: false });
-          if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
-          setSupaBookings((rows || []).map(mapSupaBooking));
-        } catch(e) {
-          console.warn('[UNA MESA] loadBookings:', e.message);
-          setSupaBookings([]);
-        }
-      } else {
+    if (!user || !window.UMAuth?.sb) { setSupaBookings([]); return; }
+    async function load() {
+      try {
+        const emailPrefix = user.email.split('@')[0];
+        const { data: rows, error } = await window.UMAuth.sb
+          .from('reservations')
+          .select('*, venues(name, address, cuisine)')
+          .or(`user_id.eq.${user.id},customer_name.ilike.%${emailPrefix}%`)
+          .order('date', { ascending: false });
+        if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
+        setSupaBookings((rows || []).map(mapSupaBooking));
+      } catch(e) {
+        console.warn('[UNA MESA] loadBookings:', e.message);
         setSupaBookings([]);
       }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    }
+    load();
+  }, [user]);
 
   const doCancel = async () => {
     const b = cancelTarget;
