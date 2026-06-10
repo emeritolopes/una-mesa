@@ -113,55 +113,57 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     if (!b || cancelBusy) return;
     setCancelBusy(true);
     setCancelError('');
-    try {
-      const sb = window.UMAuth.sb;
 
-      /* 1 · Refund via Stripe Edge Function — non-fatal */
-      if (b.paymentIntentId) {
-        try {
-          const { data, error } = await sb.functions.invoke('stripe-refund', {
-            body: { payment_intent_id: b.paymentIntentId },
-          });
-          if (error) {
-            const errText = await error.context?.text?.();
-            console.log('[REFUND ERROR]', errText, b.paymentIntentId);
-          } else {
-            console.log('[REFUND OK]', data);
-          }
-        } catch(e) {
-          console.warn('[UNA MESA] stripe-refund:', e.message);
+    const sb = window.UMAuth.sb;
+
+    /* 1 · Stripe refund — non-fatal, never blocks steps 2–4 */
+    if (b.paymentIntentId) {
+      try {
+        const { data, error } = await sb.functions.invoke('stripe-refund', {
+          body: { payment_intent_id: b.paymentIntentId },
+        });
+        if (error) {
+          const errText = await error.context?.text?.();
+          console.log('[REFUND ERROR]', errText, b.paymentIntentId);
+        } else {
+          console.log('[REFUND OK]', data);
         }
+      } catch(e) {
+        console.warn('[UNA MESA] stripe-refund:', e.message);
       }
+    }
 
-      /* 2 · Mark reservation cancelled */
+    /* 2 · Cancel in DB — fatal: if this fails show error to user */
+    try {
       const { error: updateErr } = await sb
         .from('reservations')
         .update({ status: 'cancelled' })
         .eq('id', b.rawId);
       if (updateErr) throw updateErr;
-
-      /* 3 · Log cancellation record — non-fatal */
-      try {
-        await sb.from('cancellations').insert([{
-          reservation_id: b.rawId,
-          user_id:        b.userId,
-          reason:         'user_cancelled',
-          refund_amount:  b.depositCents,
-        }]);
-      } catch(e) {
-        console.warn('[UNA MESA] cancellations insert:', e.message);
-      }
-
-      /* 4 · Update local UI */
-      setSupaBookings(prev => prev.map(x =>
-        x.rawId === b.rawId ? { ...x, status: 'past', isCancellable: false } : x
-      ));
-      setCancelTarget(null);
     } catch(e) {
       setCancelError(e.message || 'Error al cancelar. Inténtalo de nuevo.');
-    } finally {
       setCancelBusy(false);
+      return;
     }
+
+    /* 3 · Log cancellation record — non-fatal */
+    try {
+      await sb.from('cancellations').insert([{
+        reservation_id: b.rawId,
+        user_id:        b.userId,
+        reason:         'user_cancelled',
+        refund_amount:  b.depositCents,
+      }]);
+    } catch(e) {
+      console.warn('[UNA MESA] cancellations insert:', e.message);
+    }
+
+    /* 4 · Update local UI */
+    setSupaBookings(prev => prev.map(x =>
+      x.rawId === b.rawId ? { ...x, status: 'past', isCancellable: false } : x
+    ));
+    setCancelTarget(null);
+    setCancelBusy(false);
   };
 
   const now = Date.now();
