@@ -86,9 +86,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
   useEffect(() => {
     async function loadBookings() {
+      console.log('[PROFILE] loadBookings start');
       if (!window.UMAuth?.sb) { setSupaBookings([]); return; }
       try {
         const { data: { user: authUser } } = await window.UMAuth.sb.auth.getUser();
+        console.log('[PROFILE] authUser:', authUser?.id, authUser?.email);
         if (!authUser) { setSupaBookings([]); return; }
         const emailPrefix = authUser.email.split('@')[0];
         const { data: rows, error } = await window.UMAuth.sb
@@ -96,10 +98,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           .select('*, venues(name, address, cuisine)')
           .or(`user_id.eq.${authUser.id},customer_name.ilike.%${emailPrefix}%`)
           .order('date', { ascending: false });
+        console.log('[PROFILE] rows from Supabase:', rows?.length, rows);
         if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
         setSupaBookings((rows || []).map(mapSupaBooking));
       } catch(e) {
-        console.warn('[UNA MESA] loadBookings:', e.message);
+        console.log('[PROFILE] ERROR:', e.message);
         setSupaBookings([]);
       }
     }
