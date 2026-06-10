@@ -6,20 +6,20 @@ const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
 const SUPA_EMAIL_FUNC= SUPA_BASE + '/send-email';
 const SUPA_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
-/* Fecha local YYYY-MM-DD — evita el retroceso de día que provoca toISOString() (UTC) en España */
-const formatDate = (d) => {
-  const date = new Date(d);
-  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-};
+/* Fecha de hoy YYYY-MM-DD en zona local — evita el retroceso de día de toISOString() (UTC) en España */
+const todayStr = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+})();
 
 function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
 
   const startStep = (presetTime && presetParty) ? 3 : (presetTime ? 2 : 0);
-  const today0 = new Date();
+  const today = new Date();
   const [step,    setStep]    = useState(startStep);
-  const [day,     setDay]     = useState(startStep>0 ? today0 : null);
+  const [day,     setDay]     = useState(startStep>0 ? today : null);
   const [time,    setTime]    = useState(presetTime || null);
   const [party,   setParty]   = useState(presetParty || 2);
   const [pay,     setPay]     = useState('card');
@@ -95,7 +95,6 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
 
   const mmss   = s => Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   const holdLow = hold<=60;
-  const today  = today0;
   const dows   = ['D','L','M','X','J','V','S'];
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
@@ -164,14 +163,15 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       /* 3 · Save reservation to Supabase — non-fatal if it fails */
       if (window.UMAuth && window.UMAuth.saveReservation) {
         try {
-          console.log('[DEBUG] selectedDate raw:', (day || today), 'formatted:', formatDate ? formatDate(day || today) : (day || today));
+          const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
+          console.log('[DEBUG] selectedDate raw:', day || 'hoy', 'formatted:', dateStr);
           await window.UMAuth.saveReservation({
             venue_id:          r.id,
             user_id:           user?.id || null,
             customer_name:     user ? (user.name || user.email) : 'Invitado',
             customer_phone:    null,
             pax:               party,
-            date:              formatDate(day || today),
+            date:              dateStr,
             time:              time,
             status:            'confirmed',
             notes:             null,
