@@ -72,7 +72,8 @@ function mapSupaBooking(r) {
     paymentIntentId: r.payment_intent_id || null,
     userId:          r.user_id || null,
     status:          isPast ? 'past' : 'up',
-    isCancellable:   r.status === 'confirmed' || r.status === 'pending',
+    rawStatus:       r.status,
+    isCancellable:   ['confirmed', 'pending'].includes(r.status),
   };
 }
 
@@ -164,7 +165,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const toNext = Math.max(0, 5 - (visits%5||0));
 
   const BookingRow = (b, isPast) => {
-    console.log('[CANCEL DEBUG]', { id: b.id, status: b.status, isCancellable: b.isCancellable, isPast: isPast });
+    console.log('[CANCEL DEBUG]', { id: b.id, status: b.status, rawStatus: b.rawStatus, isCancellable: b.isCancellable, isPast: isPast });
     return React.createElement('div', { key:b.id, className:'booking-row' },
     React.createElement(Photo,{cz:b.cz,glyph:b.glyph}),
     React.createElement('div',{className:'br-main'},
