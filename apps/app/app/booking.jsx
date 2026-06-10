@@ -188,6 +188,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       const recipientEmail = user && user.email;
       if (recipientEmail) {
         const dayLabel = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+        console.log('[EMAIL DEBUG]', { depositCents, deposit_amount: r.deposit_amount, r_deposit: r.deposit });
         fetch(SUPA_EMAIL_FUNC, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
@@ -198,7 +199,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
             date:            dayLabel,
             time:            time,
             pax:             party,
-            deposit_amount:  deposit,
+            deposit_amount:  depositCents,
           }),
         }).catch(e => console.warn('[UNA MESA] send-email:', e.message));
       }

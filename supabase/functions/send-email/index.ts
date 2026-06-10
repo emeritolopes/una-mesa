@@ -109,7 +109,7 @@ function buildHtml(opts: {
                                     </td>
                                     <td width="50%">
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Depósito</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${deposit_amount}€ <span style="font-size:12px;font-weight:500;color:#999;">· reembolsable</span></p>
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${(deposit_amount / 100).toFixed(0)}€ <span style="font-size:12px;font-weight:500;color:#999;">· reembolsable</span></p>
                                     </td>
                                   </tr>
                                 </table>
@@ -125,7 +125,7 @@ function buildHtml(opts: {
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            Tu depósito de <strong style="color:#121212;">${deposit_amount}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación para recuperarlo íntegro.
+                            Tu depósito de <strong style="color:#121212;">${(deposit_amount / 100).toFixed(0)}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación para recuperarlo íntegro.
                           </p>
                         </td>
                       </tr>
