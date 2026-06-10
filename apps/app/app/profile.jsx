@@ -89,10 +89,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       try {
         const { data: { user: authUser } } = await window.UMAuth.sb.auth.getUser();
         if (!authUser) return;
+        const emailPrefix = authUser.email.split('@')[0];
         const { data: rows, error } = await window.UMAuth.sb
           .from('reservations')
           .select('*, venues(name, address, cuisine)')
-          .eq('user_id', authUser.id)
+          .or(`user_id.eq.${authUser.id},customer_name.ilike.%${emailPrefix}%`)
           .order('date', { ascending: false });
         if (error) { console.warn('[UNA MESA] loadBookings:', error.message); return; }
         setSupaBookings((rows || []).map(mapSupaBooking));
