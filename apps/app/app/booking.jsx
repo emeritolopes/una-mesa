@@ -164,6 +164,7 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       /* 3 · Save reservation to Supabase — non-fatal if it fails */
       if (window.UMAuth && window.UMAuth.saveReservation) {
         try {
+          console.log('[DEBUG] selectedDate raw:', (day || today), 'formatted:', formatDate ? formatDate(day || today) : (day || today));
           await window.UMAuth.saveReservation({
             venue_id:          r.id,
             user_id:           user?.id || null,
