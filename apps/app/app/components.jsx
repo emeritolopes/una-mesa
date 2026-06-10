@@ -54,6 +54,7 @@ function Icon({ name, className, style, fill }) {
 
 /* ── Photo placeholder (gradient + glyph) ── */
 function Photo({ cz, glyph, slotId, className, style }) {
+  // safeCz v2 - null guard
   const safeCz = cz || { from: '#2D2420', to: '#4A3728' };
   const grad = `linear-gradient(150deg, ${safeCz.from}, ${safeCz.to})`;
   return React.createElement('div', { className:'photo '+(className||''), style:{ background:grad, ...style } },
