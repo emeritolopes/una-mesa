@@ -88,11 +88,16 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     if (!user || !window.UMAuth?.sb) { setSupaBookings([]); return; }
     async function load() {
       try {
-        const { data: rows, error } = await window.UMAuth.sb
+        const nameQuery = user.name
+          ? `customer_name.ilike.%${user.name}%`
+          : `customer_name.ilike.%${user.email.split('@')[0]}%`;
+        const baseQuery = window.UMAuth.sb
           .from('reservations')
           .select('*, venues(name, address, cuisine)')
-          .or(`user_id.eq.${user.id},customer_name.ilike.%${user.name}%,customer_name.ilike.%${user.email.split('@')[0]}%`)
           .order('date', { ascending: false });
+        const { data: rows, error } = user.id
+          ? await baseQuery.or(`user_id.eq.${user.id},${nameQuery}`)
+          : await baseQuery.ilike('customer_name', `%${user.name || user.email.split('@')[0]}%`);
         if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
         setSupaBookings((rows || []).map(mapSupaBooking));
       } catch(e) {
