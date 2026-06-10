@@ -163,7 +163,9 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const visits = bookings.length;
   const toNext = Math.max(0, 5 - (visits%5||0));
 
-  const BookingRow = (b, isPast) => React.createElement('div', { key:b.id, className:'booking-row' },
+  const BookingRow = (b, isPast) => {
+    console.log('[CANCEL DEBUG]', { id: b.id, status: b.status, isCancellable: b.isCancellable, isPast: isPast });
+    return React.createElement('div', { key:b.id, className:'booking-row' },
     React.createElement(Photo,{cz:b.cz,glyph:b.glyph}),
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
@@ -180,6 +182,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           },'Cancelar')
         : null
     ));
+  };
 
   const cancelModal = cancelTarget
     ? React.createElement('div',{
