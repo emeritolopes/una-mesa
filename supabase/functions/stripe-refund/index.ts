@@ -50,7 +50,10 @@ Deno.serve(async (req) => {
     } else {
       return new Response(
         JSON.stringify({
-          error: `Cannot refund a PaymentIntent with status '${pi.status}'`,
+          error:                `Cannot refund a PaymentIntent with status '${pi.status}'`,
+          payment_intent_status: pi.status,
+          payment_intent_id:     pi.id,
+          last_payment_error:    pi.last_payment_error?.message ?? null,
         }),
         { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
