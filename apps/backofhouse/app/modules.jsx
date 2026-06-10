@@ -136,7 +136,6 @@ function Reservas() {
   /* Load all reservations from Supabase — replaces any mock/store data */
   useEffect(() => {
     async function load() {
-      console.log('[BOH] Reservas mounted, window.sb =', !!window.sb);
       if (!window.sb) return;
       try {
         const { data, error } = await window.sb
@@ -144,11 +143,8 @@ function Reservas() {
           .select('*')
           .neq('status', 'cancelled')
           .order('date', { ascending: true });
-        console.log('reservas cargadas:', data, 'error:', error);
         if (error) { console.warn('[BOH] loadReservations:', error.message); return; }
-        const mapped = (data || []).map(mapSupaRes);
-        console.log('[BOH] mapped rows:', mapped.length, mapped);
-        setList(mapped);
+        setList((data || []).map(mapSupaRes));
       } catch(e) {
         console.warn('[BOH] loadReservations:', e.message);
       }
@@ -165,7 +161,6 @@ function Reservas() {
   const stripDays = Array.from({ length: daysInMonth }, (_, i) => new Date(sel.getFullYear(), sel.getMonth(), i + 1));
   const countOn = (iso) => list.filter(r => r.date === iso).length;
   const reservations = [...list.filter(r => r.date === selectedDate)].sort((a, b) => a.time.localeCompare(b.time));
-  console.log('[BOH] render — list.length:', list.length, 'selectedDate:', selectedDate, 'visible:', reservations.length);
   const scrollStrip = (dir) => { if (stripRef.current) stripRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' }); };
 
   // keep the selected day visible within the month strip

@@ -166,7 +166,6 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       if (window.UMAuth && window.UMAuth.saveReservation) {
         try {
           const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
-          console.log('[DEBUG] selectedDate raw:', day || 'hoy', 'formatted:', dateStr);
           await window.UMAuth.saveReservation({
             venue_id:          r.id,
             user_id:           user?.id || null,
@@ -188,7 +187,6 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       const recipientEmail = user && user.email;
       if (recipientEmail) {
         const dayLabel = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
-        console.log('[EMAIL DEBUG]', { depositCents, deposit_amount: r.deposit_amount, r_deposit: r.deposit });
         fetch(SUPA_EMAIL_FUNC, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
