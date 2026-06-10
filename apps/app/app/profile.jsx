@@ -52,28 +52,36 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
 }
 
 function mapSupaBooking(r) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA');
   const isPast = r.date < today || r.status === 'cancelled';
   const d = new Date(r.date + 'T12:00:00');
   const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const DAYS = ['dom','lun','mar','mié','jue','vie','sáb'];
   return {
-    id:       r.id.toString().slice(0, 8).toUpperCase(),
-    rid:      r.venue_id,
-    name:     r.venues?.name || 'Restaurante',
-    cz:       null,
-    glyph:    null,
-    dayLabel: `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`,
-    time:     (r.time || '').slice(0, 5),
-    party:    r.pax,
-    deposit:  r.pax * 10,
-    status:   isPast ? 'past' : 'up',
+    rawId:           r.id,
+    id:              r.id.toString().slice(0, 8).toUpperCase(),
+    rid:             r.venue_id,
+    name:            r.venues?.name || 'Restaurante',
+    cz:              null,
+    glyph:           null,
+    dayLabel:        `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`,
+    time:            (r.time || '').slice(0, 5),
+    party:           r.pax,
+    deposit:         r.pax * 10,
+    depositCents:    r.pax * 1000,
+    paymentIntentId: r.payment_intent_id || null,
+    userId:          r.user_id || null,
+    status:          isPast ? 'past' : 'up',
+    isCancellable:   (r.status === 'confirmed' || r.status === 'pending') && !isPast,
   };
 }
 
 function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startBook, go, spoons, onRedeem }) {
   const [tab, setTab] = useState('reservas');
   const [supaBookings, setSupaBookings] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState('');
 
   useEffect(() => {
     async function loadBookings() {
@@ -95,6 +103,56 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     loadBookings();
   }, []);
 
+  const doCancel = async () => {
+    const b = cancelTarget;
+    if (!b || cancelBusy) return;
+    setCancelBusy(true);
+    setCancelError('');
+    try {
+      const sb = window.UMAuth.sb;
+
+      /* 1 · Refund via Stripe Edge Function — non-fatal */
+      if (b.paymentIntentId) {
+        try {
+          await sb.functions.invoke('stripe-refund', {
+            body: { payment_intent_id: b.paymentIntentId },
+          });
+        } catch(e) {
+          console.warn('[UNA MESA] stripe-refund:', e.message);
+        }
+      }
+
+      /* 2 · Mark reservation cancelled */
+      const { error: updateErr } = await sb
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('id', b.rawId);
+      if (updateErr) throw updateErr;
+
+      /* 3 · Log cancellation record — non-fatal */
+      try {
+        await sb.from('cancellations').insert([{
+          reservation_id: b.rawId,
+          user_id:        b.userId,
+          reason:         'user_cancelled',
+          refund_amount:  b.depositCents,
+        }]);
+      } catch(e) {
+        console.warn('[UNA MESA] cancellations insert:', e.message);
+      }
+
+      /* 4 · Update local UI */
+      setSupaBookings(prev => prev.map(x =>
+        x.rawId === b.rawId ? { ...x, status: 'past', isCancellable: false } : x
+      ));
+      setCancelTarget(null);
+    } catch(e) {
+      setCancelError(e.message || 'Error al cancelar. Inténtalo de nuevo.');
+    } finally {
+      setCancelBusy(false);
+    }
+  };
+
   const now = Date.now();
   const activeBookings = supaBookings !== null ? supaBookings : bookings;
   const upcoming = activeBookings.filter(b=>b.status==='up');
@@ -112,7 +170,48 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},'Reserva '+b.id+' · depósito '+b.deposit+'€')),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
-      React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante')));
+      React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante'),
+      !isPast && b.isCancellable
+        ? React.createElement('button',{
+            className:'btn btn-sm',
+            style:{color:'#E85D3A',background:'transparent',border:'1px solid rgba(232,93,58,0.4)',borderRadius:'8px',padding:'4px 12px',fontSize:'12px',cursor:'pointer',lineHeight:'1.5'},
+            onClick:()=>{ setCancelError(''); setCancelTarget(b); }
+          },'Cancelar')
+        : null
+    ));
+
+  const cancelModal = cancelTarget
+    ? React.createElement('div',{
+        style:{position:'fixed',inset:0,zIndex:999,background:'rgba(0,0,0,0.45)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'},
+        onClick:()=>{ if(!cancelBusy) setCancelTarget(null); }
+      },
+        React.createElement('div',{
+          style:{background:'#fff',borderRadius:'20px',padding:'28px 24px',maxWidth:'380px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.18)'},
+          onClick:e=>e.stopPropagation()
+        },
+          React.createElement('div',{style:{width:'44px',height:'44px',borderRadius:'50%',background:'#FEF2F0',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px',fontSize:'22px'}},'⚠️'),
+          React.createElement('h2',{style:{margin:'0 0 8px',fontSize:'18px',fontWeight:'800',color:'#121212'}},'¿Cancelar esta reserva?'),
+          React.createElement('p',{style:{margin:'0 0 4px',fontSize:'14px',color:'#666',lineHeight:'1.5'}},
+            cancelTarget.name+' · '+cancelTarget.dayLabel+' a las '+cancelTarget.time),
+          React.createElement('p',{style:{margin:'12px 0 0',fontSize:'13px',color:'#888',lineHeight:'1.55'}},
+            'Si cancelas con más de 24h de antelación recuperas el depósito íntegro ('+cancelTarget.deposit+'€).'),
+          cancelError ? React.createElement('p',{style:{margin:'12px 0 0',fontSize:'13px',color:'#E85D3A'}},cancelError) : null,
+          React.createElement('div',{style:{display:'flex',gap:'10px',marginTop:'20px'}},
+            React.createElement('button',{
+              className:'btn btn-soft btn-block',
+              disabled:cancelBusy,
+              onClick:()=>setCancelTarget(null)
+            },'Volver'),
+            React.createElement('button',{
+              className:'btn btn-block',
+              style:{background:'#E85D3A',color:'#fff',opacity:cancelBusy?0.7:1},
+              disabled:cancelBusy,
+              onClick:doCancel
+            }, cancelBusy ? 'Cancelando…' : 'Sí, cancelar reserva')
+          )
+        )
+      )
+    : null;
 
   let panel;
   if (tab==='reservas') {
@@ -144,25 +243,28 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     panel = React.createElement(window.RewardsMarket, { spoons, onRedeem });
   }
 
-  return React.createElement('div', { className:'view' },
-    React.createElement('div', { className:'wrap' },
-      React.createElement('div', { className:'prof-hero' },
-        React.createElement('div',{className:'prof-av'}, formatName(user)[0].toUpperCase()),
-        React.createElement('div',null,
-          React.createElement('div',{className:'prof-name display'}, '¡Hola, '+formatName(user).split(' ')[0]+'!'),
-          React.createElement('div',{className:'prof-mail'}, user.email)),
-        React.createElement('div',{className:'loyalty'},
-          React.createElement('div',{className:'ll'},'Programa Mesa'),
-          React.createElement('div',{className:'lv'}, points+' pts'),
-          React.createElement('div',{className:'lbar'},React.createElement('i',{style:{width:Math.max(8,points)+'%'}})),
-          React.createElement('div',{className:'lnext'}, toNext+' visitas para tu próxima recompensa'))
-      ),
-      React.createElement('div', { className:'tabs' },
-        React.createElement('div',{className:'tab'+(tab==='reservas'?' on':''),onClick:()=>setTab('reservas')},'Mis reservas'),
-        React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},'Pasaporte'),
-        React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},'Favoritos'),
-        React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},'Recompensas')),
-      panel
+  return React.createElement(React.Fragment, null,
+    cancelModal,
+    React.createElement('div', { className:'view' },
+      React.createElement('div', { className:'wrap' },
+        React.createElement('div', { className:'prof-hero' },
+          React.createElement('div',{className:'prof-av'}, formatName(user)[0].toUpperCase()),
+          React.createElement('div',null,
+            React.createElement('div',{className:'prof-name display'}, '¡Hola, '+formatName(user).split(' ')[0]+'!'),
+            React.createElement('div',{className:'prof-mail'}, user.email)),
+          React.createElement('div',{className:'loyalty'},
+            React.createElement('div',{className:'ll'},'Programa Mesa'),
+            React.createElement('div',{className:'lv'}, points+' pts'),
+            React.createElement('div',{className:'lbar'},React.createElement('i',{style:{width:Math.max(8,points)+'%'}})),
+            React.createElement('div',{className:'lnext'}, toNext+' visitas para tu próxima recompensa'))
+        ),
+        React.createElement('div', { className:'tabs' },
+          React.createElement('div',{className:'tab'+(tab==='reservas'?' on':''),onClick:()=>setTab('reservas')},'Mis reservas'),
+          React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},'Pasaporte'),
+          React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},'Favoritos'),
+          React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},'Recompensas')),
+        panel
+      )
     )
   );
 }
