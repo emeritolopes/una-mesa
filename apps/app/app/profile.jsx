@@ -139,6 +139,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         .from('reservations')
         .update({ status: 'cancelled' })
         .eq('id', b.rawId);
+      console.log('[CANCEL DB]', { updateError: updateErr, rawId: b.rawId });
       if (updateErr) throw updateErr;
     } catch(e) {
       setCancelError(e.message || 'Error al cancelar. Inténtalo de nuevo.');
