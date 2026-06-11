@@ -145,11 +145,13 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
     /* 4 · Update local UI */
     setSupaBookings(prev => { console.log('[FILTER]', { rawId: b.rawId, prevLength: prev.length }); return prev.filter(x => x.rawId !== b.rawId); });
+    console.log('[POST FILTER] supaBookings state update called');
     setCancelTarget(null);
     setCancelBusy(false);
   };
 
   const now = Date.now();
+  console.log('[ACTIVE]', { supaNull: supaBookings === null, len: supaBookings?.length });
   const activeBookings = supaBookings !== null ? supaBookings : bookings;
   const upcoming = activeBookings.filter(b=>b.status==='up');
   const past = activeBookings.filter(b=>b.status==='past');
