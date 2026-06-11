@@ -141,7 +141,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         reason:         'user_cancelled',
         refund_amount:  b.depositCents,
       }]);
-    } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
+    } catch(e) { console.warn('[CANCEL INSERT ERROR]', e.message); }
 
     /* 4 · Update local UI */
     setSupaBookings(prev => { console.log('[FILTER]', { rawId: b.rawId, prevLength: prev.length }); return prev.filter(x => x.rawId !== b.rawId); });
