@@ -125,13 +125,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     /* 1 · Stripe refund — NON-FATAL, never blocks step 2 */
     try {
       const { data, error } = await sb.functions.invoke('stripe-refund', { body: { payment_intent_id: b.paymentIntentId } });
-      if (error) { const t = await error.context?.text?.(); console.warn('[REFUND ERROR]', t); }
-      else { console.log('[REFUND OK]', data); }
-    } catch(e) { console.warn('[REFUND EXCEPTION]', e.message); }
+      if (error) { const t = await error.context?.text?.(); console.warn('[UNA MESA] stripe-refund:', t); }
+    } catch(e) { console.warn('[UNA MESA] stripe-refund:', e.message); }
 
     /* 2 · DB update — ALWAYS runs */
     const { error: updateError } = await sb.from('reservations').update({ status: 'cancelled' }).eq('id', b.rawId);
-    console.log('[CANCEL DB]', { updateError, rawId: b.rawId });
     if (updateError) {
       setCancelError(updateError.message || 'Error al cancelar en base de datos.');
       setCancelBusy(false);
@@ -146,17 +144,15 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         reason:         'user_cancelled',
         refund_amount:  b.depositCents,
       }]);
-    } catch(e) { console.warn('[CANCEL INSERT ERROR]', e.message); }
+    } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
     /* 4 · Update local UI */
-    setSupaBookings(prev => { console.log('[FILTER]', { rawId: b.rawId, prevLength: prev.length }); return prev.filter(x => x.rawId !== b.rawId); });
-    console.log('[POST FILTER] supaBookings state update called');
+    setSupaBookings(prev => prev.filter(x => x.rawId !== b.rawId));
     setCancelTarget(null);
     setCancelBusy(false);
   };
 
   const now = Date.now();
-  console.log('[ACTIVE]', { supaNull: supaBookings === null, len: supaBookings?.length });
   const activeBookings = supaBookings !== null ? supaBookings : bookings;
   const upcoming = activeBookings.filter(b=>b.status==='up');
   const past = activeBookings.filter(b=>b.status==='past');
