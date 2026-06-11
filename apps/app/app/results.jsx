@@ -16,6 +16,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
 
   /* Map — init y re-center cuando geo cambia */
   React.useEffect(() => {
+    console.log('[MAP EFFECT]', { lat: geo?.lat, lng: geo?.lng });
     if (!mapContainerRef.current || !window.L) return;
 
     // Destruye instancia anterior
