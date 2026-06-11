@@ -116,33 +116,18 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
     const sb = window.UMAuth.sb;
 
-    /* 1 · Stripe refund — non-fatal, never blocks steps 2–4 */
-    if (b.paymentIntentId) {
-      try {
-        const { data, error } = await sb.functions.invoke('stripe-refund', {
-          body: { payment_intent_id: b.paymentIntentId },
-        });
-        if (error) {
-          const errText = await error.context?.text?.();
-          console.log('[REFUND ERROR]', errText, b.paymentIntentId);
-        } else {
-          console.log('[REFUND OK]', data);
-        }
-      } catch(e) {
-        console.warn('[UNA MESA] stripe-refund:', e.message);
-      }
-    }
-
-    /* 2 · Cancel in DB — fatal: if this fails show error to user */
+    /* 1 · Stripe refund — NON-FATAL, never blocks step 2 */
     try {
-      const { error: updateErr } = await sb
-        .from('reservations')
-        .update({ status: 'cancelled' })
-        .eq('id', b.rawId);
-      console.log('[CANCEL DB]', { updateError: updateErr, rawId: b.rawId });
-      if (updateErr) throw updateErr;
-    } catch(e) {
-      setCancelError(e.message || 'Error al cancelar. Inténtalo de nuevo.');
+      const { data, error } = await sb.functions.invoke('stripe-refund', { body: { payment_intent_id: b.paymentIntentId } });
+      if (error) { const t = await error.context?.text?.(); console.warn('[REFUND ERROR]', t); }
+      else { console.log('[REFUND OK]', data); }
+    } catch(e) { console.warn('[REFUND EXCEPTION]', e.message); }
+
+    /* 2 · DB update — ALWAYS runs */
+    const { error: updateError } = await sb.from('reservations').update({ status: 'cancelled' }).eq('id', b.rawId);
+    console.log('[CANCEL DB]', { updateError, rawId: b.rawId });
+    if (updateError) {
+      setCancelError(updateError.message || 'Error al cancelar en base de datos.');
       setCancelBusy(false);
       return;
     }
@@ -155,9 +140,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         reason:         'user_cancelled',
         refund_amount:  b.depositCents,
       }]);
-    } catch(e) {
-      console.warn('[UNA MESA] cancellations insert:', e.message);
-    }
+    } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
     /* 4 · Update local UI */
     setSupaBookings(prev => prev.map(x =>
