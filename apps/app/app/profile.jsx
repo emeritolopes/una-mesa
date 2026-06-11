@@ -93,6 +93,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
         let query = sb.from('reservations')
           .select('*, venues(name, address, photo_url, cuisine)')
+          .in('status', ['confirmed', 'unconfirmed', 'pending'])
           .order('date', { ascending: false });
 
         if (authUser?.id) {
