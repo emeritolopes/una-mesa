@@ -74,7 +74,7 @@ function App() {
   useEffect(()=>{
     if(!('geolocation' in navigator)){ setGeo({status:'denied',label:'',ref:{x:50,y:50}}); return; }
     navigator.geolocation.getCurrentPosition(
-      ()=> setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50}}),
+      pos=> setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat:pos.coords.latitude,lng:pos.coords.longitude}),
       ()=> setGeo(g=>({...g,status:'denied'})),
       { timeout:8000, maximumAge:600000 }
     );
@@ -143,7 +143,7 @@ function App() {
   else if (route.view==='concierge')
     screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go });
   else if (route.view==='results')
-    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'Vigo' });
+    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'Vigo', geo });
   else if (route.view==='detail')
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')

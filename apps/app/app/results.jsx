@@ -1,6 +1,6 @@
 /* ════ UNA MESA · Results screen · Stitch design system ════ */
 
-function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel }) {
+function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, geo }) {
   const data = window.UM_DATA;
   const [q, setQ] = useState(query || '');
   const [cuisines, setCuisines] = useState([]);
@@ -16,7 +16,9 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel }
 
   useEffect(() => {
     if (!mapContainerRef.current || !window.L) return;
-    const map = window.L.map(mapContainerRef.current).setView([42.237, -8.723], 14);
+    const lat = geo?.lat || 40.4168;
+    const lng = geo?.lng || -3.7038;
+    const map = window.L.map(mapContainerRef.current).setView([lat, lng], 14);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
@@ -184,7 +186,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel }
         React.createElement('aside', { className:'mappanel' },
           React.createElement('div', {
             ref: mapContainerRef,
-            style: { height: '280px', borderRadius: '12px', overflow: 'hidden', width: '100%' }
+            style: { height: '280px', width: '100%', borderRadius: '12px', overflow: 'hidden' }
           })
         )
 
