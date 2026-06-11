@@ -4,10 +4,10 @@
 function Panel({ go }) {
   const D = window.DATA;
   const [supaRes, setSupaRes] = useState(null);
+  const today = new Date().toLocaleDateString('en-CA');
 
-  useEffect(() => {
+  const loadReservations = () => {
     if (!window.sb) return;
-    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD en zona local (no UTC)
     window.sb
       .from('reservations')
       .select('*')
@@ -19,7 +19,13 @@ function Panel({ go }) {
         setSupaRes(data || []);
       })
       .catch(e => console.warn('[BOH] panel:', e.message));
-  }, []);
+  };
+
+  useEffect(() => {
+    loadReservations();
+    const interval = setInterval(loadReservations, 30000);
+    return () => clearInterval(interval);
+  }, [today]);
 
   /* null = not yet loaded (show mock); [] or [...] = Supabase answered (use it) */
   const liveReservations = supaRes !== null ? supaRes : D.reservations;
