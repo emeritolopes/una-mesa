@@ -144,7 +144,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
     /* 4 · Update local UI */
-    setSupaBookings(prev => prev.filter(x => x.rawId !== b.rawId));
+    setSupaBookings(prev => { console.log('[FILTER]', { rawId: b.rawId, prevLength: prev.length }); return prev.filter(x => x.rawId !== b.rawId); });
     setCancelTarget(null);
     setCancelBusy(false);
   };
