@@ -111,6 +111,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const doCancel = async () => {
     const b = cancelTarget;
     if (!b || cancelBusy) return;
+    if (!window.confirm('¿Cancelar esta reserva? El depósito será reembolsado en 5-10 días hábiles.')) return;
     setCancelBusy(true);
     setCancelError('');
 

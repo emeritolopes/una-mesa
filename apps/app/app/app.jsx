@@ -89,6 +89,12 @@ function App() {
 
   const toggleTheme = () => { const next = theme==='noche'?'crema':'noche'; animateThemeTo(next); try{localStorage.setItem('um-theme',next);}catch(e){} setTheme(next); };
   const go = view => setRoute(r=>({ ...r, view }));
+  const goWithGuard = view => {
+    if (route.view === 'profile' && view !== 'profile') {
+      if (!window.confirm('¿Salir de tu perfil?')) return;
+    }
+    go(view);
+  };
   const openRest = rid => setRoute({ view:'detail', rid, query:route.query, presetTime:null });
   const search = q => setRoute(r=>({ ...r, view:'results', query:q }));
   const askConcierge = q => setRoute(r=>({ ...r, view:'concierge', query:q||'' }));
@@ -148,11 +154,11 @@ function App() {
   else if (route.view==='booking')
     screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, back:()=>go('home'), user, requireAuth, onConfirm });
   else if (route.view==='profile')
-    screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go, spoons, onRedeem:redeemReward });
+    screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
 
   return React.createElement('div', { className:'app' },
     React.createElement(window.Header, {
-      go, route:route.view, user,
+      go: goWithGuard, route:route.view, user,
       onAuth:(mode)=>setAuthOpen(mode||'register'),
       onProfile:()=>go('profile'),
       theme, onTheme:toggleTheme,
