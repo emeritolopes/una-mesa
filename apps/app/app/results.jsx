@@ -23,7 +23,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
     }
     const lat = geo?.lat || 40.4168;
     const lng = geo?.lng || -3.7038;
-    mapContainerRef.current.style.height = '280px';
+    mapContainerRef.current.style.height = '100%';
     const map = window.L.map(mapContainerRef.current).setView([lat, lng], 14);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
@@ -193,7 +193,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
           React.createElement('div', {
             id: 'uma-map',
             ref: mapContainerRef,
-            style: { height: '280px', width: '100%', borderRadius: '12px', overflow: 'hidden' }
+            style: { height: '100%', width: '100%', borderRadius: '12px', overflow: 'hidden' }
           })
         )
 
