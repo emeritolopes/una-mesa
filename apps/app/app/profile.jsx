@@ -113,10 +113,9 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     load();
   }, [user]);
 
-  const doCancel = async () => {
-    const b = cancelTarget;
+  const doCancel = async (booking) => {
+    const b = booking || cancelTarget;
     if (!b || cancelBusy) return;
-    if (!window.confirm('¿Cancelar esta reserva? El depósito será reembolsado en 5-10 días hábiles.')) return;
     setCancelBusy(true);
     setCancelError('');
 
@@ -181,38 +180,35 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     ));
   };
 
-  const cancelModal = cancelTarget
-    ? React.createElement('div',{
-        style:{position:'fixed',inset:0,zIndex:999,background:'rgba(0,0,0,0.45)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'},
-        onClick:()=>{ if(!cancelBusy) setCancelTarget(null); }
-      },
-        React.createElement('div',{
-          style:{background:'#fff',borderRadius:'20px',padding:'28px 24px',maxWidth:'380px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.18)'},
-          onClick:e=>e.stopPropagation()
-        },
-          React.createElement('div',{style:{width:'44px',height:'44px',borderRadius:'50%',background:'#FEF2F0',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px',fontSize:'22px'}},'⚠️'),
-          React.createElement('h2',{style:{margin:'0 0 8px',fontSize:'18px',fontWeight:'800',color:'#121212'}},'¿Cancelar esta reserva?'),
-          React.createElement('p',{style:{margin:'0 0 4px',fontSize:'14px',color:'#666',lineHeight:'1.5'}},
-            cancelTarget.name+' · '+cancelTarget.dayLabel+' a las '+cancelTarget.time),
-          React.createElement('p',{style:{margin:'12px 0 0',fontSize:'13px',color:'#888',lineHeight:'1.55'}},
-            'Si cancelas con más de 24h de antelación recuperas el depósito íntegro ('+cancelTarget.deposit+'€).'),
-          cancelError ? React.createElement('p',{style:{margin:'12px 0 0',fontSize:'13px',color:'#E85D3A'}},cancelError) : null,
-          React.createElement('div',{style:{display:'flex',gap:'10px',marginTop:'20px'}},
-            React.createElement('button',{
-              className:'btn btn-soft btn-block',
-              disabled:cancelBusy,
-              onClick:()=>setCancelTarget(null)
-            },'Volver'),
-            React.createElement('button',{
-              className:'btn btn-block',
-              style:{background:'#E85D3A',color:'#fff',opacity:cancelBusy?0.7:1},
-              disabled:cancelBusy,
-              onClick:doCancel
-            }, cancelBusy ? 'Cancelando…' : 'Sí, cancelar reserva')
-          )
-        )
+  const cancelModal = cancelTarget && React.createElement('div', {
+    style: {
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000
+    }
+  },
+    React.createElement('div', {
+      style: {
+        background: '#FAF6F0', borderRadius: 16, padding: 32,
+        maxWidth: 400, width: '90%', textAlign: 'center'
+      }
+    },
+      React.createElement('h3', { style: { fontFamily: 'Playfair Display', marginBottom: 12 } }, '¿Cancelar esta reserva?'),
+      React.createElement('p', { style: { color: '#666', marginBottom: 24, fontSize: 14 } },
+        'El depósito será reembolsado en 5-10 días hábiles.'
+      ),
+      React.createElement('div', { style: { display: 'flex', gap: 12, justifyContent: 'center' } },
+        React.createElement('button', {
+          onClick: () => setCancelTarget(null),
+          style: { padding: '10px 24px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer' }
+        }, 'Volver'),
+        React.createElement('button', {
+          onClick: () => { doCancel(cancelTarget); setCancelTarget(null); },
+          style: { padding: '10px 24px', borderRadius: 8, border: 'none', background: '#FF5733', color: 'white', cursor: 'pointer' }
+        }, 'Sí, cancelar')
       )
-    : null;
+    )
+  );
 
   let panel;
   if (tab==='reservas') {

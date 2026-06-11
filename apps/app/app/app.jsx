@@ -89,12 +89,7 @@ function App() {
 
   const toggleTheme = () => { const next = theme==='noche'?'crema':'noche'; animateThemeTo(next); try{localStorage.setItem('um-theme',next);}catch(e){} setTheme(next); };
   const go = view => setRoute(r=>({ ...r, view }));
-  const goWithGuard = view => {
-    if (route.view === 'profile' && view !== 'profile') {
-      if (!window.confirm('¿Salir de tu perfil?')) return;
-    }
-    go(view);
-  };
+  const goWithGuard = view => go(view);
   const openRest = rid => setRoute({ view:'detail', rid, query:route.query, presetTime:null });
   const search = q => setRoute(r=>({ ...r, view:'results', query:q }));
   const askConcierge = q => setRoute(r=>({ ...r, view:'concierge', query:q||'' }));
