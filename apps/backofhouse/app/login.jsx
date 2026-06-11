@@ -44,8 +44,8 @@ function BrandPanel() {
             { k: 'Personal', i: 'ti-users' },
           ].map(f => (
             <div key={f.k} className="flex flex-col items-center gap-1.5 text-white/80">
-              <i className={`ti ${f.i} text-xl`} />
-              <span className="text-[10px] uppercase tracking-wider font-semibold">{f.k}</span>
+              <i className={`ti ${f.i} text-2xl`} />
+              <span className="text-[11px] font-medium text-white/80">{f.k}</span>
             </div>
           ))}
         </div>
@@ -89,7 +89,7 @@ function PasswordForm({ onLogin }) {
         <div className="relative">
           <i className="ti ti-mail absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-black/10 rounded-xl bg-gray-50 outline-none focus:border-brand focus:bg-white transition"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white shadow-sm outline-none focus:border-brand focus:shadow-md transition"
             placeholder="tu@local.es" />
         </div>
       </label>
@@ -102,7 +102,7 @@ function PasswordForm({ onLogin }) {
         <div className="relative">
           <i className="ti ti-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
           <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)}
-            className="w-full pl-9 pr-10 py-2.5 text-sm border border-black/10 rounded-xl bg-gray-50 outline-none focus:border-brand focus:bg-white transition"
+            className="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl bg-white shadow-sm outline-none focus:border-brand focus:shadow-md transition"
             placeholder="••••••••" />
           <button type="button" onClick={() => setShow(s => !s)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -229,7 +229,13 @@ function Login({ onLogin }) {
           <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
             {[{ k: 'password', l: 'Contraseña', i: 'ti-lock' }, { k: 'pin', l: 'PIN de equipo', i: 'ti-grid-dots' }].map(t => (
               <button key={t.k} onClick={() => setMode(t.k)}
-                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${mode === t.k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                  mode === t.k
+                    ? t.k === 'pin'
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}>
                 <i className={`ti ${t.i}`} />{t.l}
               </button>
             ))}
