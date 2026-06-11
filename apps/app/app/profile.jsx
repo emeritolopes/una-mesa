@@ -90,13 +90,18 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     async function load() {
       try {
         const { data: { user: authUser } } = await sb.auth.getUser();
-        if (!authUser) { setSupaBookings([]); return; }
 
-        const { data, error } = await sb.from('reservations')
+        let query = sb.from('reservations')
           .select('*, venues(name, address, photo_url, cuisine)')
-          .eq('user_id', authUser.id)
           .order('date', { ascending: false });
 
+        if (authUser?.id) {
+          query = query.or(`user_id.eq.${authUser.id},customer_name.ilike.%${user.name}%`);
+        } else {
+          query = query.ilike('customer_name', `%${user.name}%`);
+        }
+
+        const { data, error } = await query;
         if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
         setSupaBookings((data || []).map(mapSupaBooking));
       } catch(e) {
