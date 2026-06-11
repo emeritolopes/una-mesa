@@ -269,3 +269,4 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 }
 
 Object.assign(window, { AuthModal, ProfileScreen });
+// cache bust Thu 11 Jun 2026 01:11:17 BST
