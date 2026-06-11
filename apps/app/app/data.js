@@ -12,7 +12,7 @@
   const R = (o)=>o;
   const data = [
     R({ id:'casa-lua', name:'Casa Lúa', cuisine:'Mediterráneo', cz:cz('marisco'), price:'€€€', area:'Casco Vello', city:'Vigo',
-      rating:4.8, reviews:284, match:98, coords:{x:30,y:42}, glyph:'fish',
+      rating:4.8, reviews:284, match:98, coords:{x:30,y:42}, lat:42.2373, lng:-8.7241, glyph:'fish',
       tags:['Romántico','Con terraza','Pescado del día'],
       about:'Cocina mediterránea de producto en pleno Casco Vello. Pescado de la lonja de Vigo, brasa de encina y una bodega corta pero bien elegida. Sala íntima con velas y una terraza interior sobre piedra centenaria.',
       address:'Rúa Real 12, Casco Vello', hours:'13:00–16:00 · 20:30–23:30', phone:'+34 986 22 14 08',
@@ -28,7 +28,7 @@
             ['Elena V.',4,'Hace 2 semanas','Muy buena experiencia. El arroz de bogavante para dos da de sobra. Algo de ruido cuando se llena.']] }),
 
     R({ id:'el-mirador', name:'El Mirador', cuisine:'Contemporáneo', cz:cz('fusion'), price:'€€€', area:'A Guía', city:'Vigo',
-      rating:4.7, reviews:196, match:95, coords:{x:72,y:24}, glyph:'sparkle',
+      rating:4.7, reviews:196, match:95, coords:{x:72,y:24}, lat:42.2449, lng:-8.7289, glyph:'sparkle',
       tags:['Vistas','Con terraza','Maridaje'],
       about:'Cocina contemporánea gallega con las mejores vistas a la ría desde el monte de A Guía. Menú degustación opcional con maridaje, terraza acristalada y puestas de sol que justifican la subida.',
       address:'Estrada da Guía 88, A Guía', hours:'13:30–16:00 · 20:00–23:00', phone:'+34 986 37 55 21',
@@ -43,7 +43,7 @@
             ['Lucía F.',5,'Hace 10 días','De lo mejor de Vigo para celebrar algo. Reserva fácil y mesa junto al ventanal como pedí en las notas.']] }),
 
     R({ id:'verde', name:'Verde', cuisine:'De mercado', cz:cz('vegetal'), price:'€€', area:'Areal', city:'Vigo',
-      rating:4.6, reviews:152, match:92, coords:{x:48,y:58}, glyph:'leaf',
+      rating:4.6, reviews:152, match:92, coords:{x:48,y:58}, lat:42.2324, lng:-8.7168, glyph:'leaf',
       tags:['Vegetariano','Tranquilo','Saludable'],
       about:'Cocina de mercado con mucha verdura de temporada y opciones vegetarianas y veganas reales, no de relleno. Local luminoso y tranquilo en el Areal, ideal para comidas de diario sin renunciar a comer bien.',
       address:'Rúa do Areal 44', hours:'13:00–16:30 · 20:30–23:00', phone:'+34 986 11 90 33',
@@ -58,7 +58,7 @@
             ['Pablo R.',4,'Hace 1 semana','Comida fresca y de calidad. Relación calidad-precio muy buena para el menú de mediodía.']] }),
 
     R({ id:'o-pulpeiro', name:'O Pulpeiro', cuisine:'Gallego', cz:cz('pulpo'), price:'€€', area:'Berbés', city:'Vigo',
-      rating:4.7, reviews:331, match:90, coords:{x:24,y:66}, glyph:'pot',
+      rating:4.7, reviews:331, match:90, coords:{x:24,y:66}, lat:42.2360, lng:-8.7258, glyph:'pot',
       tags:['Clásico','Grupos','Pulpo á feira'],
       about:'Una pulpería de toda la vida en el Berbés, junto al puerto. Pulpo á feira cocido en cobre, raxo, zorza y vinos del Ribeiro en cunca. Mesas corridas, bullicio y raciones generosas para compartir.',
       address:'Rúa do Berbés 7', hours:'12:30–16:30 · 20:00–23:30', phone:'+34 986 43 21 76',
@@ -74,7 +74,7 @@
             ['Dani T.',4,'Hace 3 semanas','Muy auténtico y animado. Si vas en finde, reserva sí o sí porque se llena.']] }),
 
     R({ id:'brasa-norte', name:'Brasa Norte', cuisine:'Asador', cz:cz('asador'), price:'€€€', area:'Travesía de Vigo', city:'Vigo',
-      rating:4.8, reviews:218, match:88, coords:{x:60,y:48}, glyph:'flame',
+      rating:4.8, reviews:218, match:88, coords:{x:60,y:48}, lat:42.2291, lng:-8.7154, glyph:'flame',
       tags:['Carne madurada','Grupos','Brasa'],
       about:'Asador de brasa de carbón de encina especializado en chuletón de vaca rubia gallega madurada. Cortes a la vista, guarniciones de huerta y una carta de tintos para acompañar. Mesas amplias para grupos.',
       address:'Travesía de Vigo 102', hours:'13:30–16:00 · 20:30–00:00', phone:'+34 986 27 64 19',
@@ -89,7 +89,7 @@
             ['Rosa B.',5,'Hace 6 días','Carne de primera y servicio atento. Reservamos para 10 sin problema.']] }),
 
     R({ id:'sakura', name:'Sakura', cuisine:'Japonés', cz:cz('japones'), price:'€€€', area:'Plaza de Compostela', city:'Vigo',
-      rating:4.6, reviews:174, match:86, coords:{x:42,y:38}, glyph:'fish',
+      rating:4.6, reviews:174, match:86, coords:{x:42,y:38}, lat:42.2382, lng:-8.7208, glyph:'fish',
       tags:['Sushi','Barra','Omakase'],
       about:'Cocina japonesa con producto gallego: nigiri de pescado de la ría, omakase en barra y robata. Espacio minimalista de madera clara junto a la Plaza de Compostela. Barra para ver al itamae trabajar.',
       address:'Rúa de Reconquista 5', hours:'13:30–16:00 · 20:30–23:30', phone:'+34 986 90 12 47',
@@ -104,7 +104,7 @@
             ['Ana D.',4,'Hace 2 semanas','Muy buen sushi y ambiente cuidado. Un pelín caro pero merece la pena.']] }),
 
     R({ id:'a-taberna', name:'A Taberna do Bo', cuisine:'Tapas', cz:cz('tapas'), price:'€€', area:'Casco Vello', city:'Vigo',
-      rating:4.5, reviews:267, match:84, coords:{x:34,y:50}, glyph:'wine',
+      rating:4.5, reviews:267, match:84, coords:{x:34,y:50}, lat:42.2368, lng:-8.7235, glyph:'wine',
       tags:['Tapas','Animado','Vinos'],
       about:'Tapas gallegas con un punto moderno y una carta de vinos naturales en constante rotación. Barra de pinchos, mesas altas y mucho ambiente las tardes de finde en el corazón del Casco Vello.',
       address:'Rúa Cesteiros 3, Casco Vello', hours:'12:00–16:00 · 19:30–00:00', phone:'+34 986 55 38 90',
@@ -119,7 +119,7 @@
             ['Hugo N.',4,'Hace 9 días','Muy animado y buen rollo. Los vinos naturales que recomiendan, un acierto.']] }),
 
     R({ id:'arrozal', name:'Arrozal', cuisine:'Arroces', cz:cz('arroz'), price:'€€€', area:'Bouzas', city:'Vigo',
-      rating:4.7, reviews:143, match:82, coords:{x:16,y:52}, glyph:'pot',
+      rating:4.7, reviews:143, match:82, coords:{x:16,y:52}, lat:42.2273, lng:-8.7439, glyph:'pot',
       tags:['Arroces','Con terraza','Frente al mar'],
       about:'Arrocería frente al puerto de Bouzas con arroces de leña y producto de la ría. Terraza con vistas a los barcos y arroces para dos y cuatro que hay que pedir al reservar. Especialidad en arroz con bogavante.',
       address:'Rúa Eduardo Cabello 30, Bouzas', hours:'13:00–16:30', phone:'+34 986 24 71 55',
@@ -134,7 +134,7 @@
             ['Luis A.',4,'Hace 3 semanas','Muy buen producto. La terraza es una gozada en días de sol.']] }),
 
     R({ id:'panadeira', name:'A Panadeira', cuisine:'Brunch & Café', cz:cz('cafe'), price:'€€', area:'Areal', city:'Vigo',
-      rating:4.6, reviews:209, match:80, coords:{x:52,y:44}, glyph:'coffee',
+      rating:4.6, reviews:209, match:80, coords:{x:52,y:44}, lat:42.2329, lng:-8.7172, glyph:'coffee',
       tags:['Brunch','Café de especialidad','Desayunos'],
       about:'Café de especialidad y brunch todo el día en un antiguo obrador. Bollería propia, tostas de masa madre, huevos benedictinos y matcha. Mesas junto al ventanal y wifi para quedarse.',
       address:'Rúa Luís Taboada 18', hours:'09:00–14:00 · brunch finde 09:00–16:00', phone:'+34 986 33 87 02',
@@ -149,7 +149,7 @@
             ['Jorge P.',4,'Hace 1 semana','Café de especialidad de verdad y bollería buenísima. Sitio acogedor.']] }),
 
     R({ id:'fumeiro', name:'Fumeiro Moderno', cuisine:'Fusión', cz:cz('bistro'), price:'€€€', area:'Centro', city:'Vigo',
-      rating:4.5, reviews:118, match:78, coords:{x:46,y:30}, glyph:'sparkle',
+      rating:4.5, reviews:118, match:78, coords:{x:46,y:30}, lat:42.2351, lng:-8.7198, glyph:'sparkle',
       tags:['Fusión','Cócteles','Cena tardía'],
       about:'Bistró de fusión gallego-asiática con coctelería de autor. Platos para compartir que cruzan la brasa gallega con el wok, y una barra de cócteles que aguanta hasta tarde. Luz tenue y música a buen volumen.',
       address:'Rúa do Príncipe 41, Centro', hours:'20:00–01:00', phone:'+34 986 19 55 60',

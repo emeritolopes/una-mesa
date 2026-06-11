@@ -143,7 +143,7 @@ function App() {
   else if (route.view==='concierge')
     screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go });
   else if (route.view==='results')
-    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook });
+    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'Vigo' });
   else if (route.view==='detail')
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')

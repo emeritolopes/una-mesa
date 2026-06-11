@@ -1,6 +1,6 @@
 /* ════ UNA MESA · Results screen · Stitch design system ════ */
 
-function ResultsScreen({ query, openRest, favs, toggleFav, startBook }) {
+function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel }) {
   const data = window.UM_DATA;
   const [q, setQ] = useState(query || '');
   const [cuisines, setCuisines] = useState([]);
@@ -8,8 +8,35 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook }) {
   const [tags, setTags] = useState([]);
   const [sort, setSort] = useState('match');
   const [hoverId, setHoverId] = useState(null);
+  const mapContainerRef = useRef(null);
+  const leafletMapRef = useRef(null);
+  const markersRef = useRef([]);
 
   useEffect(()=>{ setQ(query||''); }, [query]);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !window.L) return;
+    const map = window.L.map(mapContainerRef.current).setView([42.237, -8.723], 14);
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    leafletMapRef.current = map;
+    return () => { map.remove(); leafletMapRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (!leafletMapRef.current || !window.L) return;
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+    list.forEach(r => {
+      if (!r.lat || !r.lng) return;
+      const m = window.L.marker([r.lat, r.lng])
+        .addTo(leafletMapRef.current)
+        .bindPopup('<b>'+r.name+'</b><br>'+r.rating.toFixed(1)+'★ · '+r.price+'<br><small>'+r.area+'</small>');
+      m.on('click', () => openRest(r.id));
+      markersRef.current.push(m);
+    });
+  }, [list]);
 
   const allCuisines = [...new Set(data.map(r=>r.cuisine))];
   const allTags     = [...new Set(data.flatMap(r=>r.tags))];
@@ -59,7 +86,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook }) {
 
           React.createElement('div', { className:'res-hero-row' },
             React.createElement('h1', { className:'res-h1 display' },
-              q ? '“'+q+'”' : 'Restaurantes en Vigo'
+              q ? '”'+q+'”' : 'Restaurantes en ' + (geoLabel || 'tu zona')
             ),
             React.createElement('span', { className:'res-count-pill' }, list.length+' sitios')
           ),
@@ -153,27 +180,12 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook }) {
               )
         ),
 
-        /* ── Map panel (unchanged) ── */
+        /* ── Map panel (Leaflet) ── */
         React.createElement('aside', { className:'mappanel' },
-          React.createElement('div', { className:'map' },
-            React.createElement('div',{className:'map-bg'}),
-            React.createElement('div',{className:'map-water',style:{width:'70%',height:'34%',bottom:'-6%',left:'-8%'}}),
-            React.createElement('div',{className:'map-water',style:{width:'40%',height:'26%',top:'-8%',right:'-6%'}}),
-            React.createElement('div',{className:'map-road',style:{left:'18%',top:0,bottom:0,width:'3px'}}),
-            React.createElement('div',{className:'map-road',style:{left:0,right:0,top:'46%',height:'3px'}}),
-            React.createElement('div',{className:'map-road',style:{left:'62%',top:0,bottom:0,width:'3px'}}),
-            React.createElement('div',{className:'map-road',style:{left:0,right:0,top:'74%',height:'3px',opacity:.4}}),
-            list.map(r => React.createElement('div', {
-              key:r.id, className:'pin'+(hoverId===r.id?' on':''),
-              style:{ left:r.coords.x+'%', top:r.coords.y+'%' },
-              onMouseEnter:()=>setHoverId(r.id), onMouseLeave:()=>setHoverId(null),
-              onClick:()=>openRest(r.id)
-            },
-              React.createElement('div',{className:'tip'}, r.name+' · '+r.rating.toFixed(1)+'★'),
-              React.createElement('div',{className:'dot'}, React.createElement('b',null, r.price.length===3?'€€€':'€€'))
-            )),
-            React.createElement('div',{className:'map-note'},'Mapa ilustrativo · Vigo')
-          )
+          React.createElement('div', {
+            ref: mapContainerRef,
+            style: { height: '280px', borderRadius: '12px', overflow: 'hidden', width: '100%' }
+          })
         )
 
       )
