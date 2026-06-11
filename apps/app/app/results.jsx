@@ -17,19 +17,30 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   /* Map — init y re-center cuando geo cambia */
   React.useEffect(() => {
     if (!mapContainerRef.current || !window.L) return;
+
+    // Destruye instancia anterior
     if (leafletMapRef.current) {
       leafletMapRef.current.remove();
       leafletMapRef.current = null;
     }
+
+    // Limpia el _leaflet_id del div para permitir re-mount
+    delete mapContainerRef.current._leaflet_id;
+
     const lat = geo?.lat || 40.4168;
     const lng = geo?.lng || -3.7038;
-    mapContainerRef.current.style.height = '100%';
     const map = window.L.map(mapContainerRef.current).setView([lat, lng], 14);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
     leafletMapRef.current = map;
-    return () => { if(leafletMapRef.current){ leafletMapRef.current.remove(); leafletMapRef.current = null; } };
+
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
+    };
   }, [geo?.lat, geo?.lng]);
 
   const allCuisines = [...new Set(data.map(r=>r.cuisine))];
