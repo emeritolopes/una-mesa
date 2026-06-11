@@ -171,7 +171,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           style:{ fontSize:'clamp(52px,8vw,88px)', color:'#FAFAFA', marginBottom:'40px', letterSpacing:'-.02em', lineHeight:1.02 }
         },
           'La mesa que ',
-          React.createElement('span', { style:{ color:'var(--accent)' } }, 'te espera'),
+          React.createElement('span', { style:{ color:'var(--accent)', fontWeight:900 } }, 'te espera'),
           '.'),
         React.createElement('form', { className:'stitch-search', onSubmit:submit },
           React.createElement(Icon, { name:'search', style:{ width:20, height:20, color:'rgba(250,250,250,.50)', flexShrink:0 } }),

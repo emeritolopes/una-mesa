@@ -52,7 +52,7 @@ button{font-family:inherit;cursor:pointer}
 img{max-width:100%;display:block}
 
 /* ── typography ── */
-.display{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:-.01em;line-height:1.05}
+.display{font-family:'Playfair Display',Georgia,serif;font-weight:300;letter-spacing:-.01em;line-height:1.05}
 .serif{font-family:'Playfair Display',Georgia,serif;font-weight:400}
 input,select,textarea{font-family:inherit}
 
