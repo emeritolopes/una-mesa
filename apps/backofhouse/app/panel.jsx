@@ -23,8 +23,20 @@ function Panel({ go }) {
 
   useEffect(() => {
     loadReservations();
-    const interval = setInterval(loadReservations, 30000);
-    return () => clearInterval(interval);
+
+    const channel = window.sb
+      .channel('reservations-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'reservations',
+        filter: `date=eq.${today}`
+      }, () => {
+        loadReservations();
+      })
+      .subscribe();
+
+    return () => { window.sb.removeChannel(channel); };
   }, [today]);
 
   /* null = not yet loaded (show mock); [] or [...] = Supabase answered (use it) */
