@@ -85,21 +85,20 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const [cancelError, setCancelError] = useState('');
 
   useEffect(() => {
-    if (!user || !window.UMAuth?.sb) { setSupaBookings([]); return; }
+    if (!window.UMAuth?.sb) { setSupaBookings([]); return; }
+    const sb = window.UMAuth.sb;
     async function load() {
       try {
-        const nameQuery = user.name
-          ? `customer_name.ilike.%${user.name}%`
-          : `customer_name.ilike.%${user.email.split('@')[0]}%`;
-        const baseQuery = window.UMAuth.sb
-          .from('reservations')
-          .select('*, venues(name, address, cuisine)')
+        const { data: { user: authUser } } = await sb.auth.getUser();
+        if (!authUser) { setSupaBookings([]); return; }
+
+        const { data, error } = await sb.from('reservations')
+          .select('*, venues(name, address, photo_url, cuisine)')
+          .eq('user_id', authUser.id)
           .order('date', { ascending: false });
-        const { data: rows, error } = user.id
-          ? await baseQuery.or(`user_id.eq.${user.id},${nameQuery}`)
-          : await baseQuery.ilike('customer_name', `%${user.name || user.email.split('@')[0]}%`);
+
         if (error) { console.warn('[UNA MESA] loadBookings:', error.message); setSupaBookings([]); return; }
-        setSupaBookings((rows || []).map(mapSupaBooking));
+        setSupaBookings((data || []).map(mapSupaBooking));
       } catch(e) {
         console.warn('[UNA MESA] loadBookings:', e.message);
         setSupaBookings([]);
