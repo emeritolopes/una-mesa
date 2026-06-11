@@ -14,37 +14,23 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
 
   useEffect(()=>{ setQ(query||''); }, [query]);
 
-  useEffect(() => {
+  /* Map — init y re-center cuando geo cambia */
+  React.useEffect(() => {
     if (!mapContainerRef.current || !window.L) return;
+    if (leafletMapRef.current) {
+      leafletMapRef.current.remove();
+      leafletMapRef.current = null;
+    }
     const lat = geo?.lat || 40.4168;
     const lng = geo?.lng || -3.7038;
+    mapContainerRef.current.style.height = '280px';
     const map = window.L.map(mapContainerRef.current).setView([lat, lng], 14);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      attribution: '© OpenStreetMap'
     }).addTo(map);
     leafletMapRef.current = map;
-    return () => { map.remove(); leafletMapRef.current = null; };
-  }, []);
-
-  useEffect(() => {
-    if (leafletMapRef.current && geo?.lat) {
-      leafletMapRef.current.setView([geo.lat, geo.lng], 14);
-    }
+    return () => { if(leafletMapRef.current){ leafletMapRef.current.remove(); leafletMapRef.current = null; } };
   }, [geo?.lat, geo?.lng]);
-
-  useEffect(() => {
-    if (!leafletMapRef.current || !window.L) return;
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-    list.forEach(r => {
-      if (!r.lat || !r.lng) return;
-      const m = window.L.marker([r.lat, r.lng])
-        .addTo(leafletMapRef.current)
-        .bindPopup('<b>'+r.name+'</b><br>'+r.rating.toFixed(1)+'★ · '+r.price+'<br><small>'+r.area+'</small>');
-      m.on('click', () => openRest(r.id));
-      markersRef.current.push(m);
-    });
-  }, [list]);
 
   const allCuisines = [...new Set(data.map(r=>r.cuisine))];
   const allTags     = [...new Set(data.flatMap(r=>r.tags))];
@@ -66,6 +52,20 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
     if (sort==='price-hi') return b.price.length-a.price.length;
     return 0;
   });
+
+  useEffect(() => {
+    if (!leafletMapRef.current || !window.L) return;
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+    list.forEach(r => {
+      if (!r.lat || !r.lng) return;
+      const m = window.L.marker([r.lat, r.lng])
+        .addTo(leafletMapRef.current)
+        .bindPopup('<b>'+r.name+'</b><br>'+r.rating.toFixed(1)+'★ · '+r.price+'<br><small>'+r.area+'</small>');
+      m.on('click', () => openRest(r.id));
+      markersRef.current.push(m);
+    });
+  }, [list]);
 
   const clearAll = () => { setCuisines([]); setPrices([]); setTags([]); setQ(''); };
 
