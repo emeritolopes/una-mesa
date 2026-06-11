@@ -27,6 +27,12 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   }, []);
 
   useEffect(() => {
+    if (leafletMapRef.current && geo?.lat) {
+      leafletMapRef.current.setView([geo.lat, geo.lng], 14);
+    }
+  }, [geo?.lat, geo?.lng]);
+
+  useEffect(() => {
     if (!leafletMapRef.current || !window.L) return;
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
@@ -185,6 +191,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
         /* ── Map panel (Leaflet) ── */
         React.createElement('aside', { className:'mappanel' },
           React.createElement('div', {
+            id: 'uma-map',
             ref: mapContainerRef,
             style: { height: '280px', width: '100%', borderRadius: '12px', overflow: 'hidden' }
           })
