@@ -74,7 +74,7 @@ function App() {
   useEffect(()=>{
     if(!('geolocation' in navigator)){ setGeo({status:'denied',label:'',ref:{x:50,y:50}}); return; }
     navigator.geolocation.getCurrentPosition(
-      pos=> setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat:pos.coords.latitude,lng:pos.coords.longitude}),
+      pos=> { setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat:pos.coords.latitude,lng:pos.coords.longitude}); window.__geoDebug = { lat: pos.coords.latitude, lng: pos.coords.longitude }; console.log('[GEO]', window.__geoDebug); },
       ()=> setGeo(g=>({...g,status:'denied'})),
       { timeout:8000, maximumAge:600000 }
     );
