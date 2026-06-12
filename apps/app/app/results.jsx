@@ -18,6 +18,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   React.useEffect(() => {
     console.log('[MAP EFFECT]', { lat: geo?.lat, lng: geo?.lng });
     if (!mapContainerRef.current || !window.L) return;
+    if (!geo?.lat) return; // espera hasta que GPS responda
 
     // Destruye instancia anterior
     if (leafletMapRef.current) {
