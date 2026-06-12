@@ -18,7 +18,12 @@ function App() {
       return parsed || { view:'home', rid:null, query:'', presetTime:null };
     } catch(e) { return { view:'home', rid:null, query:'', presetTime:null }; }
   });
-  const [theme, setTheme] = useState(()=>{ try{return localStorage.getItem('um-theme')||'crema';}catch(e){return 'crema';} });
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('um-theme');
+      return (saved && saved !== 'dark') ? saved : 'crema';
+    } catch(e) { return 'crema'; }
+  });
   const [user, setUser] = useState(null);
   const [favs, setFavs] = useState([]);
   const [bookings, setBookings] = useState([]);
