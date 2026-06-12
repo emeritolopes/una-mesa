@@ -197,11 +197,7 @@ function App() {
     claimOpen ? React.createElement(window.ClaimSpoonsModal, {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
     authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'Vigo' : geo.label, initialMode:authOpen }) : null,
-    React.createElement(window.Toast, { msg:toast }),
-    /* logout affordance when on profile */
-    (user && route.view==='profile') ? React.createElement('div',{style:{position:'fixed',bottom:'20px',right:'20px',zIndex:50}},
-      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:logout},
-        React.createElement(window.Icon,{name:'logout'}),'Cerrar sesión')) : null
+    React.createElement(window.Toast, { msg:toast })
   );
 }
 
