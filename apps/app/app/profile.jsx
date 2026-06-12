@@ -250,7 +250,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       : React.createElement('div',{className:'empty'},
           React.createElement(Icon,{name:'cal'}),
           React.createElement('p',null,'Aún no tienes reservas.'),
-          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('home')},'Buscar restaurantes'));
+          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('results')},'Buscar restaurantes'));
   } else if (tab==='favoritos') {
     panel = favList.length
       ? React.createElement('div',{className:'rgrid'},
