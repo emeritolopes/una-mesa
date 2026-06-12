@@ -12,38 +12,35 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   const leafletMapRef = useRef(null);
   const markersRef = useRef([]);
 
+  const [coords, setCoords] = useState(geo?.lat ? { lat: geo.lat, lng: geo.lng } : null);
+
+  useEffect(() => {
+    if (coords) return;
+    let alive = true;
+    if (!('geolocation' in navigator)) { setCoords({ lat: 40.4168, lng: -3.7038 }); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => { if (alive) setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+      ()  => { if (alive) setCoords({ lat: 40.4168, lng: -3.7038 }); },
+      { timeout: 5000, maximumAge: 300000 }
+    );
+    return () => { alive = false; };
+  }, []);
+
   useEffect(()=>{ setQ(query||''); }, [query]);
 
-  /* Map — init y re-center cuando geo cambia */
+  /* Map — init cuando coords están disponibles */
   React.useEffect(() => {
-    console.log('[MAP EFFECT]', { lat: geo?.lat, lng: geo?.lng });
-    if (!mapContainerRef.current || !window.L) return;
-    if (!geo?.lat) return; // espera hasta que GPS responda
-
-    // Destruye instancia anterior
-    if (leafletMapRef.current) {
-      leafletMapRef.current.remove();
-      leafletMapRef.current = null;
-    }
-
-    // Limpia el _leaflet_id del div para permitir re-mount
+    console.log('[MAP EFFECT]', coords);
+    if (!coords || !mapContainerRef.current || !window.L) return;
+    if (leafletMapRef.current) { leafletMapRef.current.remove(); leafletMapRef.current = null; }
     delete mapContainerRef.current._leaflet_id;
-
-    const lat = geo?.lat || 40.4168;
-    const lng = geo?.lng || -3.7038;
-    const map = window.L.map(mapContainerRef.current).setView([lat, lng], 14);
+    const map = window.L.map(mapContainerRef.current).setView([coords.lat, coords.lng], 14);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
     leafletMapRef.current = map;
-
-    return () => {
-      if (leafletMapRef.current) {
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
-      }
-    };
-  }, [geo?.lat, geo?.lng]);
+    return () => { if (leafletMapRef.current) { leafletMapRef.current.remove(); leafletMapRef.current = null; } };
+  }, [coords]);
 
   const allCuisines = [...new Set(data.map(r=>r.cuisine))];
   const allTags     = [...new Set(data.flatMap(r=>r.tags))];
@@ -67,7 +64,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   });
 
   useEffect(() => {
-    if (!leafletMapRef.current || !window.L) return;
+    if (!leafletMapRef.current || !coords) return;
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
     list.forEach(r => {
@@ -78,7 +75,7 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
       m.on('click', () => openRest(r.id));
       markersRef.current.push(m);
     });
-  }, [list]);
+  }, [list, coords]);
 
   const clearAll = () => { setCuisines([]); setPrices([]); setTags([]); setQ(''); };
 
