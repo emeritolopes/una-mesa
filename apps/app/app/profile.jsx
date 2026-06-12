@@ -146,7 +146,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
     /* 4 · Send cancellation email — non-fatal */
-    console.log('[EMAIL GUARD]', { hasUser: !!user, email: user?.email, name: b?.name });
+    console.log('=== EMAIL GUARD v2 ===', { hasUser: !!user, email: user?.email });
     if (user?.email) {
       try {
         console.log('[EMAIL INVOKE] llamando send-cancellation-email...');
