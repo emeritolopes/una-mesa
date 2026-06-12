@@ -81,7 +81,18 @@ function App() {
   useEffect(()=>{
     if(!('geolocation' in navigator)){ setGeo({status:'denied',label:'',ref:{x:50,y:50}}); return; }
     navigator.geolocation.getCurrentPosition(
-      pos=> { setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat:pos.coords.latitude,lng:pos.coords.longitude}); window.__geoDebug = { lat: pos.coords.latitude, lng: pos.coords.longitude }; console.log('[GEO]', window.__geoDebug); },
+      pos=> {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat,lng});
+        window.__geoDebug = { lat, lng }; console.log('[GEO]', window.__geoDebug);
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+          .then(r => r.json())
+          .then(d => {
+            const city = d.address?.city || d.address?.town || d.address?.village || d.address?.county || '';
+            if (city) setGeo(g => ({ ...g, label: city }));
+          })
+          .catch(() => {});
+      },
       ()=> setGeo(g=>({...g,status:'denied'})),
       { timeout:8000, maximumAge:600000 }
     );
@@ -154,7 +165,7 @@ function App() {
   else if (route.view==='concierge')
     screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go });
   else if (route.view==='results')
-    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'Vigo', geo });
+    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'tu zona', geo });
   else if (route.view==='detail')
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')
