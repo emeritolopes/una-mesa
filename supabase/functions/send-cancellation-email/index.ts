@@ -211,27 +211,8 @@ Deno.serve(async (req) => {
     const resendJson = await resendRes.json().catch(() => ({}))
 
     if (!resendRes.ok) {
-      if (resendRes.status === 403 || resendRes.status === 422) {
-        const retryRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type':  'application/json',
-          },
-          body: JSON.stringify({
-            from:    'reservas@unamesa.co',
-            to:      [to],
-            subject: `Reserva cancelada — Una Mesa`,
-            html,
-          }),
-        })
-        const retryJson = await retryRes.json().catch(() => ({}))
-        if (!retryRes.ok) throw new Error(retryJson.message || 'Resend error')
-        return new Response(JSON.stringify({ id: retryJson.id, from: 'onboarding@resend.dev' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      throw new Error(resendJson.message || 'Resend error')
+      console.error('Resend error:', resendRes.status, JSON.stringify(resendJson))
+      throw new Error(`Resend ${resendRes.status}: ${resendJson.message || JSON.stringify(resendJson)}`)
     }
 
     return new Response(JSON.stringify({ id: resendJson.id }), {

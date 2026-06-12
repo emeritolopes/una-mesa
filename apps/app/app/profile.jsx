@@ -146,9 +146,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
     /* 4 · Send cancellation email — non-fatal */
+    console.log('[EMAIL GUARD]', { hasUser: !!user, email: user?.email, name: b?.name });
     if (user?.email) {
       try {
-        await sb.functions.invoke('send-cancellation-email', {
+        console.log('[EMAIL INVOKE] llamando send-cancellation-email...');
+        const { data, error } = await sb.functions.invoke('send-cancellation-email', {
           body: {
             to:              user.email,
             customer_name:   user.name || user.email,
@@ -159,7 +161,15 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
             deposit_amount:  b.depositCents,
           }
         });
-      } catch(e) { console.warn('[UNA MESA] cancellation email:', e.message); }
+        if (error) {
+          const errText = await error.context?.text?.();
+          console.warn('[EMAIL ERROR]', errText || error.message);
+        } else {
+          console.log('[EMAIL OK]', data);
+        }
+      } catch(e) { console.warn('[EMAIL EXCEPTION]', e.message); }
+    } else {
+      console.warn('[EMAIL SKIP] sin user.email');
     }
 
     /* 5 · Update local UI */
