@@ -98,6 +98,18 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
   const dows   = ['D','L','M','X','J','V','S'];
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
+
+  // Filtra slots pasados si la fecha seleccionada es hoy
+  const selectedDate = day
+    ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`
+    : todayStr;
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const passFilter = ([t]) => { const [h,m] = t.split(':').map(Number); return (h*60+m) > currentMinutes+30; };
+  const isToday = selectedDate === todayStr;
+  const filteredLunch  = isToday ? (r.times.lunch ||[]).filter(passFilter) : (r.times.lunch ||[]);
+  const filteredDinner = isToday ? (r.times.dinner||[]).filter(passFilter) : (r.times.dinner||[]);
+  const filteredTimes  = [...filteredLunch, ...filteredDinner];
   /* Depósito fijo por reserva — deposit_amount viene en céntimos de Supabase (1000 = 10€) */
   const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
   const deposit      = depositCents / 100;   // euros, para mostrar en UI y email
@@ -294,10 +306,10 @@ function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, 
       React.createElement('div',{className:'bk-h'},'¿A qué hora?'),
       React.createElement('div',{className:'bk-sub'},
         (day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):'Hoy')+' · disponibilidad en tiempo real'),
-      allTimes.length
+      filteredTimes.length
         ? React.createElement(React.Fragment, null,
-            makeTimeSection('Mediodía', r.times.lunch),
-            makeTimeSection('Noche', r.times.dinner)
+            makeTimeSection('Mediodía', filteredLunch),
+            makeTimeSection('Noche', filteredDinner)
           )
         : React.createElement('p',{className:'muted'},'Sin horarios para ese día.'),
       React.createElement('div',{className:'bk-actions'},
