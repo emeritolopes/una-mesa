@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -17,11 +17,12 @@ Both frontend apps are zero-build. JSX files are compiled at runtime by Babel St
 
 ## Frontend Architecture
 
-Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets up React globals and loads all `.jsx` and `.js` modules in order via `<script type="text/babel">` tags.
+Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets up React globals and loads all `.jsx` and `.js` modules in order via `<script type="text/babel">` tags. **Script order matters** — components must be declared in `index.html` before the files that reference them.
 
-**Critical globals set by `index.html`:**
-- `window.useState`, `window.useEffect`, `window.useRef`, `window.useCallback` — used directly in all components (no import statements)
-- `window.React` — available globally; JSX compiles against it
+**React hook globals:**
+- `apps/app/`: exposes `window.useState`, `window.useEffect`, `window.useRef` only
+- `apps/backofhouse/`: exposes all of the above plus `window.useCallback`, `window.useMemo`
+- Never use import statements — all hooks are consumed as bare globals in JSX files
 
 **Supabase client singletons:**
 - `window.UMAuth.sb` — in `apps/app/` (initialized in `auth.js`)
@@ -31,6 +32,14 @@ Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets
 ```js
 { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation, sb }
 ```
+
+**Mock data globals:**
+- `window.UM_DATA`, `window.UM_GEOCODE`, `window.loadRestaurants` — consumer app (`data.js`)
+- `window.DATA` — backofhouse (`data.js`); seeds the Store on first load and after a date change
+
+**Icons:** `apps/backofhouse/` uses Tabler Icons webfont — `<i className="ti ti-*" />`. The consumer app uses `window.Icon` (a custom component in `components.jsx`).
+
+**Themes:** both apps support `'crema'` (light) and `'noche'` (dark), stored in `localStorage` as `'um-theme'` and applied as `data-theme` on `<html>`. Theme changes sync across tabs in real time via the `storage` event.
 
 ## Key Data Conventions
 
@@ -70,7 +79,18 @@ supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 
 ## State Management (backofhouse)
 
-`apps/backofhouse/app/store.js` provides a `useStore(key)` hook backed by localStorage. The store initializes from localStorage on first load — when Supabase data arrives, **replace the list entirely** (e.g. `setList(mapped)`) rather than merging, or stale mock/localStorage data will persist.
+`apps/backofhouse/app/store.js` exposes `window.Store` (plain object) and `window.useStore(key)` (React hook). The store seeds from `window.DATA` on first boot and reseeds automatically when the calendar date changes. State is persisted to localStorage under the versioned key `unamesa.store.v7` — bump the version suffix when the shape of mock data changes to force a client reset.
+
+```js
+// Read + subscribe in a component
+const [menu, setMenu] = useStore('menu');
+
+// Write from anywhere (no React needed)
+Store.set('reservations', updated);
+Store.set('orders', prev => [...prev, newOrder]); // updater form
+```
+
+When Supabase data arrives, replace the entire key with the fetched list rather than merging it — otherwise stale mock data from the seed persists.
 
 ## Supabase Query Patterns
 
@@ -86,4 +106,19 @@ Always call `setItems(data || [])` on success — an empty result must update st
 
 ## App-Level Routing
 
-`apps/app/app/app.jsx` manages all routing via a `view` state string (`'home'`, `'results'`, `'detail'`, `'booking'`, `'profile'`). There is no React Router — view transitions are done by setting state and rendering the matching component.
+**Consumer app** (`apps/app/app/app.jsx`): `route` state object with a `view` string — `'home'`, `'results'`, `'detail'`, `'booking'`, `'concierge'`, `'profile'`. Navigate with `setRoute(...)` helpers (`go`, `openRest`, `search`, etc.). No React Router.
+
+**Backofhouse** (`apps/backofhouse/app/shell.jsx`): `view` string — `'panel'`, `'reservas'`, `'tpv'`, `'cocina'`, `'carta'`, `'stock'`, `'personal'`, `'informes'`, `'ajustes'`. Persisted to `localStorage` as `'unamesa.view'`. Navigate via `go(viewName)`.
+
+## localStorage Key Inventory
+
+| Key | App | Contents |
+|---|---|---|
+| `um-theme` | both | `'crema'` or `'noche'`; cross-tab synced |
+| `um-app-user` | consumer | serialised `{ id, name, email }` |
+| `um-app-favs` | consumer | array of restaurant IDs |
+| `um-app-bookings` | consumer | array of booking objects |
+| `um-spoons` | consumer | integer Cucharas de Oro loyalty points |
+| `unamesa.user` | backofhouse | serialised staff user |
+| `unamesa.view` | backofhouse | last active view string |
+| `unamesa.store.v7` | backofhouse | full Store state snapshot |
