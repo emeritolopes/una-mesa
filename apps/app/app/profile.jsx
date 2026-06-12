@@ -145,7 +145,24 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       }]);
     } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
 
-    /* 4 · Update local UI */
+    /* 4 · Send cancellation email — non-fatal */
+    if (user?.email) {
+      try {
+        await sb.functions.invoke('send-cancellation-email', {
+          body: {
+            to:              user.email,
+            customer_name:   user.name || user.email,
+            restaurant_name: b.name,
+            date:            b.dayLabel,
+            time:            b.time,
+            pax:             b.party,
+            deposit_amount:  b.depositCents,
+          }
+        });
+      } catch(e) { console.warn('[UNA MESA] cancellation email:', e.message); }
+    }
+
+    /* 5 · Update local UI */
     setSupaBookings(prev => prev.filter(x => x.rawId !== b.rawId));
     setCancelTarget(null);
     setCancelBusy(false);
