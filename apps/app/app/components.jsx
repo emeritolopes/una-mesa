@@ -100,11 +100,19 @@ function Toast({ msg }) {
 }
 
 /* ── Header · Stitch navbar (glass, wordmark, underline-active links) ── */
-function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }) {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
+function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, onSearch }) {
+  const [scrolled,   setScrolled]  = useState(false);
+  const [menuOpen,   setMenuOpen]  = useState(false);
+  const [avatarOpen, setAvatarOpen] = React.useState(false);
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
+
+  React.useEffect(() => {
+    if (!avatarOpen) return;
+    const close = () => setAvatarOpen(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [avatarOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 300);
@@ -176,9 +184,32 @@ function Header({ go, route, user, onAuth, onProfile, theme, onTheme, onSearch }
           }, React.createElement(Icon, { name:theme==='noche'?'sun':'moon' })),
 
           user
-            ? React.createElement('button', { className:'avatar-btn', onClick:onProfile },
-                React.createElement('span', { className:'av' }, formatName(user)[0].toUpperCase()),
-                React.createElement('span', { className:'nm' }, formatName(user).split(' ')[0])
+            ? React.createElement('div', { style:{ position:'relative' } },
+                React.createElement('button', {
+                  className:'avatar-btn',
+                  onClick: e => { e.stopPropagation(); setAvatarOpen(o => !o); }
+                },
+                  React.createElement('span', { className:'av' }, formatName(user)[0].toUpperCase()),
+                  React.createElement('span', { className:'nm' }, formatName(user).split(' ')[0])
+                ),
+                avatarOpen && React.createElement('div', {
+                  style:{
+                    position:'absolute', top:'calc(100% + 8px)', right:0,
+                    background:'var(--bg-1)', border:'1px solid var(--line)',
+                    borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.1)',
+                    minWidth:180, zIndex:100, overflow:'hidden'
+                  }
+                },
+                  React.createElement('button', {
+                    style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--text-1)' },
+                    onClick: () => { setAvatarOpen(false); onProfile(); }
+                  }, '👤  Mi perfil'),
+                  React.createElement('div', { style:{ height:1, background:'var(--line)', margin:'0 12px' } }),
+                  React.createElement('button', {
+                    style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D8552E' },
+                    onClick: () => { setAvatarOpen(false); onLogout(); }
+                  }, '→  Cerrar sesión')
+                )
               )
             : React.createElement(React.Fragment, null,
                 React.createElement('button', { className:'btn btn-ghost btn-sm hdr-signin', onClick:()=>onAuth('login') }, 'Iniciar sesión'),

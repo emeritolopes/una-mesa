@@ -156,6 +156,7 @@ function App() {
       go: goWithGuard, route:route.view, user,
       onAuth:(mode)=>setAuthOpen(mode||'register'),
       onProfile:()=>go('profile'),
+      onLogout: logout,
       theme, onTheme:toggleTheme,
       onSearch:search
     }),
