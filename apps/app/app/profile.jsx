@@ -128,9 +128,11 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     } catch(e) { console.warn('[UNA MESA] stripe-refund:', e.message); }
 
     /* 2 · DB update — ALWAYS runs */
-    const { error: updateError } = await sb.from('reservations').update({ status: 'cancelled' }).eq('id', b.rawId);
-    if (updateError) {
-      setCancelError(updateError.message || 'Error al cancelar en base de datos.');
+    const { data: updateData, error: updateError } = await sb.functions.invoke('update-reservation', {
+      body: { reservation_id: b.rawId, status: 'cancelled' }
+    });
+    if (updateError || updateData?.error) {
+      console.warn('[CANCEL DB]', updateError || updateData.error);
       setCancelBusy(false);
       return;
     }
