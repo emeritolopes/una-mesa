@@ -7,6 +7,9 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
   if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},'Restaurante no encontrado.');
   const fav = favs.includes(r.id);
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const filteredTimes = allTimes.filter(([t]) => { const [h,m] = t.split(':').map(Number); return (h*60+m) > currentMinutes+30; });
 
   return React.createElement('div', { className:'view' },
     React.createElement('div', { className:'wrap' },
@@ -168,9 +171,9 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
 
             /* Available time slots */
             React.createElement('p', { className:'det-bw-times-label' }, 'Horarios disponibles hoy'),
-            allTimes.length
+            filteredTimes.length
               ? React.createElement('div', { className:'det-bw-times-grid' },
-                  allTimes.map(([t,st],i) => React.createElement('button', {
+                  filteredTimes.map(([t,st],i) => React.createElement('button', {
                     key:i,
                     type:'button',
                     className:'det-tslot'+(st==='few'?' few':st==='full'?' full':''),
