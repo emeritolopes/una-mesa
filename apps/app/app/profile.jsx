@@ -249,7 +249,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           React.createElement('div',null,
             React.createElement('div',{className:'prof-name display'}, '¡Hola, '+formatName(user).split(' ')[0]+'!'),
             React.createElement('div',{className:'prof-mail'}, user.email)),
-          React.createElement('div',{className:'loyalty'},
+          React.createElement('div',{className:'loyalty', style:{marginTop:60}},
             React.createElement('div',{className:'ll'},'Programa Mesa'),
             React.createElement('div',{className:'lv'}, points+' pts'),
             React.createElement('div',{className:'lbar'},React.createElement('i',{style:{width:Math.max(8,points)+'%'}})),
