@@ -13,7 +13,9 @@ function App() {
   const [route, setRoute] = useState(() => {
     try {
       const saved = sessionStorage.getItem('um-route');
-      return saved ? JSON.parse(saved) : { view:'home', rid:null, query:'', presetTime:null };
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (parsed?.view === 'profile') return { view:'home', rid:null, query:'', presetTime:null };
+      return parsed || { view:'home', rid:null, query:'', presetTime:null };
     } catch(e) { return { view:'home', rid:null, query:'', presetTime:null }; }
   });
   const [theme, setTheme] = useState(()=>{ try{return localStorage.getItem('um-theme')||'crema';}catch(e){return 'crema';} });
@@ -158,7 +160,9 @@ function App() {
   else if (route.view==='booking')
     screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, back:()=>go('home'), user, requireAuth, onConfirm });
   else if (route.view==='profile')
-    screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
+    screen = !user
+      ? React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation })
+      : React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
 
   return React.createElement('div', { className:'app' },
     React.createElement(window.Header, {
