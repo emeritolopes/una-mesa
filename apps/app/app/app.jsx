@@ -10,7 +10,12 @@ function animateThemeTo(t){
 
 function App() {
   const [restaurants, setRestaurants] = useState(window.UM_DATA);
-  const [route, setRoute] = useState({ view:'home', rid:null, query:'', presetTime:null });
+  const [route, setRoute] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('um-route');
+      return saved ? JSON.parse(saved) : { view:'home', rid:null, query:'', presetTime:null };
+    } catch(e) { return { view:'home', rid:null, query:'', presetTime:null }; }
+  });
   const [theme, setTheme] = useState(()=>{ try{return localStorage.getItem('um-theme')||'crema';}catch(e){return 'crema';} });
   const [user, setUser] = useState(null);
   const [favs, setFavs] = useState([]);
@@ -88,7 +93,11 @@ function App() {
   };
 
   const toggleTheme = () => { const next = theme==='noche'?'crema':'noche'; animateThemeTo(next); try{localStorage.setItem('um-theme',next);}catch(e){} setTheme(next); };
-  const go = view => setRoute(r=>({ ...r, view }));
+  const go = (view, params={}) => {
+    const newRoute = { view, rid:null, query:'', presetTime:null, ...params };
+    setRoute(newRoute);
+    try { sessionStorage.setItem('um-route', JSON.stringify(newRoute)); } catch(e) {}
+  };
   const goWithGuard = view => go(view);
   const openRest = rid => setRoute({ view:'detail', rid, query:route.query, presetTime:null });
   const search = q => setRoute(r=>({ ...r, view:'results', query:q }));

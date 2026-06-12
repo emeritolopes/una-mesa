@@ -195,9 +195,11 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
                 avatarOpen && React.createElement('div', {
                   style:{
                     position:'absolute', top:'calc(100% + 8px)', right:0,
-                    background:'var(--bg-1)', border:'1px solid var(--line)',
-                    borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.1)',
-                    minWidth:180, zIndex:100, overflow:'hidden'
+                    background:'#FFFFFF',
+                    border:'1px solid rgba(0,0,0,0.12)',
+                    borderRadius:12,
+                    boxShadow:'0 8px 32px rgba(0,0,0,0.15)',
+                    minWidth:200, zIndex:999, overflow:'hidden'
                   }
                 },
                   React.createElement('button', {
