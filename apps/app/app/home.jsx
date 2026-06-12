@@ -2,7 +2,11 @@
 
 /* shared restaurant card — usado en results, profile, concierge */
 function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img }) {
-  const firstTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])].slice(0,3);
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const firstTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])]
+    .filter(([time]) => { const [h,m] = time.split(':').map(Number); return (h*60+m) > currentMinutes+30; })
+    .slice(0,3);
   return React.createElement('div', { className:'rcard', onClick:()=>onOpen(r.id) },
     React.createElement('div', { className:'rc-photo' },
       img
