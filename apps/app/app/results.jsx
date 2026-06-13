@@ -78,15 +78,25 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   }, [list, coords]);
 
   React.useEffect(() => {
-    if (!q || !leafletMapRef.current) return;
-    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=es`)
-      .then(r => r.json())
-      .then(data => {
-        if (data[0] && leafletMapRef.current) {
-          leafletMapRef.current.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 13);
-        }
-      })
-      .catch(() => {});
+    if (!q || q.length < 3) return;
+
+    const timer = setTimeout(() => {
+      if (!leafletMapRef.current) return;
+
+      const words = q.trim().split(' ').filter(w => w.length > 2);
+      const cityQuery = words[words.length - 1] || q;
+
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityQuery)}&format=json&limit=1&countrycodes=es`)
+        .then(r => r.json())
+        .then(data => {
+          if (data[0] && leafletMapRef.current) {
+            leafletMapRef.current.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 13);
+          }
+        })
+        .catch(() => {});
+    }, 600);
+
+    return () => clearTimeout(timer);
   }, [q]);
 
   const clearAll = () => { setCuisines([]); setPrices([]); setTags([]); setQ(''); };
