@@ -6,12 +6,15 @@ function Panel({ go }) {
   const [supaRes, setSupaRes] = useState(null);
   const today = new Date().toLocaleDateString('en-CA');
 
-  const loadReservations = () => {
-    if (!window.sb) return;
+  const channelRef = useRef(null);
+
+  const loadReservations = (vid) => {
+    if (!window.sb || !vid) return;
     window.sb
       .from('reservations')
       .select('*')
       .eq('date', today)
+      .eq('venue_id', vid)
       .neq('status', 'cancelled')
       .order('time', { ascending: true })
       .then(({ data, error }) => {
@@ -22,21 +25,22 @@ function Panel({ go }) {
   };
 
   useEffect(() => {
-    loadReservations();
-
-    const channel = window.sb
-      .channel('reservations-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'reservations',
-        filter: `date=eq.${today}`
-      }, () => {
-        loadReservations();
-      })
-      .subscribe();
-
-    return () => { window.sb.removeChannel(channel); };
+    if (!window.sb) return;
+    window.sb.auth.getUser().then(({ data: { user } }) => {
+      const vid = user?.user_metadata?.venue_id;
+      if (!vid) { console.warn('[BOH] panel: no venue_id en el usuario'); return; }
+      loadReservations(vid);
+      channelRef.current = window.sb
+        .channel('reservations-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'reservations',
+          filter: `date=eq.${today},venue_id=eq.${vid}`,
+        }, () => { loadReservations(vid); })
+        .subscribe();
+    });
+    return () => { if (channelRef.current) window.sb.removeChannel(channelRef.current); };
   }, [today]);
 
   /* null = not yet loaded (show mock); [] or [...] = Supabase answered (use it) */
