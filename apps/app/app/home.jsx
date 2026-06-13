@@ -98,7 +98,19 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
 
   /* restaurante destacado (top rated) */
   const dest       = byRating[0];
-  const destTimes  = [...(dest.times.dinner||[]), ...(dest.times.lunch||[])].slice(0,6);
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const destTimes = [...(dest.times.dinner||[]), ...(dest.times.lunch||[])]
+    .filter(([time]) => {
+      const [h, m] = time.split(':').map(Number);
+      return (h * 60 + m) > currentMinutes + 30;
+    })
+    .sort(([a], [b]) => {
+      const [ah, am] = a.split(':').map(Number);
+      const [bh, bm] = b.split(':').map(Number);
+      return (ah * 60 + am) - (bh * 60 + bm);
+    })
+    .slice(0, 6);
   const destMenu   = dest.menu && dest.menu[0] ? dest.menu[0].items.slice(0,3) : [];
 
   const heroChips    = ['Con terraza','Romántico','Marisco','Grupos','Brunch','Vegetariano'];
