@@ -9,6 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,600;0,700;0,800;0,900;1,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="./una-mesa-logo.svg">
 <link rel="shortcut icon" href="./una-mesa-logo.svg">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#D8552E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Una Mesa">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="app/app.css">
 </head>
@@ -36,5 +42,13 @@
 <script type="text/babel" src="app/profile-extras.jsx"></script>
 <script type="text/babel" src="app/profile.jsx"></script>
 <script type="text/babel" src="app/app.jsx"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
 </body>
 </html>
