@@ -169,7 +169,7 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
           r.name.toLowerCase().includes(json.action.restaurant_name.toLowerCase())
         );
         if (rest) {
-          setTimeout(() => startBook(rest.id, json.action.time, json.action.date, json.action.party_size), 500);
+          setTimeout(() => startBook(rest.id, json.action.time, json.action.party_size, json.action.date), 500);
         }
       }
     } catch (e) {

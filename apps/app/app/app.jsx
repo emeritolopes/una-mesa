@@ -135,8 +135,8 @@ function App() {
   const openRest = rid => setRoute({ view:'detail', rid, query:route.query, presetTime:null });
   const search = q => setRoute(r=>({ ...r, view:'results', query:q }));
   const askConcierge = q => setRoute(r=>({ ...r, view:'concierge', query:q||'' }));
-  const startBook = (rid, t, party) => {
-    setRoute({ view:'booking', rid, query:route.query, presetTime:t, presetParty: party||null });
+  const startBook = (rid, t, party, date) => {
+    setRoute({ view:'booking', rid, query:route.query, presetTime:t, presetParty: party||null, presetDate: date||null });
   };
   const toggleFav = rid => {
     setFavs(f => {
@@ -189,7 +189,7 @@ function App() {
   else if (route.view==='detail')
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')
-    screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, back:()=>go('home'), user, requireAuth, onConfirm });
+    screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, presetDate:route.presetDate, back:()=>go('home'), user, requireAuth, onConfirm });
   else if (route.view==='profile')
     screen = !user
       ? React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation })

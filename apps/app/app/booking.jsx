@@ -12,14 +12,16 @@ const todayStr = (() => {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 })();
 
-function BookingScreen({ rid, presetTime, presetParty, back, user, requireAuth, onConfirm }) {
+function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
 
   const startStep = (presetTime && presetParty) ? 3 : (presetTime ? 2 : 0);
   const today = new Date();
+  // Parse presetDate (YYYY-MM-DD) at noon local time to avoid UTC-midnight timezone shift
+  const initialDay = presetDate ? new Date(presetDate + 'T12:00:00') : (startStep > 0 ? today : null);
   const [step,    setStep]    = useState(startStep);
-  const [day,     setDay]     = useState(startStep>0 ? today : null);
+  const [day,     setDay]     = useState(initialDay);
   const [time,    setTime]    = useState(presetTime || null);
   const [party,   setParty]   = useState(presetParty || 2);
   const [pay,     setPay]     = useState('card');
