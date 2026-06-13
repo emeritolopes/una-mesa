@@ -26,7 +26,8 @@ function Panel({ go }) {
 
   useEffect(() => {
     if (!window.sb) return;
-    window.sb.auth.getUser().then(({ data: { user } }) => {
+    window.sb.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user;
       const vid = user?.user_metadata?.venue_id;
       if (!vid) { console.warn('[BOH] panel: no venue_id en el usuario'); return; }
       loadReservations(vid);
