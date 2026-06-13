@@ -43,10 +43,17 @@ Deno.serve(async (req) => {
         `${r.name} (${r.cuisine || ''}, ${r.area || ''}, ${r.price || ''})`)
       .join(', ')
 
+    const today = new Date().toLocaleDateString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    })
+    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' })
+
     const systemPrompt =
       `Eres el conserje digital de Una Mesa, una plataforma premium de reservas de restaurantes en España. ` +
       `Tu objetivo es ayudar a los usuarios a encontrar el restaurante perfecto según sus preferencias. ` +
       `Tienes acceso a estos restaurantes: ${restaurantList}. ` +
+      `Hoy es ${today} (${todayISO}). Cuando el usuario diga "mañana", "este fin de semana" u otras referencias relativas, calcula la fecha correcta automáticamente sin pedírsela. ` +
       `Responde siempre en español, de forma elegante y concisa. ` +
       `Sugiere restaurantes específicos cuando sea relevante. ` +
       `Cuando el usuario quiera reservar con datos concretos (restaurante, fecha, hora, personas), usa la herramienta start_reservation.`

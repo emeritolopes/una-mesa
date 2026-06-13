@@ -160,15 +160,16 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
 
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
-      const data = await res.json();
-      const replyText = data.text || templatedReply(intent, picks);
+      const json = await res.json();
+      setMsgs(m => [...m, { who:'ai', text: json.text }]);
       setBusy(false);
-      setMsgs(m => [...m, { who:'ai', text: replyText, picks, intent }]);
 
-      if (data.action) {
-        const rid = (window.UM_DATA || []).find(r => r.name === data.action.restaurant_name)?.id;
-        if (rid) {
-          setTimeout(() => startBook(rid, data.action.time, data.action.party_size), 600);
+      if (json.action) {
+        const rest = (window.UM_DATA || []).find(r =>
+          r.name.toLowerCase().includes(json.action.restaurant_name.toLowerCase())
+        );
+        if (rest) {
+          setTimeout(() => startBook(rest.id, json.action.time, json.action.date, json.action.party_size), 500);
         }
       }
     } catch (e) {
