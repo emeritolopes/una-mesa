@@ -37,6 +37,8 @@ Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets
 - `window.UM_DATA`, `window.UM_GEOCODE`, `window.loadRestaurants` — consumer app (`data.js`)
 - `window.DATA` — backofhouse (`data.js`); seeds the Store on first load and after a date change
 
+**Styling:** `apps/backofhouse/` uses Tailwind CSS CDN (`https://cdn.tailwindcss.com`) with a custom config — brand color `#D8552E`, warm gray scale, and `Manrope` as `font-sans`. Dark mode overrides are applied via `[data-theme="noche"]` attribute selectors in `index.html` (not Tailwind's `dark:` variant). The consumer app uses a hand-written CSS file (`app/app.css`) with CSS variables.
+
 **Icons:** `apps/backofhouse/` uses Tabler Icons webfont — `<i className="ti ti-*" />`. The consumer app uses `window.Icon` (a custom component in `components.jsx`).
 
 **Themes:** both apps support `'crema'` (light) and `'noche'` (dark), stored in `localStorage` as `'um-theme'` and applied as `data-theme` on `<html>`. Theme changes sync across tabs in real time via the `storage` event.
@@ -57,7 +59,11 @@ Functions live in `supabase/functions/` and run on Deno. Each function is a stan
 | `stripe-capture` | Capture a previously created PaymentIntent |
 | `stripe-refund` | Cancel (`requires_capture`) or refund (`succeeded`) a PaymentIntent |
 | `send-email` | Send reservation confirmation HTML email via Resend |
+| `send-cancellation-email` | Send cancellation HTML email via Resend |
+| `update-reservation` | Patch reservation status in DB (only `'cancelled'` is allowed) |
 | `concierge` | AI restaurant assistant powered by Anthropic Claude API |
+
+All edge functions run with `verify_jwt = false` — they accept unauthenticated requests and rely on input validation instead.
 
 **Local edge function development:**
 ```bash
@@ -80,6 +86,8 @@ supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 ## State Management (backofhouse)
 
 `apps/backofhouse/app/store.js` exposes `window.Store` (plain object) and `window.useStore(key)` (React hook). The store seeds from `window.DATA` on first boot and reseeds automatically when the calendar date changes. State is persisted to localStorage under the versioned key `unamesa.store.v7` — bump the version suffix when the shape of mock data changes to force a client reset.
+
+**Screen-to-file mapping:** `panel.jsx`, `carta.jsx`, `informes.jsx`, `ajustes.jsx`, `stock.jsx`, `floorplan.jsx` are each standalone files. `modules.jsx` contains four screens in a single file: `Reservas`, `TPV`, `Cocina`, and `Personal`.
 
 ```js
 // Read + subscribe in a component
@@ -106,7 +114,9 @@ Always call `setItems(data || [])` on success — an empty result must update st
 
 ## App-Level Routing
 
-**Consumer app** (`apps/app/app/app.jsx`): `route` state object with a `view` string — `'home'`, `'results'`, `'detail'`, `'booking'`, `'concierge'`, `'profile'`. Navigate with `setRoute(...)` helpers (`go`, `openRest`, `search`, etc.). No React Router.
+**Consumer app** (`apps/app/app/app.jsx`): `route` state object with a `view` string — `'home'`, `'results'`, `'detail'`, `'booking'`, `'concierge'`, `'profile'`. Navigate with `setRoute(...)` helpers (`go`, `openRest`, `search`, etc.). No React Router. Route state is persisted to `sessionStorage` (not localStorage) so it survives same-tab refreshes but resets on new tabs; `'profile'` view is intentionally reset to `'home'` on reload.
+
+**Unloaded files in consumer app:** `apps/app/app/` contains several files (`ajustes.jsx`, `carta.jsx`, `floorplan.jsx`, `informes.jsx`, `panel.jsx`, `stock.jsx`, `store.js`) that are **not** referenced in `apps/app/index.html` — they are not active in the consumer app.
 
 **Backofhouse** (`apps/backofhouse/app/shell.jsx`): `view` string — `'panel'`, `'reservas'`, `'tpv'`, `'cocina'`, `'carta'`, `'stock'`, `'personal'`, `'informes'`, `'ajustes'`. Persisted to `localStorage` as `'unamesa.view'`. Navigate via `go(viewName)`.
 

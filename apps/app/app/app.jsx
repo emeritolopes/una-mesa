@@ -110,11 +110,26 @@ function App() {
     toastTimer.current = setTimeout(()=>setToast(''), 2200);
   };
 
+  /* browser back/forward button support */
+  useEffect(() => {
+    const onPopState = (e) => {
+      if (e.state?.route) {
+        setRoute(e.state.route);
+      } else {
+        setRoute({ view: 'home', rid: null, query: '', presetTime: null });
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    window.history.replaceState({ route: { view: 'home', rid: null, query: '', presetTime: null } }, '', '#home');
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const toggleTheme = () => { const next = theme==='noche'?'crema':'noche'; animateThemeTo(next); try{localStorage.setItem('um-theme',next);}catch(e){} setTheme(next); };
   const go = (view, params={}) => {
     const newRoute = { view, rid:null, query:'', presetTime:null, ...params };
     setRoute(newRoute);
     try { sessionStorage.setItem('um-route', JSON.stringify(newRoute)); } catch(e) {}
+    window.history.pushState({ route: newRoute }, '', `#${view}`);
   };
   const goWithGuard = view => go(view);
   const openRest = rid => setRoute({ view:'detail', rid, query:route.query, presetTime:null });
