@@ -77,6 +77,18 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
     });
   }, [list, coords]);
 
+  React.useEffect(() => {
+    if (!q || !leafletMapRef.current) return;
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=es`)
+      .then(r => r.json())
+      .then(data => {
+        if (data[0] && leafletMapRef.current) {
+          leafletMapRef.current.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 13);
+        }
+      })
+      .catch(() => {});
+  }, [q]);
+
   const clearAll = () => { setCuisines([]); setPrices([]); setTags([]); setQ(''); };
 
   /* pill filter button — replaces checkbox style */
