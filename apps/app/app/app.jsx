@@ -183,7 +183,7 @@ function App() {
   if (route.view==='home')
     screen = React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation });
   else if (route.view==='concierge')
-    screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go });
+    screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go, user });
   else if (route.view==='results')
     screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'tu zona', geo });
   else if (route.view==='detail')
