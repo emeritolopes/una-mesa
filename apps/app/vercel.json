@@ -2,6 +2,6 @@
   "rewrites": [
     { "source": "/manifest.json", "destination": "/public/manifest.json" },
     { "source": "/sw.js", "destination": "/public/sw.js" },
-    { "source": "/icons/(.*)", "destination": "/public/icons/$1" }
+    { "source": "/icons/:path*", "destination": "/public/icons/:path*" }
   ]
 }
