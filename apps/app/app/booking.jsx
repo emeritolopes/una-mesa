@@ -153,7 +153,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           'Authorization': 'Bearer ' + SUPA_ANON_KEY,
         },
         body: JSON.stringify({
-          amount:         depositCents,   // céntimos, exactamente r.deposit_amount sin modificar
+          amount:         depositCents * party,   // céntimos × personas
           currency:       'eur',
           restaurant_id:  r.id,
           user_id:        user?.id || '',
@@ -378,11 +378,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           React.createElement('span',null,'Comensales'),
           React.createElement('span',{style:{fontWeight:700}}, party)),
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,'Depósito (10€ × '+party+')'),
-          React.createElement('span',{className:'amt'}, deposit+'€')),
+          React.createElement('span',null,'Depósito ('+deposit+'€ × '+party+')'),
+          React.createElement('span',{className:'amt'}, (deposit * party)+'€')),
         React.createElement('div',{className:'dep-row total'},
           React.createElement('span',null,'A pagar ahora'),
-          React.createElement('span',{className:'amt'}, deposit+'€'))
+          React.createElement('span',{className:'amt'}, (deposit * party)+'€'))
       ),
 
       /* Shield note */
