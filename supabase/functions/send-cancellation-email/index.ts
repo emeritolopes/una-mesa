@@ -34,7 +34,10 @@ function buildHtml(opts: {
           <!-- Logo Una Mesa -->
           <tr>
             <td align="center" style="padding:0 0 28px 0;">
-              <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
+              <img src="https://app.unamesa.co/una-mesa-logo.png"
+                   width="232" height="64"
+                   alt="Una Mesa"
+                   style="display:block;border:0;">
             </td>
           </tr>
 

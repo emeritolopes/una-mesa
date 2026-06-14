@@ -63,27 +63,52 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Generar Payment Link y enviar email — non-fatal
     if (customer_email) {
       try {
+        // Obtener deposit_amount del venue
+        const venueRes = await fetch(
+          `${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=name,deposit_amount`,
+          { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+        );
+        const venues = await venueRes.json();
+        const depositCents = venues[0]?.deposit_amount || 1000;
+        const venueName = venues[0]?.name || 'El Bodegón Central';
+        const totalDeposit = depositCents * party_size;
+
+        // Crear Payment Link
+        const plRes = await fetch(`${supabaseUrl}/functions/v1/stripe-payment-link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+          body: JSON.stringify({
+            reservation_id: reservation[0].id,
+            customer_name,
+            restaurant_name: venueName,
+            date,
+            time,
+            party_size,
+            deposit_amount_cents: totalDeposit
+          })
+        });
+        const pl = await plRes.json();
+
+        // Enviar email con Payment Link
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`
-          },
+          headers: { 'Content-Type': 'application/json', 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
           body: JSON.stringify({
             to: customer_email,
             customer_name,
-            restaurant_name: 'El Bodegón Central',
+            restaurant_name: venueName,
             date,
             time,
             pax: party_size,
-            deposit_amount: 0
+            deposit_amount: totalDeposit,
+            payment_link: pl.url || null
           })
         });
       } catch(e) {
-        console.warn('email error:', e);
+        console.warn('payment link error:', e);
       }
     }
 
