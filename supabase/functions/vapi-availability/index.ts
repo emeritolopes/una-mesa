@@ -8,7 +8,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { venue_id, date, time, party_size } = await req.json();
+    const url = new URL(req.url);
+    const body = await req.json();
+    const venue_id = body.venue_id || url.searchParams.get('venue_id');
+    const { date, time, party_size } = body;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -38,10 +41,9 @@ Deno.serve(async (req) => {
       .map(([t]: [string, string]) => t);
 
     return new Response(JSON.stringify({
-      available,
-      message: available
-        ? `Hay disponibilidad para ${party_size} personas el ${date} a las ${time}`
-        : `No hay disponibilidad a las ${time}. Horarios disponibles: ${allTimes.join(', ')}`
+      result: available
+        ? `Disponible. Hay disponibilidad para ${party_size} personas el ${date} a las ${time}.`
+        : `No disponible. Los horarios disponibles son: ${allTimes.join(', ')}.`
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (err) {

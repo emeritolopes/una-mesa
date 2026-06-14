@@ -35,12 +35,21 @@ Deno.serve(async (req) => {
     });
 
     const reservation = await res.json();
-    if (!res.ok) throw new Error(JSON.stringify(reservation));
+
+    if (!res.ok) {
+      return new Response(JSON.stringify({
+        result: `Error al crear la reserva: ${JSON.stringify(reservation)}`
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (!reservation[0]?.id) {
+      return new Response(JSON.stringify({
+        result: `Error: la reserva no se creó correctamente. Respuesta: ${JSON.stringify(reservation)}`
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     return new Response(JSON.stringify({
-      success: true,
-      reservation_id: reservation[0]?.id,
-      message: `Reserva confirmada para ${customer_name}, ${party_size} personas el ${date} a las ${time}.`
+      result: `Reserva confirmada exitosamente para ${customer_name}, ${party_size} personas el ${date} a las ${time}. ID: ${reservation[0]?.id?.slice(0,8).toUpperCase()}.`
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (err) {
