@@ -48,6 +48,30 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    if (customer_email) {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': serviceKey,
+            'Authorization': `Bearer ${serviceKey}`
+          },
+          body: JSON.stringify({
+            to: customer_email,
+            customer_name,
+            restaurant_name: 'El Bodegón Central',
+            date,
+            time,
+            pax: party_size,
+            deposit_amount: 0
+          })
+        });
+      } catch(e) {
+        console.warn('email error:', e);
+      }
+    }
+
     return new Response(JSON.stringify({
       result: `Reserva confirmada exitosamente para ${customer_name}, ${party_size} personas el ${date} a las ${time}. ID: ${reservation[0]?.id?.slice(0,8).toUpperCase()}.`
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
