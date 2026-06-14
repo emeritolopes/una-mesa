@@ -30,18 +30,10 @@ function buildHtml(opts: {
         <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
           <!-- Header -->
+          <!-- Logo Una Mesa -->
           <tr>
             <td align="center" style="padding:0 0 28px 0;">
-              <table cellpadding="0" cellspacing="0" style="display:inline-table;">
-                <tr>
-                  <td style="vertical-align:middle;padding-right:8px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 96 96" fill="none"><g transform="translate(16 16)"><rect width="64" height="64" rx="22" fill="#D8552E"></rect><rect x="17" y="18" width="30" height="6" rx="3" fill="#FDEFE6"></rect><path d="M19 30 L19 33 Q19 46 32 46 Q45 46 45 33 L45 30" stroke="#FDEFE6" stroke-width="5.2" stroke-linecap="butt" stroke-linejoin="round" fill="none"></path></g></svg>
-                  </td>
-                  <td style="vertical-align:middle;">
-                    <span style="font-family:'Manrope',Arial,sans-serif;font-size:22px;font-weight:800;color:#FF5733;letter-spacing:-0.5px;">Una Mesa</span>
-                  </td>
-                </tr>
-              </table>
+              <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
             </td>
           </tr>
 
