@@ -8,7 +8,22 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { venue_id, date, time, party_size, customer_name, customer_phone, customer_email, special_requests } = await req.json();
+    const url = new URL(req.url);
+    const bodyText = await req.text();
+    console.log('[VAPI-RES] body:', bodyText);
+    console.log('[VAPI-RES] venue_id from URL:', url.searchParams.get('venue_id'));
+    const body = JSON.parse(bodyText || '{}');
+
+    let params = body;
+    if (body.message?.toolCallList?.[0]?.function?.arguments) {
+      params = body.message.toolCallList[0].function.arguments;
+    } else if (body.message?.toolCalls?.[0]?.function?.arguments) {
+      const args = body.message.toolCalls[0].function.arguments;
+      params = typeof args === 'string' ? JSON.parse(args) : args;
+    }
+
+    const { venue_id: bodyVenueId, date, time, party_size, customer_name, customer_phone, customer_email, special_requests } = params;
+    const venue_id = bodyVenueId || url.searchParams.get('venue_id');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

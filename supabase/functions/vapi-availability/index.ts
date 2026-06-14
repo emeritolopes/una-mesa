@@ -9,9 +9,19 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const body = await req.json();
-    const venue_id = body.venue_id || url.searchParams.get('venue_id');
-    const { date, time, party_size } = body;
+    const bodyText = await req.text();
+    const body = JSON.parse(bodyText || '{}');
+
+    let params = body;
+    if (body.message?.toolCallList?.[0]?.function?.arguments) {
+      params = body.message.toolCallList[0].function.arguments;
+    } else if (body.message?.toolCalls?.[0]?.function?.arguments) {
+      const args = body.message.toolCalls[0].function.arguments;
+      params = typeof args === 'string' ? JSON.parse(args) : args;
+    }
+
+    const { venue_id: bodyVenueId, date, time, party_size } = params;
+    const venue_id = bodyVenueId || url.searchParams.get('venue_id');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -32,7 +42,8 @@ Deno.serve(async (req) => {
       `${supabaseUrl}/rest/v1/reservations?venue_id=eq.${venue_id}&date=eq.${date}&time=eq.${time}&status=neq.cancelled&select=pax`,
       { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
     );
-    const existing = await resRes.json();
+    const existingRaw = await resRes.json();
+    const existing = Array.isArray(existingRaw) ? existingRaw : [];
     const occupied = existing.reduce((sum: number, r: any) => sum + (r.pax || 0), 0);
     const capacity = venue.capacity || 50;
     const available = (capacity - occupied) >= party_size;
