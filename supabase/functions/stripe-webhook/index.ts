@@ -10,78 +10,94 @@ Deno.serve(async (req) => {
   try {
     const body = await req.text();
     const signature = req.headers.get('stripe-signature') || '';
-    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
 
-    // Verificar firma de Stripe
-    const crypto = await import('node:crypto');
+    // Verificar firma
+    const encoder = new TextEncoder();
     const parts = signature.split(',');
-    const timestamp = parts.find(p => p.startsWith('t='))?.split('=')[1];
-    const sigHash = parts.find(p => p.startsWith('v1='))?.split('=')[1];
-    const payload = `${timestamp}.${body}`;
-    const expectedSig = crypto.createHmac('sha256', webhookSecret).update(payload).digest('hex');
+    const timestamp = parts.find((p: string) => p.startsWith('t='))?.split('=')[1] || '';
+    const sigHash = parts.find((p: string) => p.startsWith('v1='))?.split('=')[1] || '';
+
+    const signedPayload = `${timestamp}.${body}`;
+    const keyData = encoder.encode(webhookSecret);
+    const messageData = encoder.encode(signedPayload);
+
+    const key = await crypto.subtle.importKey(
+      'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, messageData);
+    const expectedSig = Array.from(new Uint8Array(sig))
+      .map((b: number) => b.toString(16).padStart(2, '0'))
+      .join('');
 
     if (expectedSig !== sigHash) {
-      return new Response(JSON.stringify({ error: 'Invalid signature' }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: 'Invalid signature' }),
+        { status: 400, headers: corsHeaders });
     }
 
     const event = JSON.parse(body);
 
-    // Solo procesar checkout.session.completed de Payment Links
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const reservationId = session.metadata?.reservation_id;
-
-      if (!reservationId) {
-        return new Response(JSON.stringify({ received: true }), { headers: corsHeaders });
-      }
-
-      // Obtener datos de la reserva
-      const resRes = await fetch(
-        `${supabaseUrl}/rest/v1/reservations?id=eq.${reservationId}&select=*,venues(name)`,
-        { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
-      );
-      const reservations = await resRes.json();
-      const reservation = reservations[0];
-
-      if (!reservation) {
-        return new Response(JSON.stringify({ error: 'Reservation not found' }), { status: 404, headers: corsHeaders });
-      }
-
-      // Actualizar status a confirmed
-      await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservationId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': serviceKey,
-          'Authorization': `Bearer ${serviceKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ status: 'confirmed', payment_intent_id: session.payment_intent })
-      });
-
-      // Enviar email de confirmación al cliente
-      if (reservation.customer_email) {
-        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
-          body: JSON.stringify({
-            to: reservation.customer_email,
-            customer_name: reservation.customer_name,
-            restaurant_name: reservation.venues?.name || 'El Bodegón Central',
-            date: reservation.date,
-            time: reservation.time,
-            pax: reservation.pax,
-            deposit_amount: reservation.deposit_amount || 1000
-          })
-        });
-      }
+    if (event.type !== 'checkout.session.completed') {
+      return new Response(JSON.stringify({ received: true }), { headers: corsHeaders });
     }
 
-    return new Response(JSON.stringify({ received: true }), { headers: corsHeaders });
+    const session = event.data.object;
+    const reservationId = session.metadata?.reservation_id;
+
+    if (!reservationId) {
+      return new Response(JSON.stringify({ received: true }), { headers: corsHeaders });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Actualizar reserva a confirmed
+    const updateRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservationId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        status: 'confirmed',
+        payment_intent_id: session.payment_intent
+      })
+    });
+
+    const updated = await updateRes.json();
+
+    // Enviar email de confirmación
+    const reservation = Array.isArray(updated) ? updated[0] : updated;
+    if (reservation?.customer_email || session.customer_details?.email) {
+      const email = reservation?.customer_email || session.customer_details?.email;
+
+      await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': serviceKey,
+          'Authorization': `Bearer ${serviceKey}`
+        },
+        body: JSON.stringify({
+          to: email,
+          customer_name: reservation?.customer_name || session.customer_details?.name || 'Cliente',
+          restaurant_name: 'El Bodegón Central',
+          date: reservation?.date || '',
+          time: reservation?.time || '',
+          pax: reservation?.pax || 1,
+          deposit_amount: session.amount_total || 1000
+        })
+      });
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 
   } catch (err) {
+    console.error('[WEBHOOK] error:', err instanceof Error ? err.message : String(err));
     return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
