@@ -15,6 +15,8 @@ function mapSupaRes(r) {
     table:          r.table_label || r.table || '',
     notes:          r.notes || '',
     allergy_alert:  '',
+    customer_id:    r.customer_id || null,
+    customer_email: r.customer_email || null,
   };
 }
 
@@ -131,6 +133,7 @@ function Reservas() {
   const [gapModal, setGapModal] = useState(null);
   const [quickTipModal, setQuickTipModal] = useState(null);
   const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
+  const [customerProfile, setCustomerProfile] = useState(null);
   const stripRef = useRef(null);
 
   /* Load all reservations from Supabase — replaces any mock/store data */
@@ -169,6 +172,18 @@ function Reservas() {
     const idx = sel.getDate() - 1;
     stripRef.current.scrollTo({ left: Math.max(0, idx * 66 - 140), behavior: 'smooth' });
   }, [selectedDate]);
+
+  // Cargar perfil del cliente cuando cambia la reserva seleccionada
+  useEffect(() => {
+    setCustomerProfile(null);
+    if (!selectedRes?.customer_id) return;
+    window.sb
+      .from('customers')
+      .select('*')
+      .eq('id', selectedRes.customer_id)
+      .single()
+      .then(({ data }) => { if (data) setCustomerProfile(data); });
+  }, [selectedRes?.id]);
 
   // Tables are held for 2 hours; two bookings clash if their windows overlap
   const DINING_MIN = 90;
@@ -348,6 +363,41 @@ function Reservas() {
                 {selectedRes.customer_phone && <div className="flex gap-2 text-xs"><i className="ti ti-phone text-gray-400" /><span className="text-gray-600">{selectedRes.customer_phone}</span></div>}
                 {selectedRes.notes && <div className="flex gap-2 text-xs"><i className="ti ti-notes text-gray-400" /><span className="text-gray-600">{selectedRes.notes}</span></div>}
                 {selectedRes.allergy_alert && <div className="flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-2 py-1.5 rounded-lg"><i className="ti ti-alert-triangle" /> {selectedRes.allergy_alert}</div>}
+                {customerProfile && (
+                  <div className="mt-1 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                    <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-2">👤 Perfil del cliente</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-[10px] text-gray-400">Visitas</p>
+                        <p className="text-sm font-bold text-gray-800">{customerProfile.visits || 1}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400">Última visita</p>
+                        <p className="text-sm font-bold text-gray-800">{customerProfile.last_visit || '—'}</p>
+                      </div>
+                      {customerProfile.allergies?.length > 0 && (
+                        <div className="col-span-2">
+                          <p className="text-[10px] text-gray-400">Alergias</p>
+                          <p className="text-sm font-bold text-red-600">{customerProfile.allergies.join(', ')}</p>
+                        </div>
+                      )}
+                      {customerProfile.notes && (
+                        <div className="col-span-2">
+                          <p className="text-[10px] text-gray-400">Notas</p>
+                          <p className="text-sm text-gray-700">{customerProfile.notes}</p>
+                        </div>
+                      )}
+                      {customerProfile.vip && (
+                        <div className="col-span-2 mt-1">
+                          <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded-full">⭐ Cliente VIP</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {selectedRes?.customer_id && !customerProfile && (
+                  <div className="mt-1 p-3 bg-gray-50 rounded-xl text-xs text-gray-400">Cargando perfil...</div>
+                )}
                 {/* Editable: table + comensales + hora */}
                 <label className="flex flex-col gap-1.5">
                   <span className="text-[11px] font-semibold text-gray-600 flex items-center gap-1.5 whitespace-nowrap"><i className="ti ti-armchair text-gray-400" /> Mesa asignada</span>
