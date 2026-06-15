@@ -76,7 +76,9 @@ Deno.serve(async (req) => {
           customer_email: customer_email || null,
         })
       });
-    } catch(e) { console.warn('upsert-customer error:', e); }
+    } catch(e) {
+      console.warn('[UPSERT-CUSTOMER]', e instanceof Error ? e.message : String(e));
+    }
 
     // Generar Payment Link y enviar email — non-fatal
     if (customer_email) {

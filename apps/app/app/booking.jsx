@@ -180,7 +180,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       if (window.UMAuth && window.UMAuth.saveReservation) {
         try {
           const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
-          await window.UMAuth.saveReservation({
+          const savedReservation = await window.UMAuth.saveReservation({
             venue_id:          r.id,
             user_id:           user?.id || null,
             customer_name:     user ? (user.name || user.email) : 'Invitado',
@@ -192,6 +192,21 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             notes:             null,
             payment_intent_id: payment_intent_id,
           });
+
+          // Crear/actualizar perfil del cliente — non-fatal
+          if (user?.email || user?.name) {
+            try {
+              await window.UMAuth.sb.functions.invoke('upsert-customer', {
+                body: {
+                  venue_id:       r.id,
+                  reservation_id: savedReservation?.id || null,
+                  customer_name:  user.name || user.email,
+                  customer_phone: null,
+                  customer_email: user.email || null,
+                }
+              });
+            } catch(e) { console.warn('upsert-customer:', e.message); }
+          }
         } catch (e) {
           console.warn('[UNA MESA] saveReservation:', e.message || e);
         }

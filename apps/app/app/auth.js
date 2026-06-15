@@ -81,8 +81,9 @@ window.formatName = function(user) {
   }
 
   async function saveReservation(reservation) {
-    const { error } = await sb.from('reservations').insert([reservation]);
+    const { data, error } = await sb.from('reservations').insert([reservation]).select().single();
     if (error) throw error;
+    return data;
   }
 
   window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation, sb };
