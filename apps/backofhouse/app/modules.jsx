@@ -134,6 +134,8 @@ function Reservas() {
   const [quickTipModal, setQuickTipModal] = useState(null);
   const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
   const [customerProfile, setCustomerProfile] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(false);
+  const [customerForm, setCustomerForm] = useState({});
   const stripRef = useRef(null);
 
   /* Load all reservations from Supabase — replaces any mock/store data */
@@ -185,6 +187,18 @@ function Reservas() {
       .then(({ data }) => { if (data) setCustomerProfile(data); });
   }, [selectedRes?.id]);
 
+  // Inicializar formulario cuando carga el perfil
+  useEffect(() => {
+    if (customerProfile) {
+      setCustomerForm({
+        notes: customerProfile.notes || '',
+        allergies: (customerProfile.allergies || []).join(', '),
+        vip: customerProfile.vip || false
+      });
+      setEditingCustomer(false);
+    }
+  }, [customerProfile]);
+
   // Tables are held for 2 hours; two bookings clash if their windows overlap
   const DINING_MIN = 90;
   const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -203,6 +217,21 @@ function Reservas() {
       .sort((a, b) => toMin(a.time.slice(0, 5)) - toMin(b.time.slice(0, 5)))[0] || null;
   };
   const tableOptions = tables.map(t => t.label);
+
+  const saveCustomer = async () => {
+    if (!customerProfile?.id) return;
+    const allergiesArr = customerForm.allergies
+      .split(',')
+      .map(a => a.trim())
+      .filter(a => a.length > 0);
+    await window.sb.from('customers').update({
+      notes: customerForm.notes || null,
+      allergies: allergiesArr,
+      vip: customerForm.vip
+    }).eq('id', customerProfile.id);
+    setCustomerProfile(prev => ({ ...prev, notes: customerForm.notes, allergies: allergiesArr, vip: customerForm.vip }));
+    setEditingCustomer(false);
+  };
 
   const create = (skipTip = false) => {
     if (!nr.customer_name.trim()) { toast('Indica el nombre'); return; }
@@ -365,34 +394,75 @@ function Reservas() {
                 {selectedRes.allergy_alert && <div className="flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-2 py-1.5 rounded-lg"><i className="ti ti-alert-triangle" /> {selectedRes.allergy_alert}</div>}
                 {customerProfile && (
                   <div className="mt-1 p-3 bg-orange-50 rounded-xl border border-orange-100">
-                    <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-2">👤 Perfil del cliente</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-[10px] text-gray-400">Visitas</p>
-                        <p className="text-sm font-bold text-gray-800">{customerProfile.visits || 1}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400">Última visita</p>
-                        <p className="text-sm font-bold text-gray-800">{customerProfile.last_visit || '—'}</p>
-                      </div>
-                      {customerProfile.allergies?.length > 0 && (
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">👤 Perfil del cliente</p>
+                      <button
+                        onClick={() => editingCustomer ? saveCustomer() : setEditingCustomer(true)}
+                        className={'text-[10px] font-bold px-2 py-0.5 rounded-full ' + (editingCustomer ? 'bg-green-500 text-white' : 'bg-orange-200 text-orange-700')}
+                      >{editingCustomer ? '✓ Guardar' : 'Editar'}</button>
+                    </div>
+                    {!editingCustomer && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-[10px] text-gray-400">Visitas</p>
+                          <p className="text-sm font-bold text-gray-800">{customerProfile.visits || 1}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-400">Última visita</p>
+                          <p className="text-sm font-bold text-gray-800">{customerProfile.last_visit || '—'}</p>
+                        </div>
                         <div className="col-span-2">
                           <p className="text-[10px] text-gray-400">Alergias</p>
-                          <p className="text-sm font-bold text-red-600">{customerProfile.allergies.join(', ')}</p>
+                          <p className={'text-sm font-bold ' + (customerProfile.allergies?.length ? 'text-red-600' : 'text-gray-400')}>{customerProfile.allergies?.join(', ') || 'Ninguna'}</p>
                         </div>
-                      )}
-                      {customerProfile.notes && (
                         <div className="col-span-2">
                           <p className="text-[10px] text-gray-400">Notas</p>
-                          <p className="text-sm text-gray-700">{customerProfile.notes}</p>
+                          <p className="text-sm text-gray-700">{customerProfile.notes || '—'}</p>
                         </div>
-                      )}
-                      {customerProfile.vip && (
-                        <div className="col-span-2 mt-1">
-                          <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded-full">⭐ Cliente VIP</span>
+                        {customerProfile.vip && (
+                          <div className="col-span-2 mt-1">
+                            <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded-full">⭐ Cliente VIP</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {editingCustomer && (
+                      <div className="flex flex-col gap-2">
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-0.5">Alergias (separadas por coma)</label>
+                          <input
+                            type="text"
+                            value={customerForm.allergies}
+                            onChange={e => setCustomerForm(p => ({ ...p, allergies: e.target.value }))}
+                            placeholder="gluten, marisco, frutos secos..."
+                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand"
+                          />
                         </div>
-                      )}
-                    </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-0.5">Notas del restaurante</label>
+                          <textarea
+                            value={customerForm.notes}
+                            onChange={e => setCustomerForm(p => ({ ...p, notes: e.target.value }))}
+                            placeholder="Prefiere mesa junto a la ventana..."
+                            rows={2}
+                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand resize-none"
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customerForm.vip}
+                            onChange={e => setCustomerForm(p => ({ ...p, vip: e.target.checked }))}
+                            className="accent-brand"
+                          />
+                          <span className="text-xs text-gray-600">⭐ Marcar como VIP</span>
+                        </label>
+                        <button
+                          onClick={() => setEditingCustomer(false)}
+                          className="text-[10px] text-gray-400 hover:text-gray-600 text-left"
+                        >Cancelar</button>
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedRes?.customer_id && !customerProfile && (
