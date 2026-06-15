@@ -131,20 +131,31 @@ function buildHtml(opts: {
                 </tr>
 
                 <!-- Payment Link button — solo si se proporciona -->
-                ${payment_link ? `<tr>
+                ${payment_link ? `
+                <tr>
+                  <td style="padding:20px 48px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0;border-radius:10px;border-left:3px solid #D8552E;">
+                      <tr>
+                        <td style="padding:16px 20px;">
+                          <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#D8552E;">⏳ Reserva pendiente de confirmación</p>
+                          <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
+                            Para <strong>garantizar tu mesa</strong>, completa el pago del depósito de <strong>${(deposit_amount/100).toFixed(0)}€</strong> antes de <strong>2 horas</strong>.
+                            Si no se recibe el pago, la reserva se cancelará automáticamente.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
                   <td style="padding:20px 48px 0;" align="center">
-                    <p style="margin:0 0 16px;font-size:14px;color:#555;">
-                      Para confirmar tu reserva, completa el pago del depósito:
-                    </p>
                     <a href="${payment_link}"
                        style="display:inline-block;background:#D8552E;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:700;padding:14px 36px;border-radius:50px;">
-                      Pagar depósito — ${(deposit_amount/100).toFixed(0)}€
+                      Confirmar mesa — Pagar ${(deposit_amount/100).toFixed(0)}€
                     </a>
-                    <p style="margin:16px 0 0;font-size:12px;color:#999;">
-                      Tienes 2 horas para completar el pago o la reserva se cancelará automáticamente.
-                    </p>
                   </td>
-                </tr>` : ''}
+                </tr>
+                ` : ''}
 
                 <!-- CTA button -->
                 <tr>

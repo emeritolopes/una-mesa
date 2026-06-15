@@ -21,8 +21,7 @@ Deno.serve(async (req) => {
       body: new URLSearchParams({
         'currency': 'eur',
         'unit_amount': String(deposit_amount_cents),
-        'product_data[name]': `Depósito reserva — ${restaurant_name}`,
-        'product_data[description]': `${customer_name} · ${party_size} personas · ${date} a las ${time}`,
+        'product_data[name]': `Depósito reserva — ${restaurant_name} · ${customer_name} · ${party_size} personas · ${date} a las ${time}`,
       })
     });
 
