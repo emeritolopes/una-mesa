@@ -68,6 +68,21 @@ Deno.serve(async (req) => {
 
     const updated = await updateRes.json();
 
+    // Actualizar perfil cliente con email confirmado — non-fatal
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+        body: JSON.stringify({
+          venue_id: reservation.venue_id,
+          reservation_id: reservationId,
+          customer_name: reservation.customer_name,
+          customer_phone: reservation.customer_phone || null,
+          customer_email: session.customer_details?.email || reservation.customer_email || null,
+        })
+      });
+    } catch(e) {}
+
     // Enviar email de confirmación
     const reservation = Array.isArray(updated) ? updated[0] : updated;
     if (reservation?.customer_email || session.customer_details?.email) {

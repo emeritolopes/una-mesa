@@ -63,6 +63,21 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Crear/actualizar perfil del cliente — non-fatal
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+        body: JSON.stringify({
+          venue_id,
+          reservation_id: reservation[0].id,
+          customer_name,
+          customer_phone: customer_phone || null,
+          customer_email: customer_email || null,
+        })
+      });
+    } catch(e) { console.warn('upsert-customer error:', e); }
+
     // Generar Payment Link y enviar email — non-fatal
     if (customer_email) {
       try {
