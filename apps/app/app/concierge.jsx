@@ -142,7 +142,7 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
     setBusy(true);
 
     const restaurants = (window.UM_DATA || []).map(r => ({
-      name: r.name, cuisine: r.cuisine, area: r.area, price: r.price,
+      id: r.id, name: r.name, cuisine: r.cuisine, area: r.area, price: r.price,
     }));
 
     try {
@@ -153,8 +153,7 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
           message: q,
           history,
           restaurants,
-          customer_name: user ? user.name : null,
-          customer_email: user ? user.email : null,
+          user: user || null,
         }),
       });
 

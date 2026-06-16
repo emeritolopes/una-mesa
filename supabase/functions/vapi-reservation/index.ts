@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     // Crear/actualizar perfil del cliente — non-fatal
     try {
-      await fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
+      const ucRes = await fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
         body: JSON.stringify({
@@ -76,8 +76,10 @@ Deno.serve(async (req) => {
           customer_email: customer_email || null,
         })
       });
+      const ucData = await ucRes.json();
+      console.log('[UPSERT-CUSTOMER]', ucRes.status, JSON.stringify(ucData));
     } catch(e) {
-      console.warn('[UPSERT-CUSTOMER]', e instanceof Error ? e.message : String(e));
+      console.warn('[UPSERT-CUSTOMER ERROR]', e instanceof Error ? e.message : String(e));
     }
 
     // Generar Payment Link y enviar email — non-fatal
