@@ -45,6 +45,25 @@ function Informes() {
   const payTotal = D.payments.reduce((s, x) => s + x.value, 0);
   const paySegs = D.payments.map((x, i) => ({ ...x, color: ['#D8552E', '#0369A1', '#7C3AED'][i] }));
 
+  // ─── Reservas KPIs ───────────────────────────────────────────
+  const [reservations] = useStore('reservations');
+  const now = new Date();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1); weekStart.setHours(0,0,0,0);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+  const inRange = (iso) => { const d = new Date(iso + 'T12:00:00'); return d >= weekStart && d <= weekEnd; };
+  const weekRes = reservations.filter(r => inRange(r.date));
+  const totalRes = range === 'hoy' ? reservations.filter(r => r.date === D.iso(now)).length
+    : range === '7d' ? weekRes.length
+    : Math.round(weekRes.length * 4.31);
+  const noShows = weekRes.filter(r => r.status === 'no_show').length;
+  const noShowRate = weekRes.length > 0 ? ((noShows / weekRes.length) * 100).toFixed(1) : '0.0';
+  const timeCounts = {};
+  weekRes.forEach(r => { const t = r.time.slice(0,5); timeCounts[t] = (timeCounts[t]||0) + 1; });
+  const topTimes = Object.entries(timeCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  const resKpiDelta = range === 'hoy' ? '+5.2%' : range === '7d' ? '+9.4%' : '+14.8%';
+  const noShowDelta = range === 'hoy' ? '-0.4%' : range === '7d' ? '-1.8%' : '-2.3%';
+
   const intFmt = (n) => Math.round(n).toLocaleString('es-ES');
   const kpis = [
     { label: 'Ingresos', raw: p.revenue, fmt: eur0, icon: 'ti-currency-euro', delta: p.d[0], highlight: true },
@@ -95,6 +114,60 @@ function Informes() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Reservas KPIs */}
+        <div key={'res-' + range} className="grid grid-cols-3 gap-3">
+          {/* Reservas esta semana */}
+          <div className="rounded-2xl p-5 relative overflow-hidden bg-white border border-black/7">
+            <div className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center bg-gray-50">
+              <i className="ti ti-calendar-event text-base text-gray-400" />
+            </div>
+            <div className="text-xs font-medium mb-1 text-gray-400">Reservas {range === 'hoy' ? 'hoy' : range === '7d' ? 'esta semana' : 'este mes'}</div>
+            <CountUp value={totalRes} fmt={intFmt} className="font-['Syne'] text-3xl font-black tracking-tight block text-gray-900" />
+            <div className="mt-2">
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded-full">
+                <i className="ti ti-trending-up text-xs" />{resKpiDelta} vs. {range === 'hoy' ? 'ayer' : range === '7d' ? 'semana anterior' : 'mes anterior'}
+              </span>
+            </div>
+          </div>
+
+          {/* Tasa de no-shows */}
+          <div className="rounded-2xl p-5 relative overflow-hidden bg-white border border-black/7">
+            <div className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center bg-gray-50">
+              <i className="ti ti-user-x text-base text-gray-400" />
+            </div>
+            <div className="text-xs font-medium mb-1 text-gray-400">Tasa de no-shows</div>
+            <div className="font-['Syne'] text-3xl font-black tracking-tight text-gray-900">{noShowRate}%</div>
+            <div className="mt-2">
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">
+                <i className="ti ti-trending-down text-xs" />{noShowDelta} vs. {range === 'hoy' ? 'ayer' : range === '7d' ? 'semana anterior' : 'mes anterior'}
+              </span>
+            </div>
+          </div>
+
+          {/* Horarios más populares */}
+          <div className="rounded-2xl p-5 relative overflow-hidden bg-white border border-black/7">
+            <div className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center bg-gray-50">
+              <i className="ti ti-clock text-base text-gray-400" />
+            </div>
+            <div className="text-xs font-medium mb-3 text-gray-400">Horarios más populares</div>
+            {topTimes.length > 0 ? (
+              <div className="flex flex-col gap-2.5">
+                {topTimes.map(([time, count], i) => (
+                  <div key={time} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black flex-shrink-0 ${i === 0 ? 'bg-brand text-white' : 'bg-gray-100 text-gray-500'}`}>{i+1}</div>
+                      <span className="font-['Syne'] text-base font-black text-gray-900">{time}</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400">{count} reservas</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[11px] text-gray-400 mt-2">Sin datos para este periodo</div>
+            )}
+          </div>
         </div>
 
         {/* Main trend chart */}

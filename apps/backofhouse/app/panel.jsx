@@ -3,49 +3,6 @@
    ───────────────────────────────────────────────────────────── */
 function Panel({ go }) {
   const D = window.DATA;
-  const [supaRes, setSupaRes] = useState(null);
-  const today = new Date().toLocaleDateString('en-CA');
-
-  const channelRef = useRef(null);
-
-  const loadReservations = (vid) => {
-    if (!window.sb || !vid) return;
-    window.sb
-      .from('reservations')
-      .select('*')
-      .eq('date', today)
-      .eq('venue_id', vid)
-      .neq('status', 'cancelled')
-      .order('time', { ascending: true })
-      .then(({ data, error }) => {
-        if (error) { console.warn('[BOH] panel:', error.message); return; }
-        setSupaRes(data || []);
-      })
-      .catch(e => console.warn('[BOH] panel:', e.message));
-  };
-
-  useEffect(() => {
-    if (!window.sb) return;
-    window.sb.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user;
-      const vid = user?.user_metadata?.venue_id;
-      if (!vid) { console.warn('[BOH] panel: no venue_id en el usuario'); return; }
-      loadReservations(vid);
-      channelRef.current = window.sb
-        .channel('reservations-changes')
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'reservations',
-          filter: `date=eq.${today},venue_id=eq.${vid}`,
-        }, () => { loadReservations(vid); })
-        .subscribe();
-    });
-    return () => { if (channelRef.current) window.sb.removeChannel(channelRef.current); };
-  }, [today]);
-
-  /* null = not yet loaded (show mock); [] or [...] = Supabase answered (use it) */
-  const liveReservations = supaRes !== null ? supaRes : D.reservations;
   const todaySales = D.dailySales[D.dailySales.length - 1];
   const occupied = D.tables.filter(t => t.status === 'occupied').length;
   const kitchenPending = D.kitchen.filter(t => t.status === 'pending' || t.status === 'cooking').length;
@@ -68,14 +25,14 @@ function Panel({ go }) {
   const statusBar = [
     { dot: 'bg-green-500', label: 'Estado', value: 'Abierto' },
     { dot: 'bg-amber-400', label: 'Mesas ocupadas', value: `${occupied} / ${D.tables.length}` },
-    { dot: 'bg-green-500', label: 'Reservas hoy', value: `${liveReservations.length}` },
+    { dot: 'bg-green-500', label: 'Reservas hoy', value: `${D.reservations.length}` },
     { dot: kitchenPending > 0 ? 'bg-red-500' : 'bg-green-500', label: 'Cocina', value: `${kitchenPending} pendientes` },
     { dot: 'bg-green-500', label: 'Personal', value: `${activeStaff} en turno` },
   ];
 
   const kpis = [
     { label: 'Ventas hoy', value: eur(todaySales.total_revenue), icon: 'ti-currency-euro', highlight: true },
-    { label: 'Reservas hoy', value: `${liveReservations.length}`, icon: 'ti-calendar' },
+    { label: 'Reservas hoy', value: `${D.reservations.length}`, icon: 'ti-calendar' },
     { label: 'Ticket medio', value: eur(todaySales.avg_ticket), icon: 'ti-receipt' },
     { label: 'Rotación mesas', value: `${todaySales.table_turns}×`, icon: 'ti-rotate' },
   ];
@@ -85,7 +42,16 @@ function Panel({ go }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-['Syne'] text-2xl font-black text-gray-900 tracking-tight">Panel de control</h1>
-          <p className="text-xs text-gray-500 mt-0.5 capitalize">{todayStr} · Servicio activo</p>
+          <p className="text-xs text-gray-500 mt-0.5 capitalize flex items-center gap-2">
+            {todayStr}
+            <span className="inline-flex items-center gap-1.5 normal-case bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
+              <span className="relative flex w-1.5 h-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-green-500"></span>
+              </span>
+              <span className="text-[10px] font-bold text-green-700">Sistema: Activo</span>
+            </span>
+          </p>
         </div>
         <button onClick={() => go('reservas')} className="flex items-center gap-2 bg-brand text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-brand/90 transition">
           <i className="ti ti-plus text-sm" /> Nueva reserva
@@ -121,7 +87,7 @@ function Panel({ go }) {
           <div className="px-5 py-3.5 border-b border-black/7 flex items-center justify-between">
             <div>
               <div className="font-['Syne'] text-sm font-black text-gray-900">Próximas reservas</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">{liveReservations.length} reservas hoy</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">{D.reservations.length} reservas hoy</div>
             </div>
             <button onClick={() => go('reservas')} className="text-[11px] text-brand font-semibold hover:underline">Ver todas</button>
           </div>
@@ -134,7 +100,7 @@ function Panel({ go }) {
               </tr>
             </thead>
             <tbody>
-              {liveReservations.slice(0, 6).map(r => (
+              {D.reservations.slice(0, 6).map(r => (
                 <tr key={r.id} className="border-t border-black/5 hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3 text-sm font-medium text-gray-900">{r.customer_name}</td>
                   <td className="px-5 py-3 text-sm text-gray-600">{r.time.slice(0, 5)}</td>

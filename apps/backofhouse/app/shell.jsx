@@ -129,11 +129,7 @@ function App() {
     return () => window.removeEventListener('storage', handler);
   }, []);
   const login = (u) => { setUser(u); localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
-  const logout = () => {
-    if (window.sb) window.sb.auth.signOut().catch(() => {});
-    setUser(null);
-    localStorage.removeItem('unamesa.user');
-  };
+  const logout = () => { setUser(null); localStorage.removeItem('unamesa.user'); };
 
   if (!user) return <><Login onLogin={login} /><ToastHost /></>;
 

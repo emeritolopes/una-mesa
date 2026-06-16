@@ -131,14 +131,23 @@ function Reservas() {
   const [showMonth, setShowMonth] = useState(false);
   const [clashInfo, setClashInfo] = useState(null);
   const [gapModal, setGapModal] = useState(null);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [quickTipModal, setQuickTipModal] = useState(null);
-  const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
+  const [confirmDel, setConfirmDel] = useState(null); // reservation pending delete confirmation
+  const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const nowMin = (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })();
+  const isToday = selectedDate === todayISO;
+  const isPastTime = (t) => isToday && toMin(t) < nowMin;
+  const futureTimes = D.TIMES.filter(t => !isPastTime(t));
+  // default new booking time = first future slot
+  const defaultTime = futureTimes[0] || '14:00';
+  const [nr, setNr] = useState({ customer_name: '', customer_phone: '', pax: 2, time: defaultTime, notes: '', table: '' });
   const [customerProfile, setCustomerProfile] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(false);
   const [customerForm, setCustomerForm] = useState({});
   const stripRef = useRef(null);
 
-  /* Load all reservations from Supabase — replaces any mock/store data */
+  /* Load all reservations from Supabase on mount */
   useEffect(() => {
     async function load() {
       if (!window.sb) return;
@@ -157,25 +166,7 @@ function Reservas() {
     load();
   }, []);
 
-  const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar' };
-  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-red-100 text-red-700 border-red-200' };
-
-  const sel = new Date(selectedDate + 'T12:00:00');
-  // Strip shows every day of the selected month
-  const daysInMonth = new Date(sel.getFullYear(), sel.getMonth() + 1, 0).getDate();
-  const stripDays = Array.from({ length: daysInMonth }, (_, i) => new Date(sel.getFullYear(), sel.getMonth(), i + 1));
-  const countOn = (iso) => list.filter(r => r.date === iso).length;
-  const reservations = [...list.filter(r => r.date === selectedDate)].sort((a, b) => a.time.localeCompare(b.time));
-  const scrollStrip = (dir) => { if (stripRef.current) stripRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' }); };
-
-  // keep the selected day visible within the month strip
-  useEffect(() => {
-    if (!stripRef.current) return;
-    const idx = sel.getDate() - 1;
-    stripRef.current.scrollTo({ left: Math.max(0, idx * 66 - 140), behavior: 'smooth' });
-  }, [selectedDate]);
-
-  // Cargar perfil del cliente cuando cambia la reserva seleccionada
+  /* Load customer profile when selected reservation changes */
   useEffect(() => {
     setCustomerProfile(null);
     if (!selectedRes?.customer_id) return;
@@ -187,7 +178,7 @@ function Reservas() {
       .then(({ data }) => { if (data) setCustomerProfile(data); });
   }, [selectedRes?.id]);
 
-  // Inicializar formulario cuando carga el perfil
+  /* Init form when profile loads */
   useEffect(() => {
     if (customerProfile) {
       setCustomerForm({
@@ -199,9 +190,38 @@ function Reservas() {
     }
   }, [customerProfile]);
 
+  const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar', no_show: 'No show' };
+  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-gray-100 text-gray-600 border-gray-300', no_show: 'bg-red-100 text-red-700 border-red-200' };
+
+  const sel = new Date(selectedDate + 'T12:00:00');
+  // Strip shows today + future days of the selected month only
+  const daysInMonth = new Date(sel.getFullYear(), sel.getMonth() + 1, 0).getDate();
+  const today0 = new Date(todayISO + 'T12:00:00');
+  const stripDays = Array.from({ length: daysInMonth }, (_, i) => new Date(sel.getFullYear(), sel.getMonth(), i + 1))
+    .filter(d => d >= today0 || D.iso(d) === todayISO);
+  const countOn = (iso) => list.filter(r => r.date === iso).length;
+  const reservations = [...list.filter(r => r.date === selectedDate)].sort((a, b) => a.time.localeCompare(b.time));
+  const scrollStrip = (dir) => { if (stripRef.current) stripRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' }); };
+
+  // scroll strip to today on first mount, then to selectedDate on change
+  useEffect(() => {
+    if (!stripRef.current) return;
+    const idx = stripDays.findIndex(d => D.iso(d) === selectedDate);
+    if (idx < 0) return;
+    const left = Math.max(0, idx * 66 - 20);
+    if (selectedDate === todayISO) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (stripRef.current) stripRef.current.scrollLeft = 0;
+        });
+      });
+    } else {
+      stripRef.current.scrollTo({ left, behavior: 'smooth' });
+    }
+  }, [selectedDate]);
+
   // Tables are held for 2 hours; two bookings clash if their windows overlap
   const DINING_MIN = 90;
-  const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
   const tableClash = (date, time, table, ignoreId) => {
     if (!table) return null;
     const s = toMin(time.slice(0, 5)), e = s + DINING_MIN;
@@ -217,6 +237,7 @@ function Reservas() {
       .sort((a, b) => toMin(a.time.slice(0, 5)) - toMin(b.time.slice(0, 5)))[0] || null;
   };
   const tableOptions = tables.map(t => t.label);
+  const capOf = (label) => { const t = tables.find(x => x.label === label); return t ? t.capacity : null; };
 
   const saveCustomer = async () => {
     if (!customerProfile?.id) return;
@@ -235,6 +256,7 @@ function Reservas() {
 
   const create = (skipTip = false) => {
     if (!nr.customer_name.trim()) { toast('Indica el nombre'); return; }
+    if (isPastTime(nr.time)) { toast('No puedes reservar en el pasado'); return; }
     const clash = tableClash(selectedDate, nr.time, nr.table);
     if (clash) { setClashInfo({ table: nr.table, name: clash.customer_name, time: clash.time.slice(0, 5) }); return; }
     if (!skipTip && nr.table) {
@@ -247,9 +269,11 @@ function Reservas() {
         }
       }
     }
+    const cap = capOf(nr.table);
+    if (cap && Number(nr.pax) > cap) { toast(`${nr.table} admite máximo ${cap} comensales`); return; }
     const rec = { id: 'r' + Date.now(), ...nr, pax: Number(nr.pax), time: nr.time + ':00', status: 'confirmed', allergy_alert: '', date: selectedDate };
     setList(arr => [...arr, rec]);
-    setShowForm(false); setNr({ customer_name: '', customer_phone: '', pax: 2, time: '14:00', notes: '', table: '' });
+    setShowForm(false); setNr({ customer_name: '', customer_phone: '', pax: 2, time: defaultTime, notes: '', table: '' });
     toast('Reserva guardada');
   };
   const patch = async (id, fields) => {
@@ -275,12 +299,33 @@ function Reservas() {
     }
     setList(arr => arr.filter(r => r.id !== id));
     setSelectedRes(null);
+    setConfirmDel(null);
     toast('Reserva eliminada');
   };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <ClashAlert info={clashInfo} onClose={() => setClashInfo(null)} />
+      {confirmDel && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-red-50 px-5 py-4 flex items-center gap-3 border-b border-red-100">
+              <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0"><i className="ti ti-trash text-xl" /></div>
+              <div>
+                <div className="font-['Syne'] text-base font-black text-red-700">¿Eliminar reserva?</div>
+                <div className="text-[11px] text-red-400">Esta acción no se puede deshacer</div>
+              </div>
+            </div>
+            <div className="p-5 text-sm text-gray-600 leading-relaxed">
+              Vas a eliminar la reserva de <span className="font-semibold text-gray-900">{confirmDel.customer_name}</span>{confirmDel.table ? <> en <span className="font-semibold text-gray-900">{confirmDel.table}</span></> : null} a las <span className="font-semibold text-gray-900">{confirmDel.time.slice(0, 5)}</span>. ¿Estás seguro?
+            </div>
+            <div className="p-5 pt-0 flex gap-2">
+              <button onClick={() => setConfirmDel(null)} className="flex-1 py-2.5 rounded-xl border border-black/10 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition">Cancelar</button>
+              <button onClick={() => del(confirmDel.id)} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition">Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {quickTipModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setQuickTipModal(null)}>
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
@@ -346,16 +391,27 @@ function Reservas() {
         <div className="overflow-y-auto border-r border-black/7">
           {D.TIMES.map(time => {
             const slots = reservations.filter(r => r.time.slice(0, 5) === time);
+            const past = isPastTime(time);
+            const isNowSlot = isToday && toMin(time) <= nowMin && nowMin < toMin(time) + 30;
             return (
-              <div key={time} className="flex border-b border-black/5 min-h-14">
+              <div key={time} className={`flex border-b border-black/5 min-h-14 relative ${past ? 'opacity-40' : ''}`}>
+                {isNowSlot && (
+                  <div className="absolute left-0 right-0 z-10 pointer-events-none" style={{ top: `${((nowMin - toMin(time)) / 30) * 100}%` }}>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-brand flex-shrink-0 ml-[3.5rem]" />
+                      <div className="flex-1 h-px bg-brand opacity-70" />
+                      <span className="text-[9px] font-bold text-brand pr-2 flex-shrink-0">{String(new Date().getHours()).padStart(2,'0')}:{String(new Date().getMinutes()).padStart(2,'0')}</span>
+                    </div>
+                  </div>
+                )}
                 <div className="w-16 flex-shrink-0 px-4 py-4 text-xs font-medium text-gray-400 border-r border-black/5">{time}</div>
                 <div className="flex-1 p-2 flex flex-wrap gap-2 content-start">
                   {slots.map(r => (
                     <div key={r.id} onClick={() => { setSelectedRes(r); setShowForm(false); }}
                       className={`rounded-lg px-3 py-2 cursor-pointer border-l-2 min-w-[140px] hover:opacity-80 transition
-                        ${r.status === 'confirmed' ? 'bg-brand/8 border-brand' : 'bg-gray-50 border-gray-300'}`}>
-                      <div className={`text-xs font-semibold ${r.status === 'confirmed' ? 'text-brand' : 'text-gray-500'}`}>{r.customer_name}</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{r.table || 'Sin mesa'} · {r.pax} pax{r.allergy_alert && ' · ⚠'}</div>
+                        ${r.status === 'confirmed' ? 'bg-brand/8 border-brand' : r.status === 'no_show' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'}`}>
+                      <div className={`text-xs font-semibold ${r.status === 'confirmed' ? 'text-brand' : r.status === 'no_show' ? 'text-red-500 line-through' : 'text-gray-500'}`}>{r.customer_name}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">{r.table || 'Sin mesa'} · {r.pax} pax</div>
                     </div>
                   ))}
                   {slots.length === 0 && <span className="text-[11px] text-gray-300 py-4 px-2">Sin reservas</span>}
@@ -370,7 +426,8 @@ function Reservas() {
             <div className="font-['Syne'] text-sm font-bold text-gray-900 mb-3">Resumen del día</div>
             {[
               { label: 'Confirmadas', val: reservations.filter(r => r.status === 'confirmed').length, color: 'text-brand' },
-              { label: 'Sin confirmar', val: reservations.filter(r => r.status !== 'confirmed').length, color: 'text-red-500' },
+              { label: 'Sin confirmar', val: reservations.filter(r => r.status === 'unconfirmed').length, color: 'text-gray-500' },
+              { label: 'No show', val: reservations.filter(r => r.status === 'no_show').length, color: 'text-red-500' },
               { label: 'Total comensales', val: reservations.reduce((s, r) => s + r.pax, 0), color: 'text-gray-900' },
             ].map(s => (
               <div key={s.label} className="flex items-center justify-between py-2 border-b border-black/5 last:border-0">
@@ -475,6 +532,8 @@ function Reservas() {
                       const v = e.target.value;
                       const clash = tableClash(selectedRes.date, selectedRes.time, v, selectedRes.id);
                       if (clash) { setClashInfo({ table: v, name: clash.customer_name, time: clash.time.slice(0, 5) }); return; }
+                      const cap = capOf(v);
+                      if (cap && selectedRes.pax > cap) { toast(`${v} admite máximo ${cap} comensales`); return; }
                       patch(selectedRes.id, { table: v }); toast(v ? 'Mesa asignada' : 'Mesa liberada');
                     }}
                     className="w-full px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand focus:bg-white transition">
@@ -488,7 +547,11 @@ function Reservas() {
                     <div className="flex items-center border border-black/10 rounded-lg bg-gray-50 overflow-hidden">
                       <button onClick={() => patch(selectedRes.id, { pax: Math.max(1, selectedRes.pax - 1) })} className="px-2.5 py-2 text-gray-500 hover:bg-brand hover:text-white transition text-sm leading-none">−</button>
                       <span className="flex-1 text-center text-xs font-bold text-gray-900">{selectedRes.pax}</span>
-                      <button onClick={() => patch(selectedRes.id, { pax: selectedRes.pax + 1 })} className="px-2.5 py-2 text-gray-500 hover:bg-brand hover:text-white transition text-sm leading-none">+</button>
+                      <button onClick={() => {
+                          const cap = capOf(selectedRes.table);
+                          if (cap && selectedRes.pax + 1 > cap) { toast(`${selectedRes.table} admite máximo ${cap} comensales`); return; }
+                          patch(selectedRes.id, { pax: selectedRes.pax + 1 });
+                        }} className="px-2.5 py-2 text-gray-500 hover:bg-brand hover:text-white transition text-sm leading-none">+</button>
                     </div>
                   </div>
                   <label className="flex flex-col gap-1.5">
@@ -500,15 +563,31 @@ function Reservas() {
                         patch(selectedRes.id, { time: v + ':00' }); toast('Hora actualizada');
                       }}
                       className="w-full px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand focus:bg-white transition">
-                      {D.TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                      {D.TIMES.map(t => <option key={t} value={t} disabled={isPastTime(t)}>{t}{isPastTime(t) ? ' — pasado' : ''}</option>)}
                     </select>
                   </label>
                 </div>
                 <div className="flex gap-2 mt-1">
                   {selectedRes.status !== 'confirmed'
                     ? <button onClick={() => { patch(selectedRes.id, { status: 'confirmed' }); toast('Reserva confirmada'); }} className="flex-1 bg-brand text-white text-xs font-semibold py-2 rounded-lg hover:bg-brand/90 transition">Confirmar</button>
-                    : <button onClick={() => { patch(selectedRes.id, { status: 'unconfirmed' }); toast('Marcada sin confirmar'); }} className="flex-1 border border-black/10 text-gray-600 text-xs font-semibold py-2 rounded-lg hover:bg-gray-50 transition">Marcar sin confirmar</button>}
-                  <button onClick={() => del(selectedRes.id)} className="px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition text-xs"><i className="ti ti-trash" /></button>
+                    : (
+                      <div className="flex-1 relative">
+                        <button onClick={() => setShowStatusMenu(v => !v)} className="w-full border border-black/10 text-gray-600 text-xs font-semibold py-2 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-1">
+                          Marcar sin confirmar <i className={`ti ti-chevron-${showStatusMenu ? 'up' : 'down'} text-[10px]`} />
+                        </button>
+                        {showStatusMenu && (
+                          <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-black/10 rounded-xl shadow-lg overflow-hidden z-20">
+                            <button onClick={() => { patch(selectedRes.id, { status: 'unconfirmed' }); setShowStatusMenu(false); toast('Marcada sin confirmar'); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span> Sin confirmar
+                            </button>
+                            <button onClick={() => { patch(selectedRes.id, { status: 'no_show' }); setShowStatusMenu(false); toast('Marcada como no show'); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-black/5">
+                              <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span> No show
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  <button onClick={() => setConfirmDel(selectedRes)} className="px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition text-xs"><i className="ti ti-trash" /></button>
                 </div>
               </div>
             </div>
@@ -524,18 +603,21 @@ function Reservas() {
                 <input className="w-full px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" placeholder="Nombre del cliente" value={nr.customer_name} onChange={e => setNr(p => ({ ...p, customer_name: e.target.value }))} />
                 <input className="w-full px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" placeholder="+34 6XX XXX XXX" value={nr.customer_phone} onChange={e => setNr(p => ({ ...p, customer_phone: e.target.value }))} />
                 <div className="grid grid-cols-2 gap-2">
-                  <select className="px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" value={nr.time} onChange={e => setNr(p => ({ ...p, time: e.target.value }))}>{D.TIMES.map(t => <option key={t}>{t}</option>)}</select>
+                  <select className="px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" value={nr.time} onChange={e => setNr(p => ({ ...p, time: e.target.value }))}>{futureTimes.map(t => <option key={t} value={t}>{t}</option>)}</select>
                   <select className="px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" value={nr.pax} onChange={e => setNr(p => ({ ...p, pax: Number(e.target.value) }))}>{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14].map(n => <option key={n} value={n}>{n} personas</option>)}</select>
                 </div>
                 <select className="px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" value={nr.table} onChange={e => setNr(p => ({ ...p, table: e.target.value }))}>
                   <option value="">Asignar mesa (opcional)</option>
-                  {tableOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                  {tables.map(t => <option key={t.label} value={t.label} disabled={Number(nr.pax) > t.capacity}>{t.label} · {t.capacity}p{Number(nr.pax) > t.capacity ? ' — insuficiente' : ''}</option>)}
                 </select>
+                {(() => { const cap = capOf(nr.table); return cap && Number(nr.pax) > cap && (
+                  <div className="flex items-start gap-1.5 bg-amber-50 text-amber-700 text-[11px] font-semibold px-2.5 py-2 rounded-lg"><i className="ti ti-users mt-px" /> <span>{nr.table} admite máximo {cap} comensales — elige otra mesa o reduce el grupo</span></div>
+                ); })()}
                 <input className="w-full px-3 py-2 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" placeholder="Notas / alergias" value={nr.notes} onChange={e => setNr(p => ({ ...p, notes: e.target.value }))} />
                 {(() => { const c = tableClash(selectedDate, nr.time, nr.table); return c && (
                   <div className="flex items-start gap-1.5 bg-red-50 text-red-600 text-[11px] font-semibold px-2.5 py-2 rounded-lg"><i className="ti ti-alert-triangle mt-px" /> <span>{nr.table} ya está reservada — {c.customer_name} a las {c.time.slice(0, 5)}</span></div>
                 ); })()}
-                <button onClick={() => create()} disabled={!!tableClash(selectedDate, nr.time, nr.table)} className="w-full bg-brand text-white text-xs font-bold py-2.5 rounded-lg hover:bg-brand/90 transition disabled:opacity-40 disabled:hover:bg-brand">Guardar reserva</button>
+                <button onClick={() => create()} disabled={!!tableClash(selectedDate, nr.time, nr.table) || (() => { const c = capOf(nr.table); return c && Number(nr.pax) > c; })()} className="w-full bg-brand text-white text-xs font-bold py-2.5 rounded-lg hover:bg-brand/90 transition disabled:opacity-40 disabled:hover:bg-brand">Guardar reserva</button>
               </div>
             </div>
           )}
@@ -593,6 +675,8 @@ function TPV() {
   const [activeSub, setActiveSub] = useState(null);
   const [splitBy, setSplitBy] = useState(1);
   const [search, setSearch] = useState('');
+  const [excludeAllergens, setExcludeAllergens] = useState(new Set());
+  const toggleAllergen = (key) => setExcludeAllergens(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   const [manage, setManage] = useState(false);
   const [editingTable, setEditingTable] = useState(null);
   const [floorPlan, setFloorPlan] = useState(() => { try { return localStorage.getItem('unamesa.floorplan') || null; } catch(e) { return null; } });
@@ -687,7 +771,8 @@ function TPV() {
   const filteredItems = menu.filter(i =>
     i.category_id === activeCat && i.available &&
     (!search || i.name.toLowerCase().includes(search.toLowerCase())) &&
-    (!isBebidas || !activeSub || (i.subcategory || 'otros') === activeSub)
+    (!isBebidas || !activeSub || (i.subcategory || 'otros') === activeSub) &&
+    (excludeAllergens.size === 0 || !(i.allergens || []).some(a => excludeAllergens.has(a)))
   );
   const bebSubsPresent = isBebidas ? BSUBS.filter(s => menu.some(i => i.category_id === 'c4' && i.available && i.subcategory === s.key)) : [];
 
@@ -702,15 +787,15 @@ function TPV() {
           </div>
         </div>
       )}
-      <div className="flex-1 min-w-0 bg-gray-50 border-r border-black/7 flex flex-col overflow-hidden">
+      <div className="w-[420px] flex-shrink-0 bg-gray-50 border-r border-black/7 flex flex-col overflow-hidden">
         <div className="px-4 py-3 bg-white border-b border-black/7 flex items-center justify-between">
           <div>
             <div className="font-['Syne'] text-sm font-black text-gray-900">Plano del local</div>
             <div className="text-[10px] text-gray-400 mt-0.5">{tables.filter(t=>t.status==='occupied').length} ocupadas · {tables.length} mesas</div>
           </div>
           <button onClick={() => setManage(m => !m)} title="Gestionar mesas"
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition ${manage ? 'bg-brand text-white' : 'border border-black/10 text-gray-400 hover:text-brand'}`}>
-            <i className="ti ti-pencil text-sm" />
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${manage ? 'bg-brand text-white' : 'text-gray-400 hover:text-brand'}`}>
+            <i className="ti ti-pencil text-xs mr-1" />{manage ? 'Listo' : 'Editar'}
           </button>
         </div>
         <div className="flex-1 overflow-hidden">
@@ -731,7 +816,7 @@ function TPV() {
         )}
       </div>
 
-      <div className="w-[280px] flex-shrink-0 flex flex-col overflow-hidden bg-white border-r border-black/7">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-white border-r border-black/7">
         <div className="px-4 py-3 border-b border-black/7">
           <div className="font-['Syne'] text-sm font-black text-gray-900">Carta</div>
           <div className="text-[10px] text-gray-400 mt-0.5">{selectedTable ? `Añadiendo a ${selectedTable.label}` : 'Selecciona una mesa'}</div>
@@ -759,18 +844,46 @@ function TPV() {
         <div className="px-3 py-2 border-b border-black/7">
           <input className="w-full px-3 py-1.5 text-xs border border-black/10 rounded-lg bg-gray-50 outline-none focus:border-brand" placeholder="Buscar plato..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+        <div className="px-3 py-2 border-b border-black/7">
+          <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Filtrar sin alergenos</div>
+          <div className="flex flex-wrap gap-1">
+            {D.ALLERGENS.map(a => {
+              const active = excludeAllergens.has(a.key);
+              return (
+                <button key={a.key} onClick={() => toggleAllergen(a.key)} title={a.label}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border transition-all ${
+                    active ? 'text-white border-transparent shadow-sm' : 'bg-white border-black/10 text-gray-500 hover:border-gray-300'
+                  }`}
+                  style={active ? { background: a.color, borderColor: a.color } : {}}>
+                  {a.icon
+                    ? <i className={`ti ${a.icon} text-[10px]`} />
+                    : <span className="text-[9px] font-black">{a.code}</span>
+                  }
+                  <span>{a.label}</span>
+                  {active && <i className="ti ti-x text-[9px] opacity-80" />}
+                </button>
+              );
+            })}
+            {excludeAllergens.size > 0 && (
+              <button onClick={() => setExcludeAllergens(new Set())} className="px-2 py-1 rounded-full text-[10px] font-bold text-gray-400 hover:text-brand transition">Limpiar</button>
+            )}
+          </div>
+          {excludeAllergens.size > 0 && (
+            <div className="text-[10px] text-brand font-semibold mt-1.5">
+              Mostrando platos sin: {[...excludeAllergens].map(k => D.ALLERGENS.find(a=>a.key===k)?.label).join(', ')}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2 content-start">
           {filteredItems.map(item => (
             <button key={item.id} onClick={() => addItem(item)}
-              className="bg-gray-50 rounded-xl px-3 py-2.5 text-left border border-transparent hover:border-brand hover:bg-brand/5 transition-all active:scale-95 flex items-center gap-2.5">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-semibold text-gray-900 leading-snug">{item.name}</span>
-                  {item.tag && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${TAG[item.tag] || ''}`}>{item.tag}</span>}
-                </div>
-                {item.allergens && item.allergens.length > 0 && <div className="mt-1"><AllergenChips keys={item.allergens} size="xs" max={5} /></div>}
+              className="bg-gray-50 rounded-xl p-3 text-left border border-transparent hover:border-brand hover:bg-brand/5 transition-all active:scale-95 flex flex-col gap-1">
+              <div className="flex items-start justify-between gap-1">
+                <span className="text-xs font-semibold text-gray-900 leading-snug flex-1">{item.name}</span>
+                <span className="font-['Syne'] text-sm font-black text-brand flex-shrink-0">{eur(item.price)}</span>
               </div>
-              <div className="font-['Syne'] text-sm font-black text-brand flex-shrink-0">{eur(item.price)}</div>
+              {item.tag && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full w-fit ${TAG[item.tag] || ''}`}>{item.tag}</span>}
+              {item.allergens && item.allergens.length > 0 && <div className="mt-1"><AllergenChips keys={item.allergens} size="xs" max={4} /></div>}
             </button>
           ))}
         </div>
@@ -1111,6 +1224,267 @@ function ShiftPopover({ x, y, current, onPick, onClose }) {
   );
 }
 
+function EmployeeProfile({ member, onSave, onClose }) {
+  const [f, setF] = useState({ ...member });
+  const [photo, setPhoto] = useState(() => { try { return localStorage.getItem('unamesa.photo.' + member.id) || null; } catch(e) { return null; } });
+  const photoRef = useRef(null);
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+  const input = "w-full px-3 py-2.5 text-sm border border-black/10 rounded-xl bg-gray-50 outline-none focus:border-brand focus:bg-white transition";
+  const lbl = "text-[11px] font-semibold text-gray-600 mb-1.5 block";
+  const uploadPhoto = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { const url = ev.target.result; setPhoto(url); try { localStorage.setItem('unamesa.photo.' + member.id, url); } catch(x) {} };
+    reader.readAsDataURL(file); e.target.value = '';
+  };
+  const submit = () => {
+    if (!f.name.trim()) { toast('Indica el nombre'); return; }
+    if (f.pin && !/^\d{4}$/.test(f.pin)) { toast('El PIN debe tener 4 dígitos'); return; }
+    const initials = f.name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+    onSave({ ...f, initials });
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-black/7 flex items-center justify-between">
+          <div className="font-['Syne'] text-base font-black text-gray-900">Perfil del empleado</div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><i className="ti ti-x" /></button>
+        </div>
+        {/* Photo + name hero */}
+        <div className="bg-gray-50 px-5 py-5 flex items-center gap-4 border-b border-black/7">
+          <div className="relative flex-shrink-0">
+            {photo
+              ? <img src={photo} alt={f.name} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow" />
+              : <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-black border-2 border-white shadow" style={{ background: member.color_bg, color: member.color }}>{member.initials}</div>
+            }
+            <button onClick={() => photoRef.current && photoRef.current.click()}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-brand text-white flex items-center justify-center shadow hover:bg-brand/90 transition">
+              <i className="ti ti-camera text-[11px]" />
+            </button>
+            <input ref={photoRef} type="file" accept="image/*" onChange={uploadPhoto} className="hidden" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-['Syne'] text-lg font-black text-gray-900 truncate">{f.name}</div>
+            <div className="text-xs text-gray-400">{f.role} · {f.access}</div>
+          </div>
+        </div>
+        {/* Form */}
+        <div className="p-5 flex flex-col gap-3.5">
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={lbl}>Nombre completo</label><input className={input} value={f.name} onChange={e => set('name', e.target.value)} /></div>
+            <div><label className={lbl}>Puesto</label><input className={input} value={f.role || ''} onChange={e => set('role', e.target.value)} placeholder="Camarera, Cocinero…" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={lbl}>Email</label><input className={input} type="email" value={f.email || ''} onChange={e => set('email', e.target.value)} placeholder="nombre@email.com" /></div>
+            <div><label className={lbl}>Teléfono</label><input className={input} type="tel" value={f.phone || ''} onChange={e => set('phone', e.target.value)} placeholder="+34 600 000 000" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={lbl}>Nivel de acceso</label><select className={input} value={f.access || ''} onChange={e => set('access', e.target.value)}>{['Administrador','Encargado','Camarero','Cocina'].map(a=><option key={a}>{a}</option>)}</select></div>
+            <div><label className={lbl}>PIN (4 dígitos)</label><input className={input} value={f.pin || ''} maxLength={4} inputMode="numeric" onChange={e => set('pin', e.target.value.replace(/\D/g,''))} placeholder="••••" /></div>
+          </div>
+          <div><label className={lbl}>Notas</label><textarea className={input + ' resize-none'} rows={2} value={f.notes || ''} onChange={e => set('notes', e.target.value)} placeholder="Alergias, preferencias, observaciones…" /></div>
+        </div>
+        <div className="px-5 pb-5 flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-black/10 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition">Cancelar</button>
+          <button onClick={submit} className="flex-1 py-2.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand/90 transition">Guardar perfil</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Rota Import Modal ─────────────────────────────────────── */
+function RotaImportModal({ staff, onImport, onClose }) {
+  const fileRef = useRef(null);
+  const [step, setStep] = useState(1); // 1=guide, 2=preview
+  const [preview, setPreview] = useState(null);
+  const [error, setError] = useState(null);
+
+  const DAY_KEYS = ['L','M','X','J','V','S','D'];
+  const DAY_ALIASES = {
+    lunes:'L', monday:'L', l:'L',
+    martes:'M', tuesday:'M', m:'M',
+    'mi\u00e9rcoles':'X', miercoles:'X', mie:'X', wednesday:'X', x:'X', mi:'X',
+    jueves:'J', thursday:'J', j:'J',
+    viernes:'V', friday:'V', v:'V',
+    's\u00e1bado':'S', sabado:'S', sab:'S', saturday:'S', s:'S',
+    domingo:'D', sunday:'D', d:'D',
+  };
+  const SHIFT_ALIASES = {
+    'ma\u00f1ana':'morning', manana:'morning', morning:'morning',
+    tarde:'afternoon', afternoon:'afternoon',
+    noche:'night', night:'night',
+    libre:'off', free:'off', off:'off', descanso:'off', '-':'off', '':'off', ' ':'off',
+    baja:'baja', sick:'baja', enfermo:'baja',
+    vacaciones:'leave', vacation:'leave', vac:'leave',
+  };
+  // Normalize string — remove accents + lower + trim
+  const norm = (s) => (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const SHIFT_COLOR = { morning:'bg-brand text-white', afternoon:'bg-amber-500 text-white', night:'bg-purple-600 text-white', off:'bg-gray-400 text-white', baja:'bg-red-500 text-white', leave:'bg-blue-500 text-white' };
+  const SHIFT_LABEL = { morning:'Mañana', afternoon:'Tarde', night:'Noche', off:'Libre', baja:'Baja', leave:'Vacac.' };
+
+  const downloadTemplate = () => {
+    const header = ['Nombre','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'];
+    const ex = staff.map(s => [s.name,'manana','tarde','libre','noche','tarde','libre','libre']);
+    const rows = [header, ...ex];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'rota.csv'; a.click();
+  };
+
+  const parseRows = (sheetData) => {
+    if (!sheetData || sheetData.length < 2) return { err: 'El archivo está vacío.' };
+    // Skip leading rows until we find one that contains a day column
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+      const row = sheetData[i].map(c => norm((c||'').toString()));
+      if (row.some(h => DAY_ALIASES[h])) { headerIdx = i; break; }
+    }
+    if (headerIdx < 0) return { err: `No se encontraron columnas de días. Asegúrate de que la plantilla tiene cabeceras: Nombre, Lunes, Martes, Miercoles, Jueves, Viernes, Sabado, Domingo.` };
+    const header = sheetData[headerIdx].map(c => norm((c||'').toString()));
+    const dayCols = {}; header.forEach((h,i) => { const dk = DAY_ALIASES[h]; if (dk) dayCols[dk] = i; });
+    const nameCol = header.findIndex(h => ['nombre','name','empleado'].includes(h));
+    if (nameCol < 0) return { err: `No se encontró columna "Nombre". Cabeceras detectadas: ${header.filter(Boolean).join(', ')}.` };
+    const rows = []; const warnings = [];
+    sheetData.slice(headerIdx + 1).forEach((row) => {
+      const name = (row[nameCol]||'').toString().trim(); if (!name) return;
+      const days = {};
+      DAY_KEYS.forEach(dk => { const ci = dayCols[dk]; const raw = norm(ci !== undefined ? row[ci] : ''); days[dk] = SHIFT_ALIASES[raw] || 'off'; });
+      const match = staff.find(s => norm(s.name).includes(norm(name).split(' ')[0]) || norm(name).includes(norm(s.name).split(' ')[0]));
+      if (!match) warnings.push(`"${name}" no coincide — omitido`);
+      rows.push({ name, days, staffId: match ? match.id : null });
+    });
+    return { rows, warnings };
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    setError(null); setPreview(null);
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        let sheetData;
+        if (ext === 'csv') {
+          sheetData = ev.target.result.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/[,;\t]/).map(c=>c.trim().replace(/^"|"$/g,'')));
+        } else {
+          if (!window.XLSX) { setError('La librería XLSX no está cargada. Prueba a recargar la página.'); return; }
+          const wb = window.XLSX.read(ev.target.result, { type:'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          sheetData = window.XLSX.utils.sheet_to_json(ws, { header:1, defval:'' }).filter(r => r.some(c => c !== ''));
+        }
+        if (!sheetData || sheetData.length === 0) { setError('El archivo parece estar vacío. Asegúrate de guardar con datos.'); return; }
+        if (sheetData.length === 1) { setError(`Solo se encontró 1 fila (la cabecera). Añade filas con los empleados debajo.`); return; }
+        const result = parseRows(sheetData);
+        if (result.err) { setError(result.err); return; }
+        if (result.rows.length === 0) { setError('No se encontraron empleados. Comprueba que los nombres coincidan con los del sistema.'); return; }
+        setPreview(result); setStep(2);
+      } catch(ex) { setError('Error al leer el archivo: ' + ex.message); }
+    };
+    if (ext === 'csv') reader.readAsText(file); else reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  const apply = () => { if (!preview) return; onImport(preview.rows.filter(r=>r.staffId)); onClose(); };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col" onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-black/7 flex items-center justify-between flex-shrink-0">
+          <div className="font-['Syne'] text-base font-black text-gray-900">Importar rota</div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><i className="ti ti-x" /></button>
+        </div>
+
+        {step === 1 && (
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+            {/* 3 steps */}
+            {[
+              { n:1, icon:'ti-download', title:'Descarga la plantilla', desc:'Ya viene con los nombres de tus empleados.', action: (
+                <div className="mt-2 flex flex-col gap-2">
+                  <button onClick={downloadTemplate} className="flex items-center gap-2 bg-brand text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-brand/90 transition w-full justify-center"><i className="ti ti-download" /> Descargar plantilla (.csv)</button>
+                  <div className="bg-gray-50 rounded-lg px-3 py-2 border border-black/7">
+                    <div className="text-[10px] font-bold text-gray-500 mb-1">Empleados en el sistema:</div>
+                    <div className="flex flex-wrap gap-1">{staff.map(s=><span key={s.id} className="text-[10px] bg-white border border-black/10 rounded px-1.5 py-0.5 text-gray-700 font-medium">{s.name}</span>)}</div>
+                  </div>
+                </div>
+              ) },
+              { n:2, icon:'ti-pencil', title:'Rellena los turnos y guarda como CSV', desc:'Edita los turnos. Importante: guarda el archivo como CSV (no como .numbers o .xlsx).', action:
+                <div className="mt-2 grid grid-cols-3 gap-1.5">
+                  {[['mañana','Mañana','bg-brand'],['tarde','Tarde','bg-amber-500'],['noche','Noche','bg-purple-600'],['libre','Libre','bg-gray-400'],['baja','Baja médica','bg-red-500'],['vacaciones','Vacaciones','bg-blue-500']].map(([v,l,c])=>(
+                    <div key={v} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2 py-1.5 border border-black/7">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${c}`}></span>
+                      <span className="text-[10px]"><span className="font-bold text-gray-900">{v}</span> <span className="text-gray-400">→ {l}</span></span>
+                    </div>
+                  ))}
+                </div>
+              },
+              { n:3, icon:'ti-upload', title:'Sube el archivo CSV', desc:'Selecciona el archivo .csv que guardaste.', action:
+                <label className="mt-2 flex items-center gap-2 border-2 border-dashed border-brand/40 text-brand text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-brand/5 transition w-full justify-center cursor-pointer">
+                  <i className="ti ti-file-upload" /> Seleccionar archivo (.csv)
+                  <input type="file" accept=".csv,.xlsx,.xls,.ods,.tsv" onChange={handleFile} className="hidden" />
+                </label>
+              },
+            ].map(s => (
+              <div key={s.n} className="flex gap-4 items-start">
+                <div className="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center text-sm font-black flex-shrink-0 mt-0.5">{s.n}</div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 text-sm">{s.title}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.desc}</div>
+                  {s.action}
+                </div>
+              </div>
+            ))}
+            <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,.ods" onChange={handleFile} className="hidden" />
+            {error && <div className="flex items-start gap-2 bg-red-50 text-red-600 text-xs font-semibold px-3 py-2.5 rounded-xl border border-red-100"><i className="ti ti-alert-triangle mt-0.5 flex-shrink-0" />{error}</div>}
+          </div>
+        )}
+
+        {step === 2 && preview && (
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3">
+            {preview.warnings.length > 0 && (
+              <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 flex flex-col gap-0.5">
+                <div className="text-[10px] font-bold text-amber-700">Avisos:</div>
+                {preview.warnings.map((w,i)=><div key={i} className="text-[11px] text-amber-600">{w}</div>)}
+              </div>
+            )}
+            <div className="text-xs font-semibold text-gray-700">{preview.rows.filter(r=>r.staffId).length} empleados listos para importar:</div>
+            <div className="overflow-x-auto rounded-xl border border-black/7">
+              <table className="w-full text-xs">
+                <thead><tr className="bg-gray-50">
+                  <th className="text-left px-3 py-2 font-semibold text-gray-500">Empleado</th>
+                  {DAY_KEYS.map(d=><th key={d} className="px-1.5 py-2 font-semibold text-gray-400 text-center">{d}</th>)}
+                </tr></thead>
+                <tbody className="divide-y divide-black/5">
+                  {preview.rows.map((row,i)=>(
+                    <tr key={i} className={!row.staffId ? 'opacity-35' : ''}>
+                      <td className="px-3 py-2 font-semibold text-gray-800">{row.name}</td>
+                      {DAY_KEYS.map(dk=>(
+                        <td key={dk} className="px-1 py-2 text-center">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${SHIFT_COLOR[row.days[dk]]||'bg-gray-200 text-gray-500'}`}>{(SHIFT_LABEL[row.days[dk]]||'?').slice(0,3)}</span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button onClick={() => { setStep(1); setPreview(null); setError(null); }} className="text-xs text-gray-400 hover:text-brand transition text-center">← Volver y subir otro archivo</button>
+          </div>
+        )}
+
+        <div className="px-5 py-4 border-t border-black/7 flex gap-2 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-black/10 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition">Cancelar</button>
+          {step === 2 && <button onClick={apply} disabled={!preview || preview.rows.filter(r=>r.staffId).length===0} className="flex-1 py-2.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand/90 transition disabled:opacity-40">Aplicar rota ✓</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function StaffModal({ onSave, onClose }) {
   const [f, setF] = useState({ name: '', role: 'Camarera', access: 'Camarero', pin: '' });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -1153,6 +1527,20 @@ function Personal() {
   const [leave, setLeave] = useStore('leave');
   const [clockState, setClockState] = useStore('clockState');
   const [showAdd, setShowAdd] = useState(false);
+  const [profileMember, setProfileMember] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const applyRotaImport = (rows) => {
+    const DAY_ORDER = ['L','M','X','J','V','S','D'];
+    const newRota = { ...rota };
+    let matched = 0;
+    rows.forEach(row => {
+      if (!row.staffId) return;
+      newRota[row.staffId] = DAY_ORDER.map(dk => row.days[dk] || 'off');
+      matched++;
+    });
+    setRota(newRota);
+    toast(matched > 0 ? `Rota importada: ${matched} empleado${matched !== 1 ? 's' : ''} actualizado${matched !== 1 ? 's' : ''}` : 'No se reconoció ningún empleado');
+  };
   const [cellEdit, setCellEdit] = useState(null);
 
   const sel = new Date(D.today); const dow = (sel.getDay() + 6) % 7; const weekStart = new Date(sel); weekStart.setDate(sel.getDate() - dow);
@@ -1194,6 +1582,12 @@ function Personal() {
     toast(name + ' eliminado');
   };
 
+  const saveProfile = (updated) => {
+    setStaff(arr => arr.map(s => s.id === updated.id ? { ...s, ...updated } : s));
+    setProfileMember(null);
+    toast(updated.name.split(' ')[0] + ' actualizado');
+  };
+
   const autoOrganize = () => {
     const prefByRole = (role) => { const r = (role || '').toLowerCase(); return (r.includes('camar') || r.includes('barman') || r.includes('maître') || r.includes('maitre')) ? ['afternoon', 'night'] : ['morning', 'afternoon']; };
     const next = {};
@@ -1215,6 +1609,9 @@ function Personal() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {showAdd && <StaffModal onSave={addStaff} onClose={() => setShowAdd(false)} />}
+      {profileMember && <EmployeeProfile member={profileMember} onSave={saveProfile} onClose={() => setProfileMember(null)} />}
+      {showImport && <RotaImportModal staff={staff} onImport={applyRotaImport} onClose={() => setShowImport(false)} />}
+
       {cellEdit && <ShiftPopover x={cellEdit.x} y={cellEdit.y} current={(rota[cellEdit.sid] || [])[cellEdit.dayIdx]} onPick={(v) => { setCell(cellEdit.sid, cellEdit.dayIdx, v); setCellEdit(null); }} onClose={() => setCellEdit(null)} />}
       <div className="bg-white border-b border-black/7 px-6 py-4 flex items-center justify-between">
         <div>
@@ -1249,9 +1646,14 @@ function Personal() {
                   <div className="font-['Syne'] text-sm font-black text-gray-900">Turnos semanales</div>
                   <div className="text-[10px] text-gray-400 mt-0.5">Pulsa una celda para editar turno, horario o baja · {weekDates[0].getDate()} {MONTHS[weekDates[0].getMonth()].slice(0, 3)} – {weekDates[6].getDate()} {MONTHS[weekDates[6].getMonth()].slice(0, 3)}</div>
                 </div>
-                <button onClick={autoOrganize} className="flex items-center gap-1.5 bg-brand/10 text-brand text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand/20 transition">
-                  <i className="ti ti-wand" /> Auto-organizar
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={autoOrganize} className="flex items-center gap-1.5 bg-brand/10 text-brand text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand/20 transition">
+                    <i className="ti ti-wand" /> Auto-organizar
+                  </button>
+                  <button onClick={() => setShowImport(true)} className="flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-gray-200 transition">
+                    <i className="ti ti-file-upload" /> Importar rota
+                  </button>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -1271,7 +1673,12 @@ function Personal() {
                           </td>
                         ))}
                         <td className="px-4 py-3 text-xs font-semibold text-gray-500 text-right">{totalHours(s.id)}h</td>
-                        <td className="pr-3"><button onClick={() => removeStaff(s.id)} className="w-6 h-6 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100 flex items-center justify-center"><i className="ti ti-trash text-sm" /></button></td>
+                        <td className="pr-3">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                            <button onClick={() => setProfileMember(s)} title="Ver perfil" className="w-6 h-6 rounded-lg text-gray-300 hover:text-brand hover:bg-brand/10 transition flex items-center justify-center"><i className="ti ti-user text-sm" /></button>
+                            <button onClick={() => removeStaff(s.id)} title="Eliminar" className="w-6 h-6 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition flex items-center justify-center"><i className="ti ti-trash text-sm" /></button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1400,4 +1807,4 @@ function Personal() {
   );
 }
 
-Object.assign(window, { Reservas, TPV, Cocina, Personal });
+Object.assign(window, { Reservas, TPV, Cocina, Personal, StaffModal });

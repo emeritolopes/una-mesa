@@ -5,7 +5,7 @@
    survive a full reload. Cross-module reactive (Carta → TPV, etc).
    ───────────────────────────────────────────────────────────── */
 (function () {
-  const KEY  = 'unamesa.store.v7';
+  const KEY  = 'unamesa.store.v8';
   const DKEY = 'unamesa.store.seeddate';
   const D    = window.DATA;
   const todayISO = D.iso(D.today);

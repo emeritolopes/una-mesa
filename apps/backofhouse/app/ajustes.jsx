@@ -117,8 +117,22 @@ const ACCESS = {
 };
 function UsuariosTab() {
   const D = window.DATA;
-  const people = [{ id: 'admin', name: D.admin.name, email: D.admin.email, initials: D.admin.initials, color: '#D8552E', color_bg: '#F6E3DB', access: 'Administrador', role: 'Propietario' }, ...D.staff];
-  const [roles, setRoles] = useState(Object.fromEntries(people.map(p => [p.id, p.access])));
+  const [staff, setStaff] = useStore('staff');
+  const admin = { id: 'admin', name: D.admin.name, email: D.admin.email, initials: D.admin.initials, color: '#D8552E', color_bg: '#F6E3DB', access: 'Administrador', role: 'Propietario' };
+  const people = [admin, ...staff];
+  const [roles, setRoles] = useState(() => Object.fromEntries(people.map(p => [p.id, p.access])));
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const STAFF_COLORS = ['#D8552E','#2B7FC4','#4E944F','#8156A8','#B45309','#0369A1','#DC2626','#0891B2'];
+  const doDelete = (id) => { setStaff(arr => arr.filter(s => s.id !== id)); setConfirmDel(null); toast('Usuario eliminado'); };
+  const doAdd = (f) => {
+    const id = 's' + Date.now();
+    const color = STAFF_COLORS[staff.length % STAFF_COLORS.length];
+    const initials = f.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    setStaff(arr => [...arr, { id, name: f.name, role: f.role, access: f.access, pin: f.pin, initials, color, color_bg: color + '22', email: '' }]);
+    setShowAdd(false);
+    toast(f.name + ' añadido');
+  };
   return (
     <div className="flex flex-col gap-4 max-w-3xl">
       <Card>
@@ -127,7 +141,7 @@ function UsuariosTab() {
             <div className="font-['Syne'] text-sm font-black text-gray-900">Equipo</div>
             <div className="text-[11px] text-gray-400 mt-0.5">{people.length} personas con acceso</div>
           </div>
-          <button onClick={() => toast('Invitación enviada')} className="flex items-center gap-2 bg-brand text-white text-xs font-semibold px-3.5 py-2 rounded-lg hover:bg-brand/90 transition"><i className="ti ti-user-plus" /> Invitar</button>
+          <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 bg-brand text-white text-xs font-semibold px-3.5 py-2 rounded-lg hover:bg-brand/90 transition"><i className="ti ti-user-plus" /> Añadir usuario</button>
         </div>
         <div className="divide-y divide-black/5 -mx-1 mt-2">
           {people.map(p => (
@@ -142,7 +156,10 @@ function UsuariosTab() {
                 className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border-0 outline-none cursor-pointer disabled:opacity-100 ${ACCESS[roles[p.id]]}`}>
                 {['Administrador', 'Encargado', 'Camarero', 'Cocina'].map(a => <option key={a} value={a}>{a}</option>)}
               </select>
-              <button className="text-gray-300 hover:text-gray-600 px-1 disabled:opacity-30" disabled={p.id === 'admin'}><i className="ti ti-dots-vertical" /></button>
+              <button onClick={() => p.id !== 'admin' && setConfirmDel(p)} disabled={p.id === 'admin'}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-300">
+                <i className="ti ti-trash text-sm" />
+              </button>
             </div>
           ))}
         </div>
@@ -163,6 +180,27 @@ function UsuariosTab() {
           ))}
         </div>
       </div>
+      {showAdd && window.StaffModal && <StaffModal onSave={doAdd} onClose={() => setShowAdd(false)} />}
+      {confirmDel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-red-50 px-5 py-4 flex items-center gap-3 border-b border-red-100">
+              <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0"><i className="ti ti-user-minus text-xl" /></div>
+              <div>
+                <div className="font-[\'Syne\'] text-base font-black text-red-700">¿Eliminar usuario?</div>
+                <div className="text-[11px] text-red-400">Esta acción no se puede deshacer</div>
+              </div>
+            </div>
+            <div className="p-5 text-sm text-gray-600 leading-relaxed">
+              Vas a eliminar a <span className="font-semibold text-gray-900">{confirmDel.name}</span> ({confirmDel.role || confirmDel.access}). Perderá el acceso al sistema inmediatamente.
+            </div>
+            <div className="p-5 pt-0 flex gap-2">
+              <button onClick={() => setConfirmDel(null)} className="flex-1 py-2.5 rounded-xl border border-black/10 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition">Cancelar</button>
+              <button onClick={() => doDelete(confirmDel.id)} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition">Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -224,6 +262,95 @@ function FacturacionTab() {
   );
 }
 
+function IntegracionesTab() {
+  const [conns, setConns] = useState({ tpv: false });
+  const [apiVisible, setApiVisible] = useState(false);
+  const [regenConfirm, setRegenConfirm] = useState(false);
+  const [perms, setPerms] = useState({ pedidos: true, mesas: true, carta: false, cocina: false });
+  const API_KEY = 'umk_live_9x4kLmZr83Vp7qT1Yw2Ks6Bne5Ac0Dj3f2a';
+  const maskedKey = 'umk_live_\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' + API_KEY.slice(-4);
+
+  const copy = () => { navigator.clipboard.writeText(API_KEY).catch(()=>{}); toast('Clave copiada al portapapeles'); };
+  const regen = () => { setRegenConfirm(false); toast('Clave API regenerada'); };
+
+  return (
+    <div className="flex flex-col gap-4 max-w-2xl">
+
+      {/* Integrations list */}
+      <Card title="Integraciones" sub="Conecta un sistema TPV externo con tu cuenta de Una Mesa">
+        <div className="flex items-start gap-4 py-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:'#EFF6FF', color:'#2B7FC4' }}>
+            <i className="ti ti-device-desktop text-lg" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-gray-900">TPV de terceros</span>
+              {conns.tpv
+                ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">Conectado</span>
+                : <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">No conectado</span>
+              }
+            </div>
+            <div className="text-[11px] text-gray-400 mt-0.5">Sincroniza pedidos con tu terminal punto de venta externo</div>
+            {conns.tpv && <div className="text-[11px] text-gray-400 mt-0.5"><i className="ti ti-refresh text-[10px] mr-1" />Última sincronización: hace 2 min</div>}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {conns.tpv ? (
+              <>
+                <button onClick={() => toast('Abriendo configuración de TPV')} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-black/10 text-gray-600 hover:bg-gray-50 transition">Gestionar</button>
+                <button onClick={() => { setConns(c=>({...c,tpv:false})); toast('TPV desconectado'); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 hover:bg-red-50 transition">Desconectar</button>
+              </>
+            ) : (
+              <button onClick={() => { setConns(c=>({...c,tpv:true})); toast('TPV conectado'); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-brand text-brand hover:bg-brand/5 transition">Conectar</button>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* API Key */}
+      <Card title="Clave API" sub="Usa esta clave para conectar tu TPV externo con Una Mesa">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 font-mono text-sm bg-gray-50 border border-black/10 rounded-xl px-3 py-2.5 text-gray-700 tracking-wider truncate">
+              {apiVisible ? API_KEY : maskedKey}
+            </div>
+            <button onClick={() => setApiVisible(v => !v)} className="w-9 h-9 rounded-xl border border-black/10 text-gray-500 hover:text-brand hover:border-brand transition flex items-center justify-center flex-shrink-0">
+              <i className={`ti ${apiVisible ? 'ti-eye-off' : 'ti-eye'} text-sm`} />
+            </button>
+            <button onClick={copy} className="w-9 h-9 rounded-xl border border-black/10 text-gray-500 hover:text-brand hover:border-brand transition flex items-center justify-center flex-shrink-0">
+              <i className="ti ti-clipboard text-sm" />
+            </button>
+          </div>
+          <div className="text-[11px] text-gray-400">URL base: <span className="font-mono text-gray-600">https://api.unamesa.co/v1</span></div>
+          <div className="flex items-center justify-between pt-1">
+            {regenConfirm ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-600 font-semibold">¿Seguro? Se invalidará la clave actual.</span>
+                <button onClick={regen} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition">Sí, regenerar</button>
+                <button onClick={() => setRegenConfirm(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-black/10 text-gray-500 hover:bg-gray-50 transition">Cancelar</button>
+              </div>
+            ) : (
+              <button onClick={() => setRegenConfirm(true)} className="text-xs font-semibold text-red-500 hover:text-red-700 transition flex items-center gap-1">
+                <i className="ti ti-refresh text-sm" /> Regenerar clave
+              </button>
+            )}
+            <a href="https://api.unamesa.co/docs" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-brand hover:underline flex items-center gap-1">
+              <i className="ti ti-book text-sm" /> Ver documentación de la API
+            </a>
+          </div>
+        </div>
+      </Card>
+
+      {/* Sync permissions */}
+      <Card title="Permisos de sincronización" sub="Elige qué datos puede leer y escribir el TPV conectado">
+        <Row title="Pedidos" sub="Lectura y escritura de comandas y tickets"><Toggle on={perms.pedidos} onChange={v => setPerms(p=>({...p,pedidos:v}))} /></Row>
+        <Row title="Estado de mesas" sub="Leer y actualizar ocupación en tiempo real"><Toggle on={perms.mesas} onChange={v => setPerms(p=>({...p,mesas:v}))} /></Row>
+        <Row title="Sincronizar carta / menú" sub="Exportar platos, precios y alergenos"><Toggle on={perms.carta} onChange={v => setPerms(p=>({...p,carta:v}))} /></Row>
+        <Row title="Notificaciones de cocina" sub="Recibir eventos de KDS en sistemas externos" last><Toggle on={perms.cocina} onChange={v => setPerms(p=>({...p,cocina:v}))} /></Row>
+      </Card>
+    </div>
+  );
+}
+
 function NotificacionesTab() {
   const [n, setN] = useState({ res: true, cancel: true, kitchen: false, daily: true, stock: true, staff: false });
   const set = (k) => (v) => setN(p => ({ ...p, [k]: v }));
@@ -253,6 +380,7 @@ function Ajustes() {
     { k: 'usuarios', l: 'Usuarios y permisos', i: 'ti-users' },
     { k: 'facturacion', l: 'Facturación', i: 'ti-credit-card' },
     { k: 'notificaciones', l: 'Notificaciones', i: 'ti-bell' },
+    { k: 'integraciones', l: 'Integraciones', i: 'ti-plug-connected' },
   ];
 
   return (
@@ -279,6 +407,7 @@ function Ajustes() {
             {tab === 'usuarios' && <UsuariosTab />}
             {tab === 'facturacion' && <FacturacionTab />}
             {tab === 'notificaciones' && <NotificacionesTab />}
+            {tab === 'integraciones' && <IntegracionesTab />}
           </div>
           {(tab === 'general' || tab === 'impuestos' || tab === 'notificaciones') && (
             <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-black/7 px-6 py-3 flex items-center justify-end gap-2">

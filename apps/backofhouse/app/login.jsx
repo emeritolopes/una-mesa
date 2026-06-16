@@ -1,14 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    Una Mesa — Login (split screen: manager password + staff PIN)
    ───────────────────────────────────────────────────────────── */
-
-function toAppUser(supaUser) {
-  const meta = supaUser.user_metadata || {};
-  const rawName = (meta.name || meta.full_name || supaUser.email.split('@')[0]).trim();
-  const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'U';
-  return { id: supaUser.id, email: supaUser.email, name, initials, role: meta.role || 'Gerente', access: 'manager' };
-}
 function Wordmark({ light }) {
   return (
     <div className={`font-['Syne'] font-black tracking-tight ${light ? 'text-white' : 'text-brand'}`}>
@@ -44,8 +36,8 @@ function BrandPanel() {
             { k: 'Personal', i: 'ti-users' },
           ].map(f => (
             <div key={f.k} className="flex flex-col items-center gap-1.5 text-white/80">
-              <i className={`ti ${f.i} text-2xl`} />
-              <span className="text-[11px] font-medium text-white/80">{f.k}</span>
+              <i className={`ti ${f.i} text-xl`} />
+              <span className="text-[10px] uppercase tracking-wider font-semibold">{f.k}</span>
             </div>
           ))}
         </div>
@@ -67,19 +59,11 @@ function PasswordForm({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  const submit = async (e) => {
+  const submit = (e) => {
     e.preventDefault();
     if (!email.includes('@') || pw.length < 4) { setErr('Revisa tu correo y contraseña.'); return; }
     setErr(''); setLoading(true);
-    try {
-      const sb = window.sb;
-      const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pw });
-      if (error) throw error;
-      onLogin(toAppUser(data.user));
-    } catch (e) {
-      setErr(e.message || 'Correo o contraseña incorrectos.');
-      setLoading(false);
-    }
+    setTimeout(() => onLogin(window.DATA.admin), 650);
   };
 
   return (
@@ -89,7 +73,7 @@ function PasswordForm({ onLogin }) {
         <div className="relative">
           <i className="ti ti-mail absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white shadow-sm outline-none focus:border-brand focus:shadow-md transition"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-black/10 rounded-xl bg-gray-50 outline-none focus:border-brand focus:bg-white transition"
             placeholder="tu@local.es" />
         </div>
       </label>
@@ -102,7 +86,7 @@ function PasswordForm({ onLogin }) {
         <div className="relative">
           <i className="ti ti-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
           <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)}
-            className="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl bg-white shadow-sm outline-none focus:border-brand focus:shadow-md transition"
+            className="w-full pl-9 pr-10 py-2.5 text-sm border border-black/10 rounded-xl bg-gray-50 outline-none focus:border-brand focus:bg-white transition"
             placeholder="••••••••" />
           <button type="button" onClick={() => setShow(s => !s)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -201,20 +185,6 @@ function PinForm({ onLogin }) {
 
 function Login({ onLogin }) {
   const [mode, setMode] = useState('password');
-  const [checking, setChecking] = useState(!!window.sb);
-
-  useEffect(() => {
-    if (!window.sb) return;
-    window.sb.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (session) onLogin(toAppUser(session.user));
-        else setChecking(false);
-      })
-      .catch(() => setChecking(false));
-  }, []);
-
-  if (checking) return null;
-
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-white">
       <BrandPanel />
@@ -229,13 +199,7 @@ function Login({ onLogin }) {
           <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
             {[{ k: 'password', l: 'Contraseña', i: 'ti-lock' }, { k: 'pin', l: 'PIN de equipo', i: 'ti-grid-dots' }].map(t => (
               <button key={t.k} onClick={() => setMode(t.k)}
-                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  mode === t.k
-                    ? t.k === 'pin'
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}>
+                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${mode === t.k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                 <i className={`ti ${t.i}`} />{t.l}
               </button>
             ))}
