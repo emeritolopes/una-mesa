@@ -83,6 +83,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -304,13 +305,60 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     panel = React.createElement(window.RewardsMarket, { spoons, onRedeem });
   }
 
-  const handleDeleteClick = () => {
-    const confirmed = window.confirm('¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es irreversible.');
-    if (confirmed) deleteAccount();
-  };
+  const handleDeleteClick = () => setShowDeleteModal(true);
+
+  const deleteModal = showDeleteModal && React.createElement('div', {
+    style: {
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 999, padding: '16px'
+    }
+  },
+    React.createElement('div', {
+      style: {
+        background: '#fff', borderRadius: '20px', padding: '28px 24px',
+        maxWidth: '340px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
+      }
+    },
+      React.createElement('div', {
+        style: { width: 44, height: 44, borderRadius: '12px', background: '#FEE2E2',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }
+      },
+        React.createElement('i', { className: 'ti ti-trash', style: { color: '#EF4444', fontSize: 20 } })
+      ),
+      React.createElement('h3', {
+        style: { fontWeight: 800, fontSize: 16, color: '#111', marginBottom: 8 }
+      }, '¿Eliminar tu cuenta?'),
+      React.createElement('p', {
+        style: { fontSize: 13, color: '#6B7280', lineHeight: 1.6, marginBottom: 24 }
+      }, 'Esta acción es irreversible. Se eliminarán todos tus datos personales. Tus reservas pasadas quedarán anonimizadas.'),
+      React.createElement('div', { style: { display: 'flex', gap: 10 } },
+        React.createElement('button', {
+          onClick: () => setShowDeleteModal(false),
+          style: {
+            flex: 1, padding: '12px', borderRadius: '12px',
+            border: '1.5px solid #E5E7EB', background: '#fff',
+            fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
+          }
+        }, 'Cancelar'),
+        React.createElement('button', {
+          onClick: deleteAccount,
+          disabled: deleting,
+          style: {
+            flex: 1, padding: '12px', borderRadius: '12px',
+            border: 'none', background: '#EF4444',
+            fontSize: 13, fontWeight: 700, color: '#fff',
+            cursor: deleting ? 'not-allowed' : 'pointer',
+            opacity: deleting ? 0.6 : 1
+          }
+        }, deleting ? 'Eliminando...' : 'Sí, eliminar')
+      )
+    )
+  );
 
   return React.createElement(React.Fragment, null,
     cancelModal,
+    deleteModal,
     React.createElement('div', { className:'view' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'prof-hero' },
