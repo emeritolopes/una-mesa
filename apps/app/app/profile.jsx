@@ -185,19 +185,30 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const deleteAccount = async () => {
     setDeleting(true);
     try {
-      const session = await window.UMAuth.sb.auth.getSession();
-      const token = session.data.session?.access_token;
+      const { data: { session } } = await window.UMAuth.sb.auth.getSession();
+
+      if (!session?.access_token) {
+        console.error('No hay sesión activa');
+        setDeleting(false);
+        return;
+      }
+
       const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/delete-account', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s'
         }
       });
+
       if (res.ok) {
         await window.UMAuth.sb.auth.signOut();
         localStorage.clear();
         window.location.href = '/';
+      } else {
+        const err = await res.json();
+        console.error('Error:', err);
       }
     } catch(e) {
       console.error('Error eliminando cuenta:', e);
