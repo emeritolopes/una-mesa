@@ -48,6 +48,7 @@ Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets
 - **Dates**: always use `toLocaleDateString('en-CA')` (→ `YYYY-MM-DD` in local timezone). Never use `toISOString().split('T')[0]` — that returns UTC, which shifts the date in Spain (UTC+2).
 - **Deposit amounts**: stored in Supabase as **cents** (`deposit_amount` column). Divide by 100 for display. Send cents directly to Stripe edge functions.
 - **Reservation status**: raw Supabase statuses are `'confirmed'`, `'pending'`, `'cancelled'`. The consumer app maps these to internal `'up'`/`'past'` for UI rendering — always use `rawStatus` or `r.status` directly for business logic.
+- **Customer profiles**: the `customers` table (`id`, `venue_id`, `name`, `email`, `phone`, `allergies[]`, `notes`, `visits`, `last_visit`, `vip`) is linked to `reservations` via `customer_id` FK. The `upsert-customer` function maintains this on every reservation creation. In backofhouse `modules.jsx`, the customer profile loads when a reservation with a non-null `customer_id` is selected.
 
 ## Supabase Edge Functions
 
@@ -58,12 +59,24 @@ Functions live in `supabase/functions/` and run on Deno. Each function is a stan
 | `stripe-payment` | Create Stripe PaymentIntent (manual capture, `capture_method: 'manual'`) |
 | `stripe-capture` | Capture a previously created PaymentIntent |
 | `stripe-refund` | Cancel (`requires_capture`) or refund (`succeeded`) a PaymentIntent |
+| `stripe-payment-link` | Create a Stripe Payment Link for a reservation (used by `vapi-reservation`) |
+| `stripe-webhook` | Handle Stripe webhook events (payment captured/refunded → update reservation status) |
 | `send-email` | Send reservation confirmation HTML email via Resend |
 | `send-cancellation-email` | Send cancellation HTML email via Resend |
 | `update-reservation` | Patch reservation status in DB (only `'cancelled'` is allowed) |
-| `concierge` | AI restaurant assistant powered by Anthropic Claude API |
+| `upsert-customer` | Create or update a customer profile in the `customers` table; called after every reservation (web + phone) |
+| `vapi-availability` | Vapi tool webhook — checks hardcoded lunch/dinner slots; no DB calls (avoids Vapi's 20s timeout) |
+| `vapi-reservation` | Vapi tool webhook — creates reservation, calls `upsert-customer`, optionally sends payment link + email |
+| `concierge` | Agentic AI concierge (Anthropic Claude); tools: `check_availability`, `create_reservation`, `start_reservation` |
 
 All edge functions run with `verify_jwt = false` — they accept unauthenticated requests and rely on input validation instead.
+
+**Vapi webhook security:** `vapi-availability` and `vapi-reservation` verify an `x-vapi-secret` header against the `VAPI_WEBHOOK_SECRET` env var. The guard is `if (expectedSecret && secret !== expectedSecret)` — a no-op until the secret is set, so it's safe to deploy before configuring Vapi.
+
+```bash
+supabase secrets set VAPI_WEBHOOK_SECRET=<hex-secret>
+# Also add x-vapi-secret header in Vapi dashboard → Assistants → Tools → Server Headers
+```
 
 **Local edge function development:**
 ```bash
@@ -116,7 +129,12 @@ Always call `setItems(data || [])` on success — an empty result must update st
 
 **Consumer app** (`apps/app/app/app.jsx`): `route` state object with a `view` string — `'home'`, `'results'`, `'detail'`, `'booking'`, `'concierge'`, `'profile'`. Navigate with `setRoute(...)` helpers (`go`, `openRest`, `search`, etc.). No React Router. Route state is persisted to `sessionStorage` (not localStorage) so it survives same-tab refreshes but resets on new tabs; `'profile'` view is intentionally reset to `'home'` on reload.
 
-**Unloaded files in consumer app:** `apps/app/app/` contains several files (`ajustes.jsx`, `carta.jsx`, `floorplan.jsx`, `informes.jsx`, `panel.jsx`, `stock.jsx`, `store.js`) that are **not** referenced in `apps/app/index.html` — they are not active in the consumer app.
+**Consumer app script load order** (`apps/app/index.html`): `data.js` → `auth.js` → `components.jsx` → `home.jsx` → `results.jsx` → `detail.jsx` → `booking.jsx` → `concierge.jsx` → `reserve-auth.jsx` → `profile-extras.jsx` → `profile.jsx` → `app.jsx`
+
+- `reserve-auth.jsx` — pre-booking auth gate (sign up / guest / sign in flow + `ClaimSpoonsModal`)
+- `profile-extras.jsx` — Pasaporte Gastronómico, Paladar IA, and Mercado de Cucharas tabs inside the profile view
+
+**Unloaded files in consumer app:** `apps/app/app/` contains several files that are **not** referenced in `apps/app/index.html` — they are not active in the consumer app: `ajustes.jsx`, `carta.jsx`, `floorplan.jsx`, `informes.jsx`, `login.jsx`, `modules.jsx`, `panel.jsx`, `shell.jsx`, `stock.jsx`, `store.js`, `ui.jsx`.
 
 **Backofhouse** (`apps/backofhouse/app/shell.jsx`): `view` string — `'panel'`, `'reservas'`, `'tpv'`, `'cocina'`, `'carta'`, `'stock'`, `'personal'`, `'informes'`, `'ajustes'`. Persisted to `localStorage` as `'unamesa.view'`. Navigate via `go(viewName)`.
 
