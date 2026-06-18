@@ -30,9 +30,10 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
   const [password, setPassword] = useState('');
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const [info,     setInfo]     = useState('');
 
   /* clear transient state when switching views */
-  const switchView = v => { setError(''); setPassword(''); setView(v); };
+  const switchView = v => { setError(''); setInfo(''); setPassword(''); setView(v); };
 
   const finishAccount = appUser => onAccount(appUser);
 
@@ -66,23 +67,41 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
 
   const submitSignin = async e => {
     e.preventDefault();
+    setError(''); setInfo('');
     if (!window.UMAuth) {
-      finishAccount({ name: (email.split('@')[0] || 'Comensal'), email: email.trim() });
+      setError('Error de conexión. Por favor recarga la página.');
       return;
     }
-    setError(''); setLoading(true);
+    setLoading(true);
     try {
-      const appUser = await window.UMAuth.signIn(email.trim().toLowerCase(), password);
+      const appUser = await window.UMAuth.signIn(email.trim(), password);
       finishAccount(appUser);
     } catch (err) {
       const msg = err.message || '';
-      setError(
-        /not confirmed/i.test(msg)
-          ? 'Confirma tu email antes de iniciar sesión.'
-          : (msg || 'Correo o contraseña incorrectos.')
-      );
-    } finally {
-      setLoading(false);
+      if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
+        setError('Email o contraseña incorrectos.');
+      } else if (msg.includes('not confirmed') || msg.includes('Email not confirmed')) {
+        setError('Confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
+      } else {
+        setError('Error al iniciar sesión. Inténtalo de nuevo.');
+      }
+    }
+    setLoading(false);
+  };
+
+  const resetPassword = async () => {
+    if (!email.trim()) {
+      setError('Introduce tu email para resetear la contraseña.');
+      return;
+    }
+    try {
+      await window.UMAuth.sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'https://app.unamesa.co/#reset-password'
+      });
+      setError('');
+      setInfo('Te hemos enviado un email para resetear tu contraseña.');
+    } catch(e) {
+      setError('Error al enviar el email de reseteo.');
     }
   };
 
@@ -135,8 +154,13 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
           React.createElement('label', null, 'Contraseña'),
           React.createElement('input', { type:'password', value:password, onChange:e=>setPassword(e.target.value), placeholder:'••••••••', required:true, disabled:loading })),
         ErrMsg,
+        info && React.createElement('p', { style:{ color:'#16a34a', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 } }, info),
         React.createElement('button', { className:'btn btn-acc btn-block btn-lg', type:'submit', style:{marginTop:'12px'}, disabled:loading },
-          loading ? 'Iniciando sesión…' : 'Iniciar sesión'))
+          loading ? 'Iniciando sesión…' : 'Iniciar sesión'),
+        React.createElement('button', {
+          type:'button', onClick:resetPassword,
+          style:{ background:'none', border:'none', color:'#D8552E', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
+        }, '¿Olvidaste tu contraseña?'))
     );
 
   /* ---- CREAR CUENTA ---- */
