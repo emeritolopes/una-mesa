@@ -83,7 +83,6 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -305,31 +304,13 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     panel = React.createElement(window.RewardsMarket, { spoons, onRedeem });
   }
 
-  const deleteModal = showDeleteModal && React.createElement('div', {
-    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }
-  },
-    React.createElement('div', { style: { background: '#fff', borderRadius: '16px', padding: '24px', maxWidth: '384px', width: '100%' } },
-      React.createElement('h3', { style: { fontWeight: 700, color: '#111827', margin: '0 0 8px', fontSize: '18px' } }, '¿Eliminar tu cuenta?'),
-      React.createElement('p', { style: { fontSize: '14px', color: '#6B7280', marginBottom: '24px' } },
-        'Esta acción es irreversible. Se eliminarán todos tus datos personales. Tus reservas pasadas quedarán anonimizadas.'
-      ),
-      React.createElement('div', { style: { display: 'flex', gap: '12px' } },
-        React.createElement('button', {
-          onClick: () => setShowDeleteModal(false),
-          style: { flex: 1, padding: '10px 0', border: '1px solid #E5E7EB', borderRadius: '12px', fontSize: '14px', fontWeight: 500, color: '#4B5563', background: 'white', cursor: 'pointer' }
-        }, 'Cancelar'),
-        React.createElement('button', {
-          onClick: deleteAccount,
-          disabled: deleting,
-          style: { flex: 1, padding: '10px 0', background: '#EF4444', color: 'white', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.5 : 1 }
-        }, deleting ? 'Eliminando...' : 'Sí, eliminar')
-      )
-    )
-  );
+  const handleDeleteClick = () => {
+    const confirmed = window.confirm('¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es irreversible.');
+    if (confirmed) deleteAccount();
+  };
 
   return React.createElement(React.Fragment, null,
     cancelModal,
-    deleteModal,
     React.createElement('div', { className:'view' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'prof-hero' },
@@ -352,7 +333,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         React.createElement('div', { style: { marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #FEE2E2' } },
           React.createElement('p', { style: { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' } }, 'Zona de peligro'),
           React.createElement('button', {
-            onClick: () => setShowDeleteModal(true),
+            onClick: handleDeleteClick,
             style: { fontSize: '14px', color: '#EF4444', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }
           }, 'Eliminar mi cuenta')
         )
