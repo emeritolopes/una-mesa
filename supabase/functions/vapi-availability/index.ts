@@ -12,14 +12,6 @@ const ALL_TIMES = [...LUNCH_TIMES, ...DINNER_TIMES];
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  // Verificar secreto compartido con Vapi
-  const vapiSecret = req.headers.get('x-vapi-secret') || '';
-  const expectedSecret = Deno.env.get('VAPI_WEBHOOK_SECRET') || '';
-  if (expectedSecret && vapiSecret !== expectedSecret) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: corsHeaders });
-  }
-
   try {
     const url = new URL(req.url);
     const bodyText = await req.text();
