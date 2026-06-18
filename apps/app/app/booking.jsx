@@ -34,6 +34,10 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const [payLoading, setPayLoading] = useState(false);
   const [payError,   setPayError]   = useState('');
   const [postalCode, setPostalCode] = useState('');
+  const [guestName,  setGuestName]  = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [showGuestForm, setShowGuestForm] = useState(false);
   const cardNumberRef = useRef(null); // DOM div for Stripe cardNumber element
   const cardExpiryRef = useRef(null); // DOM div for Stripe cardExpiry element
   const cardCvcRef    = useRef(null); // DOM div for Stripe cardCvc element
@@ -183,8 +187,9 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           const savedReservation = await window.UMAuth.saveReservation({
             venue_id:          r.id,
             user_id:           user?.id || null,
-            customer_name:     user ? (user.name || user.email) : 'Invitado',
-            customer_phone:    null,
+            customer_name:     user ? (user.name || user.email) : guestName,
+            customer_phone:    user ? null : guestPhone || null,
+            customer_email:    user ? (user.email || null) : guestEmail || null,
             pax:               party,
             date:              dateStr,
             time:              time,
@@ -194,15 +199,18 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           });
 
           // Crear/actualizar perfil del cliente — non-fatal
-          if (user?.email || user?.name) {
+          const ucName  = user ? (user.name || user.email) : guestName;
+          const ucEmail = user ? (user.email || null) : guestEmail || null;
+          const ucPhone = user ? null : guestPhone || null;
+          if (ucName || ucEmail) {
             try {
               await window.UMAuth.sb.functions.invoke('upsert-customer', {
                 body: {
                   venue_id:       r.id,
                   reservation_id: savedReservation?.id || null,
-                  customer_name:  user.name || user.email,
-                  customer_phone: null,
-                  customer_email: user.email || null,
+                  customer_name:  ucName,
+                  customer_phone: ucPhone,
+                  customer_email: ucEmail,
                 }
               });
             } catch(e) { console.warn('upsert-customer:', e.message); }
@@ -213,7 +221,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       }
 
       /* 4 · Send confirmation email — non-fatal */
-      const recipientEmail = user && user.email;
+      const recipientEmail = user ? user.email : guestEmail;
       if (recipientEmail) {
         const dayLabel = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
         fetch(SUPA_EMAIL_FUNC, {
@@ -221,7 +229,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
           body: JSON.stringify({
             to:              recipientEmail,
-            customer_name:   user.name || user.email,
+            customer_name:   user ? (user.name || user.email) : guestName,
             restaurant_name: r.name,
             date:            dayLabel,
             time:            time,
@@ -241,8 +249,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     }
   };
 
-  const confirm = () => {
-    if (!user) { requireAuth(()=>stripeConfirm()); return; }
+  const handleConfirm = () => {
+    if (!user && (!guestEmail || !guestName)) {
+      setShowGuestForm(true);
+      return;
+    }
     stripeConfirm();
   };
 
@@ -465,14 +476,14 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           className:'btn btn-acc',
           style:{flex:1},
           disabled: expired || payLoading,
-          onClick: confirm
+          onClick: handleConfirm
         },
           payLoading ? React.createElement(React.Fragment, null,
             React.createElement('span', { style:{opacity:.7} }, 'Procesando…')
           ) :
           expired ? 'Tiempo agotado' :
           user    ? ('Pagar '+deposit+'€ y reservar') :
-                    'Iniciar sesión y reservar'
+                    'Continuar como invitado'
         ))
     );
 
@@ -512,7 +523,57 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     );
   }
 
+  const guestForm = showGuestForm && React.createElement('div', {
+    style: {
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 999, padding: 16
+    }
+  },
+    React.createElement('div', {
+      style: { background: '#fff', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%' }
+    },
+      React.createElement('h3', { style: { fontWeight: 800, fontSize: 17, marginBottom: 6, marginTop: 0 } }, 'Datos para tu reserva'),
+      React.createElement('p', { style: { fontSize: 13, color: '#6B7280', marginBottom: 20 } },
+        'Necesitamos tus datos para enviarte la confirmación y el link de pago del depósito.'
+      ),
+      React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
+        React.createElement('input', {
+          type: 'text', placeholder: 'Nombre completo *', value: guestName,
+          onChange: e => setGuestName(e.target.value),
+          style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
+        }),
+        React.createElement('input', {
+          type: 'email', placeholder: 'Email *', value: guestEmail,
+          onChange: e => setGuestEmail(e.target.value),
+          style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
+        }),
+        React.createElement('input', {
+          type: 'tel', placeholder: 'Teléfono (opcional)', value: guestPhone,
+          onChange: e => setGuestPhone(e.target.value),
+          style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
+        }),
+        React.createElement('button', {
+          onClick: () => {
+            if (!guestName.trim() || !guestEmail.trim()) return;
+            setShowGuestForm(false);
+            stripeConfirm();
+          },
+          style: {
+            padding: '14px', borderRadius: 12, background: '#D8552E',
+            color: '#fff', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', marginTop: 4
+          }
+        }, 'Confirmar reserva'),
+        React.createElement('button', {
+          onClick: () => setShowGuestForm(false),
+          style: { background: 'none', border: 'none', color: '#9CA3AF', fontSize: 13, cursor: 'pointer' }
+        }, 'Cancelar')
+      )
+    )
+  );
+
   return React.createElement('div', { className:'view' },
+    guestForm,
     React.createElement('div', { className:'booking' },
       step < 4 ? Steps : null,
       React.createElement('div',{className:'bk-card'}, step<4 ? RestRow : null, body)
