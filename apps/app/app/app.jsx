@@ -159,6 +159,11 @@ function App() {
     setReserveGate(false);
     const cb = pendingRef.current; pendingRef.current=null;
     if (cb) cb();
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#profile' && !user) {
+        window.location.hash = '#home';
+      }
+    }, { once: true });
     setTimeout(()=>setClaimOpen(true), 400);
   };
   const claimCreate = () => {
@@ -190,10 +195,10 @@ function App() {
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')
     screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, presetDate:route.presetDate, back:()=>go('home'), user, requireAuth, onConfirm });
-  else if (route.view==='profile')
-    screen = !user
-      ? React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation })
-      : React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
+  else if (route.view==='profile') {
+    if (!user) { go('home'); screen = null; }
+    else screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
+  }
 
   return React.createElement('div', { className:'app' },
     React.createElement(window.Header, {
