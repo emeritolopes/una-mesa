@@ -37,11 +37,18 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
 
   const finishAccount = appUser => onAccount(appUser);
 
+  const signInWithGoogle = async () => {
+    await window.UMAuth.sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: 'https://app.unamesa.co/#profile' }
+    });
+  };
+
   const submitSignup = async e => {
     e.preventDefault();
-    /* fallback to demo mode if Supabase is not loaded */
     if (!window.UMAuth) {
-      finishAccount({ name: (name.trim() || email.split('@')[0] || 'Comensal'), email: email.trim() });
+      setError('Error de conexión. Por favor recarga la página.');
+      setLoading(false);
       return;
     }
     setError(''); setLoading(true);
@@ -143,7 +150,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
       React.createElement('button', { className:'rb-back', onClick:()=>switchView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
       React.createElement('h2', null, 'Iniciar sesión'),
       React.createElement('p', { className:'msub' }, 'Bienvenido de nuevo — inicia sesión para sumar tus Cucharas de Oro.'),
-      React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:()=>finishAccount({name:'Tú',email:'tu@gmail.com'}) },
+      React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:signInWithGoogle },
         React.createElement(Icon,{name:'google'}), 'Continuar con Google'),
       React.createElement('div', { className:'divider' }, 'o con tu correo'),
       React.createElement('form', { onSubmit:submitSignin },
@@ -168,7 +175,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
     React.createElement('button', { className:'rb-back', onClick:()=>switchView('intro') }, React.createElement(Icon,{name:'chevL'}), 'Atrás'),
     React.createElement('h2', null, 'Crear cuenta gratis'),
     React.createElement('p', { className:'msub' }, 'Únete gratis y empieza a ganar Cucharas de Oro con esta reserva.'),
-    React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:()=>finishAccount({name:'Tú',email:'tu@gmail.com'}) },
+    React.createElement('button', { className:'sso-btn', style:{marginBottom:'16px'}, onClick:signInWithGoogle },
       React.createElement(Icon,{name:'google'}), 'Continuar con Google'),
     React.createElement('div', { className:'divider' }, 'o con tu correo'),
     React.createElement('form', { onSubmit:submitSignup },
