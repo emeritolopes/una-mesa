@@ -8,28 +8,35 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization') || '';
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const { email } = await req.json();
 
-    // Verificar que el usuario está autenticado
-    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: { 'Authorization': authHeader, 'apikey': anonKey }
-    });
-    const userData = await userRes.json();
-
-    if (!userRes.ok || !userData.id) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: corsHeaders });
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email requerido' }),
+        { status: 400, headers: corsHeaders });
     }
 
-    const userId = userData.id;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const headers = {
       'apikey': serviceKey,
       'Authorization': `Bearer ${serviceKey}`,
       'Content-Type': 'application/json'
     };
+
+    // Buscar usuario por email
+    const usersRes = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
+      { headers }
+    );
+    const usersData = await usersRes.json();
+    const user = usersData.users?.[0];
+
+    if (!user?.id) {
+      return new Response(JSON.stringify({ success: true, local_only: true }),
+        { headers: corsHeaders });
+    }
+
+    const userId = user.id;
 
     // 1. Anonimizar reservas (no eliminar — el restaurante las necesita)
     await fetch(`${supabaseUrl}/rest/v1/reservations?user_id=eq.${userId}`, {
@@ -52,7 +59,7 @@ Deno.serve(async (req) => {
     // 3. Eliminar usuario de auth
     await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
       method: 'DELETE',
-      headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` }
+      headers
     });
 
     return new Response(JSON.stringify({ success: true }), {
