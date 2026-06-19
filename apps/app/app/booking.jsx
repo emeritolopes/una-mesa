@@ -105,14 +105,15 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
 
-  // Filtra slots pasados si la fecha seleccionada es hoy
+  // Filtra slots pasados si la fecha seleccionada es hoy (timezone Madrid)
   const selectedDate = day
     ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`
     : todayStr;
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const passFilter = ([t]) => { const [h,m] = t.split(':').map(Number); return (h*60+m) > currentMinutes+30; };
-  const isToday = selectedDate === todayStr;
+  const nowMadrid = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+  const madridMinutes = nowMadrid.getHours() * 60 + nowMadrid.getMinutes();
+  const todayMadrid = nowMadrid.toLocaleDateString('en-CA');
+  const isToday = selectedDate === todayMadrid;
+  const passFilter = ([t]) => { const [h,m] = t.split(':').map(Number); return (h*60+m) > madridMinutes+30; };
   const filteredLunch  = isToday ? (r.times.lunch ||[]).filter(passFilter) : (r.times.lunch ||[]);
   const filteredDinner = isToday ? (r.times.dinner||[]).filter(passFilter) : (r.times.dinner||[]);
   const filteredTimes  = [...filteredLunch, ...filteredDinner];
@@ -252,6 +253,13 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const handleConfirm = () => {
     if (!user && (!guestEmail || !guestName)) {
       setShowGuestForm(true);
+      return;
+    }
+    // Validar que la fecha y hora no son en el pasado
+    const nowCheck = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+    const requestedDT = new Date(`${selectedDate}T${(time||'').slice(0,5)}:00`);
+    if (requestedDT < nowCheck) {
+      setPayError('No puedes reservar para una hora que ya ha pasado. Por favor elige una hora futura.');
       return;
     }
     stripeConfirm();
