@@ -25,6 +25,16 @@ Deno.serve(async (req) => {
     const { venue_id: bodyVenueId, date, time, party_size, customer_name, customer_phone, customer_email, special_requests } = params;
     const venue_id = bodyVenueId || url.searchParams.get('venue_id');
 
+    // Verificar que la fecha y hora no son en el pasado
+    const nowMadrid = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+    const requestedDT = new Date(`${date}T${time}:00`);
+
+    if (requestedDT < nowMadrid) {
+      return new Response(JSON.stringify({
+        result: `No puedo crear la reserva para las ${time} del ${date} porque esa hora ya ha pasado. Por favor elige una hora futura.`
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
