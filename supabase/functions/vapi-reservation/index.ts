@@ -63,77 +63,41 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Crear/actualizar perfil del cliente — non-fatal
-    try {
-      const ucRes = await fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
+    // Devolver respuesta a Vapi INMEDIATAMENTE después del insert
+    const response = new Response(JSON.stringify({
+      result: `Reserva confirmada exitosamente para ${customer_name}, ${party_size} personas el ${date} a las ${time}. ID: ${reservation[0]?.id?.slice(0,8).toUpperCase()}.`
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    // Fire-and-forget — no bloquean la respuesta a Vapi
+    fetch(`${supabaseUrl}/functions/v1/upsert-customer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+      body: JSON.stringify({ venue_id, reservation_id: reservation[0].id, customer_name, customer_phone, customer_email })
+    }).catch(() => {});
+
+    if (customer_email) {
+      fetch(`${supabaseUrl}/functions/v1/stripe-payment-link`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
         body: JSON.stringify({
-          venue_id,
           reservation_id: reservation[0].id,
           customer_name,
-          customer_phone: customer_phone || null,
-          customer_email: customer_email || null,
+          restaurant_name: 'El Bodegón Central',
+          date, time, party_size,
+          deposit_amount_cents: 1500
         })
-      });
-      const ucData = await ucRes.json();
-      console.log('[UPSERT-CUSTOMER]', ucRes.status, JSON.stringify(ucData));
-    } catch(e) {
-      console.warn('[UPSERT-CUSTOMER ERROR]', e instanceof Error ? e.message : String(e));
+      }).then(pl => pl.json()).then(pl => {
+        if (pl.url) {
+          fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
+            body: JSON.stringify({ to: customer_email, customer_name, restaurant_name: 'El Bodegón Central', date, time, pax: party_size, deposit_amount: 1500, payment_link: pl.url })
+          }).catch(() => {});
+        }
+      }).catch(() => {});
     }
 
-    // Generar Payment Link y enviar email — non-fatal
-    if (customer_email) {
-      try {
-        // Obtener deposit_amount del venue
-        const venueRes = await fetch(
-          `${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=name,deposit_amount`,
-          { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
-        );
-        const venues = await venueRes.json();
-        const depositCents = venues[0]?.deposit_amount || 1000;
-        const venueName = venues[0]?.name || 'El Bodegón Central';
-        const totalDeposit = depositCents * party_size;
-
-        // Crear Payment Link
-        const plRes = await fetch(`${supabaseUrl}/functions/v1/stripe-payment-link`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
-          body: JSON.stringify({
-            reservation_id: reservation[0].id,
-            customer_name,
-            restaurant_name: venueName,
-            date,
-            time,
-            party_size,
-            deposit_amount_cents: totalDeposit
-          })
-        });
-        const pl = await plRes.json();
-
-        // Enviar email con Payment Link
-        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
-          body: JSON.stringify({
-            to: customer_email,
-            customer_name,
-            restaurant_name: venueName,
-            date,
-            time,
-            pax: party_size,
-            deposit_amount: totalDeposit,
-            payment_link: pl.url || null
-          })
-        });
-      } catch(e) {
-        console.warn('payment link error:', e);
-      }
-    }
-
-    return new Response(JSON.stringify({
-      result: `Reserva confirmada exitosamente para ${customer_name}, ${party_size} personas el ${date} a las ${time}. ID: ${reservation[0]?.id?.slice(0,8).toUpperCase()}.`
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return response;
 
   } catch (err) {
     return new Response(JSON.stringify({
