@@ -316,17 +316,25 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       React.createElement('div',{className:'dow-row'},
         ['L','M','X','J','V','S','D'].map(d=>React.createElement('span',{key:d},d))),
       React.createElement('div',{className:'daygrid'},
-        days.slice(0,14).map((d,i)=>{
-          const dow = d.getDay();
-          const isSel = day && d.toDateString()===day.toDateString();
-          return React.createElement('div',{
-            key:i,
-            className:'daycell'+(isSel?' on':''),
-            onClick:()=>{ setDay(d); goStep(1); }
-          },
-            React.createElement('span',{className:'dn'}, d.getDate()),
-            React.createElement('span',{className:'dw'}, dows[dow]));
-        })),
+        (() => {
+          const firstDow = days[0].getDay();
+          const offset = (firstDow + 6) % 7;
+          const blanks = Array.from({ length: offset }, (_, i) =>
+            React.createElement('div', { key: 'b' + i, style: { visibility: 'hidden' } })
+          );
+          return [...blanks, ...days.slice(0,14).map((d,i)=>{
+            const dow = d.getDay();
+            const isSel = day && d.toDateString()===day.toDateString();
+            return React.createElement('div',{
+              key:i,
+              className:'daycell'+(isSel?' on':''),
+              onClick:()=>{ setDay(d); goStep(1); }
+            },
+              React.createElement('span',{className:'dn'}, d.getDate()),
+              React.createElement('span',{className:'dw'}, dows[dow]));
+          })];
+        })()
+      ),
       React.createElement('div',{className:'bk-actions'},
         React.createElement('button',{className:'btn btn-ghost',onClick:back},'Cancelar'),
         React.createElement('button',{className:'btn btn-acc',disabled:!day,onClick:()=>goStep(1)},'Continuar'))
