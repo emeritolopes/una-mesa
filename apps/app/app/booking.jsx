@@ -6,11 +6,10 @@ const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
 const SUPA_EMAIL_FUNC= SUPA_BASE + '/send-email';
 const SUPA_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
-/* Fecha de hoy YYYY-MM-DD en zona local — evita el retroceso de día de toISOString() (UTC) en España */
-const todayStr = (() => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-})();
+const nowMadrid = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+const madridMinutes = nowMadrid.getHours() * 60 + nowMadrid.getMinutes();
+const todayMadrid = `${nowMadrid.getFullYear()}-${String(nowMadrid.getMonth()+1).padStart(2,'0')}-${String(nowMadrid.getDate()).padStart(2,'0')}`;
+const todayStr = todayMadrid;
 
 function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, requireAuth, onConfirm }) {
   const data = window.UM_DATA;
@@ -109,9 +108,6 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const selectedDate = day
     ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`
     : todayStr;
-  const nowMadrid = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
-  const madridMinutes = nowMadrid.getHours() * 60 + nowMadrid.getMinutes();
-  const todayMadrid = nowMadrid.toLocaleDateString('en-CA');
   const isToday = selectedDate === todayMadrid;
   const passFilter = ([t]) => { const [h,m] = t.split(':').map(Number); return (h*60+m) > madridMinutes+30; };
   const filteredLunch  = isToday ? (r.times.lunch ||[]).filter(passFilter) : (r.times.lunch ||[]);
