@@ -36,6 +36,7 @@ const NAV_GROUPS = [
     { to: 'stock', icon: 'ti-building-warehouse', label: 'Inventario' },
     { to: 'personal', icon: 'ti-users', label: 'Personal' },
     { to: 'informes', icon: 'ti-chart-bar', label: 'Informes' },
+    { to: 'analytics', icon: 'ti-chart-dots', label: 'Analytics' },
   ] },
 ];
 
@@ -106,6 +107,7 @@ const SCREENS = {
   stock: () => <Stocktake />,
   personal: () => <Personal />,
   informes: () => <Informes />,
+  analytics: () => <Analytics />,
   ajustes: () => <Ajustes />,
 };
 
