@@ -216,7 +216,7 @@ function App() {
       onAccount:gateCreateAccount, onGuest:gateGuest }) : null,
     claimOpen ? React.createElement(window.ClaimSpoonsModal, {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
-    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'Vigo' : geo.label, initialMode:authOpen }) : null,
+    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'España' : geo.label, initialMode:authOpen }) : null,
     React.createElement(window.Toast, { msg:toast })
   );
 }

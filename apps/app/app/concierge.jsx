@@ -104,8 +104,8 @@ function templatedReply(intent, picks){
   else if (intent.time) bits.push('para ' + intent.time==='noche'?'cenar':'comer');
   const otherCity = intent.city && intent.city !== 'vigo';
   let head;
-  if (otherCity) head = 'De momento operamos en Vigo, así que te muestro lo mejor de aquí que encaja con lo que buscas';
-  else head = bits.length ? ('Perfecto — busco ' + bits.join(', ')) : 'He buscado entre los mejores de Vigo';
+  if (otherCity) head = 'De momento no operamos en esa ciudad, así que te muestro lo mejor de aquí que encaja con lo que buscas';
+  else head = bits.length ? ('Perfecto — busco ' + bits.join(', ')) : 'He buscado entre los mejores restaurantes';
   const names = picks.slice(0,3).map(r=>r.name).join(', ');
   return head + '. Estas son mis recomendaciones: ' + names + '.';
 }
@@ -113,7 +113,7 @@ function templatedReply(intent, picks){
 /* ════ Conserje screen · Stitch dark redesign ════ */
 function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, go, user }){
   const [msgs, setMsgs] = useState([
-    { who:'ai', text:'¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta en Vigo.' }
+    { who:'ai', text:'¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta.' }
   ]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);

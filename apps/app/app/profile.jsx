@@ -37,7 +37,7 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
         React.createElement('input',{type:'password',placeholder:'••••••••',required:true})),
       isSignup?React.createElement('div',{className:'field'},
         React.createElement('label',null,'Ubicación'),
-        React.createElement('input',{value:loc,onChange:e=>setLoc(e.target.value),placeholder:'Tu ciudad o barrio (p. ej. Vigo)'})):null,
+        React.createElement('input',{value:loc,onChange:e=>setLoc(e.target.value),placeholder:'Tu ciudad o barrio (p. ej. Alicante)'})):null,
       isSignup?React.createElement('div',{className:'field'},
         React.createElement('label',null,'Preferencias culinarias'),
         React.createElement('div',{className:'pref-chips'},
