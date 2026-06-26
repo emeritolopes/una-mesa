@@ -373,7 +373,36 @@ function Ajustes() {
   const D = window.DATA;
   const [tab, setTab] = useState('general');
   const [v, setV] = useState({ ...D.venue });
+  const [saving, setSaving] = useState(false);
   const set = (k, val) => setV(p => ({ ...p, [k]: val }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await window.sb
+        .from('venues')
+        .update({
+          name: v.name,
+          address: v.address,
+          city: v.city,
+          cp: v.cp,
+          phone: v.phone,
+          email: v.email,
+          vat_number: v.vat_number,
+          menu_url: v.menu_url || null,
+          locale: v.locale,
+          currency: v.currency,
+          timezone: v.timezone,
+        })
+        .eq('id', D.venue.id);
+      if (error) throw error;
+      toast('Cambios guardados');
+    } catch(e) {
+      toast('Error al guardar: ' + (e.message || 'error desconocido'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const tabs = [
     { k: 'general', l: 'General', i: 'ti-building-store' },
@@ -412,8 +441,8 @@ function Ajustes() {
           </div>
           {(tab === 'general' || tab === 'impuestos' || tab === 'notificaciones') && (
             <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-black/7 px-6 py-3 flex items-center justify-end gap-2">
-              <button className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-100 transition">Descartar</button>
-              <button onClick={() => toast('Cambios guardados')} className="px-4 py-2 rounded-lg bg-brand text-white text-xs font-bold hover:bg-brand/90 transition">Guardar cambios</button>
+              <button onClick={() => setV({ ...D.venue })} className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-100 transition">Descartar</button>
+              <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-lg bg-brand text-white text-xs font-bold hover:bg-brand/90 transition disabled:opacity-60">{saving ? 'Guardando…' : 'Guardar cambios'}</button>
             </div>
           )}
         </div>
