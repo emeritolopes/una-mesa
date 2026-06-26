@@ -12,8 +12,9 @@ function buildHtml(opts: {
   pax: number
   deposit_amount: number
   payment_link?: string
+  menu_url?: string
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url } = opts
   const firstName = customer_name.split(' ')[0] || customer_name
 
   return `<!DOCTYPE html>
@@ -130,6 +131,21 @@ function buildHtml(opts: {
                   </td>
                 </tr>
 
+                <!-- Botón carta del restaurante — solo si se proporciona -->
+                ${menu_url ? `
+                <tr>
+                  <td style="padding:20px 48px 0;" align="center">
+                    <a href="${menu_url}"
+                       style="display:inline-block;background:#FAF6F0;color:#D8552E;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:14px;font-weight:700;padding:14px 36px;border-radius:50px;border:2px solid #D8552E;">
+                      Ver la carta del restaurante
+                    </a>
+                    <p style="margin:12px 0 0;font-size:12px;color:#999;">
+                      Consulta el menú antes de llegar y llega listo para pedir.
+                    </p>
+                  </td>
+                </tr>
+                ` : ''}
+
                 <!-- Payment Link button — solo si se proporciona -->
                 ${payment_link ? `
                 <tr>
@@ -204,7 +220,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url } = await req.json()
 
     if (!to || !restaurant_name) {
       return new Response(JSON.stringify({ error: 'to and restaurant_name are required' }), {
@@ -214,7 +230,7 @@ Deno.serve(async (req) => {
     }
 
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
-    const html   = buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link })
+    const html   = buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url })
 
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',

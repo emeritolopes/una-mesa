@@ -85,6 +85,20 @@ Deno.serve(async (req) => {
 
     // Enviar email de confirmación
     const reservation = Array.isArray(updated) ? updated[0] : updated;
+
+    // Obtener menu_url del venue
+    let menuUrl: string | null = null;
+    if (reservation?.venue_id) {
+      try {
+        const venueRes = await fetch(
+          `${supabaseUrl}/rest/v1/venues?id=eq.${reservation.venue_id}&select=name,menu_url`,
+          { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+        );
+        const venues = await venueRes.json();
+        menuUrl = venues[0]?.menu_url || null;
+      } catch(_) {}
+    }
+
     if (reservation?.customer_email || session.customer_details?.email) {
       const email = reservation?.customer_email || session.customer_details?.email;
 
@@ -102,7 +116,8 @@ Deno.serve(async (req) => {
           date: reservation?.date || '',
           time: reservation?.time || '',
           pax: reservation?.pax || 1,
-          deposit_amount: session.amount_total || 1000
+          deposit_amount: session.amount_total || 1000,
+          menu_url: menuUrl
         })
       });
     }
