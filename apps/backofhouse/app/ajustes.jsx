@@ -384,17 +384,11 @@ function Ajustes() {
         .update({
           name: v.name,
           address: v.address,
-          city: v.city,
-          cp: v.cp,
           phone: v.phone,
           email: v.email,
-          vat_number: v.vat_number,
           menu_url: v.menu_url || null,
-          locale: v.locale,
-          currency: v.currency,
-          timezone: v.timezone,
         })
-        .eq('id', D.venue.id);
+        .eq('id', '00000000-0000-0000-0000-000000000001');
       if (error) throw error;
       toast('Cambios guardados');
     } catch(e) {
