@@ -384,7 +384,14 @@ function Ajustes() {
         .select('*')
         .eq('id', '00000000-0000-0000-0000-000000000001')
         .single();
-      if (data) setV(data);
+      if (data) {
+        setV(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(data).map(([k, v]) => [k, v ?? prev[k] ?? ''])
+          )
+        }));
+      }
       setLoaded(true);
     };
     loadVenue();
