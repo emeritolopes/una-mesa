@@ -378,11 +378,13 @@ function Ajustes() {
 
   React.useEffect(() => {
     const loadVenue = async () => {
-      const { data } = await window.sb
+      console.log('[AJUSTES] cargando venue desde Supabase...');
+      const { data, error } = await window.sb
         .from('venues')
         .select('*')
         .eq('id', '00000000-0000-0000-0000-000000000001')
         .single();
+      console.log('[AJUSTES] venue cargado:', data, 'error:', error);
       if (data) setV(v => ({ ...v, ...data }));
     };
     loadVenue();
