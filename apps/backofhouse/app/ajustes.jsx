@@ -376,6 +376,18 @@ function Ajustes() {
   const [saving, setSaving] = useState(false);
   const set = (k, val) => setV(p => ({ ...p, [k]: val }));
 
+  React.useEffect(() => {
+    const loadVenue = async () => {
+      const { data } = await window.sb
+        .from('venues')
+        .select('*')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single();
+      if (data) setV(v => ({ ...v, ...data }));
+    };
+    loadVenue();
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
     console.log('[AJUSTES] saving menu_url:', v.menu_url);
