@@ -51,7 +51,7 @@ function GeneralTab({ v, set }) {
           <Field label="Teléfono"><input className={fieldCls} value={v.phone} onChange={e => set('phone', e.target.value)} /></Field>
           <Field label="Email"><input className={fieldCls} value={v.email} onChange={e => set('email', e.target.value)} /></Field>
           <Field label="NIF / CIF"><input className={fieldCls} value={v.vat_number} onChange={e => set('vat_number', e.target.value)} /></Field>
-          <div className="col-span-2"><Field label="Enlace a la carta"><input type="url" className={fieldCls} value={v.menu_url || ''} onChange={e => set('menu_url', e.target.value)} placeholder="https://turestaurante.com/carta" /></Field></div>
+          <div className="col-span-2"><Field label="Enlace a la carta"><input type="text" className={fieldCls} value={v.menu_url || ''} onChange={e => set('menu_url', e.target.value)} placeholder="https://turestaurante.com/carta" /></Field></div>
         </div>
       </Card>
 
@@ -378,6 +378,7 @@ function Ajustes() {
 
   const handleSave = async () => {
     setSaving(true);
+    console.log('[AJUSTES] saving menu_url:', v.menu_url);
     try {
       const { error } = await window.sb
         .from('venues')
