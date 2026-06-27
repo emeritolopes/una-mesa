@@ -374,25 +374,24 @@ function Ajustes() {
   const [tab, setTab] = useState('general');
   const [v, setV] = useState({ ...D.venue });
   const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = React.useState(false);
   const set = (k, val) => setV(p => ({ ...p, [k]: val }));
 
   React.useEffect(() => {
     const loadVenue = async () => {
-      console.log('[AJUSTES] cargando venue desde Supabase...');
-      const { data, error } = await window.sb
+      const { data } = await window.sb
         .from('venues')
         .select('*')
         .eq('id', '00000000-0000-0000-0000-000000000001')
         .single();
-      console.log('[AJUSTES] venue cargado:', data, 'error:', error);
-      if (data) setV(v => ({ ...v, ...data }));
+      if (data) setV(data);
+      setLoaded(true);
     };
     loadVenue();
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    console.log('[AJUSTES] saving menu_url:', v.menu_url);
     try {
       const { error } = await window.sb
         .from('venues')
