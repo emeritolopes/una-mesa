@@ -232,6 +232,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             time:            time,
             pax:             party,
             deposit_amount:  depositCents,
+            menu_url:        r.menu_url || 'https://www.elbodegonalicante.com/wp-content/uploads/2026/05/carta_el_bodegon_english.pdf',
           }),
         }).catch(e => console.warn('[UNA MESA] send-email:', e.message));
       }
