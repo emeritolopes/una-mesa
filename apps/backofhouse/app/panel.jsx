@@ -8,6 +8,29 @@ function Panel({ go }) {
   const kitchenPending = D.kitchen.filter(t => t.status === 'pending' || t.status === 'cooking').length;
   const activeStaff = Object.values(D.clockState).filter(s => s === 'in').length;
 
+  const [realMetrics, setRealMetrics] = useState(null);
+  useEffect(() => {
+    if (!window.sb) return;
+    const today = D.iso(D.today);
+    const firstOfMonth = today.slice(0, 8) + '01';
+    Promise.all([
+      window.sb.from('reservations').select('pax, status').eq('date', today).neq('status', 'cancelled'),
+      window.sb.from('reservations').select('status').gte('date', firstOfMonth).lte('date', today).neq('status', 'cancelled'),
+    ]).then(([todayRes, monthRes]) => {
+      const td = todayRes.data || [];
+      const mo = monthRes.data || [];
+      const noShows = mo.filter(r => r.status === 'no_show').length;
+      setRealMetrics({
+        totalToday: td.length,
+        totalPax: td.reduce((s, r) => s + (r.pax || 0), 0),
+        noShowRate: mo.length > 0 ? Math.round((noShows / mo.length) * 100) : 0,
+        noShows,
+        monthTotal: mo.length,
+        occupancy: Math.round(occupied / Math.max(D.tables.length, 1) * 100),
+      });
+    }).catch(() => {});
+  }, []);
+
   const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   const t = D.today;
@@ -81,6 +104,26 @@ function Panel({ go }) {
           </div>
         ))}
       </div>
+
+      {realMetrics && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white border border-black/7 rounded-2xl p-5 flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-1"><i className="ti ti-calendar-check" /> Reservas hoy</div>
+            <div className="font-['Syne'] text-3xl font-black text-gray-900">{realMetrics.totalToday}</div>
+            <div className="text-[11px] text-gray-400">{realMetrics.totalPax} comensales esperados</div>
+          </div>
+          <div className={`rounded-2xl p-5 flex flex-col gap-1 ${realMetrics.noShowRate >= 15 ? 'bg-red-50 border border-red-100' : 'bg-white border border-black/7'}`}>
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-1"><i className="ti ti-user-off" /> No-shows este mes</div>
+            <div className={`font-['Syne'] text-3xl font-black ${realMetrics.noShowRate >= 15 ? 'text-red-600' : 'text-gray-900'}`}>{realMetrics.noShowRate}%</div>
+            <div className="text-[11px] text-gray-400">{realMetrics.noShows} de {realMetrics.monthTotal} reservas</div>
+          </div>
+          <div className="bg-white border border-black/7 rounded-2xl p-5 flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-1"><i className="ti ti-armchair" /> Ocupación ahora</div>
+            <div className="font-['Syne'] text-3xl font-black text-gray-900">{realMetrics.occupancy}%</div>
+            <div className="text-[11px] text-gray-400">{occupied} de {D.tables.length} mesas ocupadas</div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-[1.6fr_1fr] gap-4">
         <div className="bg-white border border-black/7 rounded-2xl overflow-hidden">
