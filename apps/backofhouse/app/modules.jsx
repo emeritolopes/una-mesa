@@ -32,6 +32,109 @@ const STAFF_COLORS = [
   { color: '#15803D', color_bg: '#DCFCE7' },
 ];
 
+/* ========================= TIMELINE VIEW ========================= */
+function TimelineView({ reservations, tables }) {
+  const HOUR_START = 12, HOUR_END = 24, COL_W = 72, ROW_H = 48;
+  const DINING_MIN = 90;
+  const toMin = (t) => { const [h, m] = (t || '00:00').split(':').map(Number); return h * 60 + m; };
+  const HOURS = Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i);
+
+  const tableLabels = tables.map(t => t.label);
+  const unassigned = reservations.filter(r => !r.table);
+
+  const nowMin = (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })();
+  const nowLeft = (nowMin - HOUR_START * 60) / 60 * COL_W;
+  const showNow = nowMin >= HOUR_START * 60 && nowMin <= HOUR_END * 60;
+
+  return (
+    <div className="overflow-auto h-full bg-gray-50">
+      <div style={{ minWidth: HOURS.length * COL_W + 140 }}>
+        {/* Header — hours */}
+        <div className="flex sticky top-0 z-20 bg-white border-b border-black/7 shadow-sm">
+          <div style={{ width: 140, flexShrink: 0 }} className="border-r border-black/7 flex items-center px-3 py-2">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mesa</span>
+          </div>
+          {HOURS.map(h => (
+            <div key={h} style={{ width: COL_W, flexShrink: 0 }} className="text-[10px] font-semibold text-gray-400 text-center py-2 border-r border-black/5">
+              {String(h).padStart(2, '0')}:00
+            </div>
+          ))}
+        </div>
+
+        {/* Table rows */}
+        <div className="relative">
+          {/* "Ahora" indicator */}
+          {showNow && (
+            <div className="absolute top-0 bottom-0 z-10 pointer-events-none" style={{ left: 140 + nowLeft }}>
+              <div className="w-px h-full bg-brand/60" />
+              <div className="absolute top-1 -translate-x-1/2 bg-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                {String(new Date().getHours()).padStart(2,'0')}:{String(new Date().getMinutes()).padStart(2,'0')}
+              </div>
+            </div>
+          )}
+
+          {tableLabels.map((label, ri) => {
+            const tableRes = reservations.filter(r => r.table === label);
+            return (
+              <div key={label} className="flex border-b border-black/5 hover:bg-white/60 transition" style={{ height: ROW_H }}>
+                <div style={{ width: 140, flexShrink: 0 }} className="border-r border-black/7 px-3 flex items-center">
+                  <span className="text-xs font-medium text-gray-700 truncate">{label}</span>
+                </div>
+                <div className="flex-1 relative">
+                  {/* Hour grid lines */}
+                  {HOURS.map((h, i) => (
+                    <div key={h} className="absolute top-0 bottom-0 border-r border-black/5" style={{ left: i * COL_W, width: COL_W }} />
+                  ))}
+                  {/* Half-hour lines */}
+                  {HOURS.map((h, i) => (
+                    <div key={'h'+h} className="absolute top-0 bottom-0 border-r border-black/[0.03]" style={{ left: i * COL_W + COL_W / 2 }} />
+                  ))}
+                  {/* Reservation bars */}
+                  {tableRes.map(r => {
+                    const startMin = toMin(r.time.slice(0, 5));
+                    const left = Math.max(0, (startMin - HOUR_START * 60) / 60 * COL_W);
+                    const width = Math.max(24, DINING_MIN / 60 * COL_W);
+                    const cls = r.status === 'confirmed'
+                      ? 'bg-brand/15 border-brand/40 text-brand'
+                      : r.status === 'no_show'
+                      ? 'bg-red-100 border-red-300 text-red-600'
+                      : 'bg-gray-100 border-gray-300 text-gray-600';
+                    return (
+                      <div key={r.id}
+                        className={`absolute top-1.5 bottom-1.5 rounded-lg border px-2 flex items-center gap-1.5 overflow-hidden ${cls}`}
+                        style={{ left, width }}
+                        title={`${r.customer_name} · ${r.time.slice(0,5)} · ${r.pax} pax${r.notes ? ' · '+r.notes : ''}`}>
+                        <span className="text-[10px] font-semibold truncate">{r.customer_name}</span>
+                        <span className="text-[9px] opacity-60 whitespace-nowrap flex-shrink-0">{r.pax}p</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Unassigned row */}
+          {unassigned.length > 0 && (
+            <div className="flex border-t border-dashed border-black/10" style={{ minHeight: ROW_H }}>
+              <div style={{ width: 140, flexShrink: 0 }} className="border-r border-black/7 px-3 flex items-center">
+                <span className="text-[11px] font-medium text-gray-400 italic">Sin mesa</span>
+              </div>
+              <div className="flex-1 flex flex-wrap gap-1.5 items-center px-3 py-2">
+                {unassigned.map(r => (
+                  <span key={r.id} className="text-[10px] bg-white border border-black/10 text-gray-600 px-2 py-1 rounded-full font-medium">
+                    {r.customer_name} {r.time.slice(0,5)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========================= RESERVAS ========================= */
 function GapModal({ info, onClose }) {
   if (!info) return null;
@@ -134,6 +237,7 @@ function Reservas() {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [quickTipModal, setQuickTipModal] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null); // reservation pending delete confirmation
+  const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'timeline'
   const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
   const nowMin = (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })();
   const isToday = selectedDate === todayISO;
@@ -145,6 +249,7 @@ function Reservas() {
   const [customerProfile, setCustomerProfile] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(false);
   const [customerForm, setCustomerForm] = useState({});
+  const [customerHistory, setCustomerHistory] = useState([]);
   const stripRef = useRef(null);
 
   /* Load all reservations from Supabase on mount */
@@ -166,9 +271,10 @@ function Reservas() {
     load();
   }, []);
 
-  /* Load customer profile when selected reservation changes */
+  /* Load customer profile + history when selected reservation changes */
   useEffect(() => {
     setCustomerProfile(null);
+    setCustomerHistory([]);
     if (!selectedRes?.customer_id) return;
     window.sb
       .from('customers')
@@ -176,6 +282,13 @@ function Reservas() {
       .eq('id', selectedRes.customer_id)
       .single()
       .then(({ data }) => { if (data) setCustomerProfile(data); });
+    window.sb
+      .from('reservations')
+      .select('date, time, pax, status, notes')
+      .eq('customer_id', selectedRes.customer_id)
+      .order('date', { ascending: false })
+      .limit(8)
+      .then(({ data }) => { if (data) setCustomerHistory(data); });
   }, [selectedRes?.id]);
 
   /* Init form when profile loads */
@@ -351,9 +464,19 @@ function Reservas() {
           <h1 className="font-['Syne'] text-xl font-black text-gray-900">Reservas</h1>
           <p className="text-xs text-gray-500 mt-0.5">{reservations.length} reservas · {fmtDM(sel)}</p>
         </div>
-        <button onClick={() => { setShowForm(true); setSelectedRes(null); setShowMonth(false); }} className="flex items-center gap-2 bg-brand text-white text-xs font-semibold px-4 py-2 rounded-lg whitespace-nowrap hover:bg-brand/90 transition">
-          <i className="ti ti-plus" /> Nueva reserva
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            {[['lista','ti-list','Lista'],['timeline','ti-layout-columns','Timeline']].map(([m,ic,lb]) => (
+              <button key={m} onClick={() => setViewMode(m)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition ${viewMode===m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <i className={`ti ${ic} text-sm`} />{lb}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => { setShowForm(true); setSelectedRes(null); setShowMonth(false); }} className="flex items-center gap-2 bg-brand text-white text-xs font-semibold px-4 py-2 rounded-lg whitespace-nowrap hover:bg-brand/90 transition">
+            <i className="ti ti-plus" /> Nueva reserva
+          </button>
+        </div>
       </div>
 
       {/* Scrollable date strip */}
@@ -388,8 +511,11 @@ function Reservas() {
       </div>
 
       <div className="flex-1 overflow-hidden grid grid-cols-[1fr_320px]">
-        <div className="overflow-y-auto border-r border-black/7">
-          {D.TIMES.map(time => {
+        <div className="overflow-hidden border-r border-black/7 flex flex-col">
+          {viewMode === 'timeline' && (
+            <TimelineView reservations={reservations} tables={tables} />
+          )}
+          {viewMode === 'lista' && <div className="overflow-y-auto flex-1">{D.TIMES.map(time => {
             const slots = reservations.filter(r => r.time.slice(0, 5) === time);
             const past = isPastTime(time);
             const isNowSlot = isToday && toMin(time) <= nowMin && nowMin < toMin(time) + 30;
@@ -418,7 +544,7 @@ function Reservas() {
                 </div>
               </div>
             );
-          })}
+          })}</div>}
         </div>
 
         <div className="overflow-y-auto p-4 flex flex-col gap-4">
@@ -524,6 +650,32 @@ function Reservas() {
                 )}
                 {selectedRes?.customer_id && !customerProfile && (
                   <div className="mt-1 p-3 bg-gray-50 rounded-xl text-xs text-gray-400">Cargando perfil...</div>
+                )}
+                {customerHistory.length > 0 && (
+                  <div className="mt-1 rounded-xl border border-black/7 overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-50 border-b border-black/5 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Historial de visitas</span>
+                      {(() => { const ns = customerHistory.filter(r => r.status === 'no_show').length; return ns > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{ns} no show{ns>1?'s':''}</span>
+                      ); })()}
+                    </div>
+                    <div className="divide-y divide-black/5">
+                      {customerHistory.map((r, i) => (
+                        <div key={i} className={`flex items-center gap-2 px-3 py-2 ${r.status==='no_show' ? 'bg-red-50/40' : ''}`}>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[11px] font-semibold text-gray-800">{r.date} · {r.time.slice(0,5)}</div>
+                            <div className="text-[10px] text-gray-400">{r.pax} pax{r.notes ? ' · '+r.notes : ''}</div>
+                          </div>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                            r.status==='confirmed' ? 'bg-green-100 text-green-700'
+                            : r.status==='no_show' ? 'bg-red-100 text-red-600'
+                            : 'bg-gray-100 text-gray-500'}`}>
+                            {r.status==='confirmed'?'Asistió':r.status==='no_show'?'No show':'Sin conf.'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
                 {/* Editable: table + comensales + hora */}
                 <label className="flex flex-col gap-1.5">
