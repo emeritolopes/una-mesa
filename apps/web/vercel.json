@@ -1,6 +1,8 @@
 {
+  "rewrites": [
+    { "source": "/portfolio", "destination": "/portfolio.html" }
+  ],
   "redirects": [
-    { "source": "/portfolio", "destination": "/portfolio.html", "permanent": false },
     { "source": "/(.*)", "destination": "https://app.unamesa.co/$1", "permanent": false }
   ]
 }
