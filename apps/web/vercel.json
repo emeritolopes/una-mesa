@@ -1,8 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/portfolio", "destination": "/portfolio.html" }
-  ],
-  "redirects": [
-    { "source": "/(.*)", "destination": "https://app.unamesa.co/$1", "permanent": false }
+  "routes": [
+    { "src": "/portfolio", "dest": "/portfolio.html" },
+    { "src": "/(.*)", "dest": "https://app.unamesa.co/$1", "status": 302 }
   ]
 }
