@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Una Mesa · Portfolio 2025</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin:0; background:#0d0a07; color:#ede4d4; font-family:'DM Sans',sans-serif; }
+    a { color:inherit; }
+    .video-card:hover { outline: 1px solid #D8552E44; }
+    #modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; }
+    #modal.open { display:flex; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header style="position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:0 52px; height:68px; border-bottom:1px solid #241d15; background:#0d0a07f0; backdrop-filter:blur(16px);">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img src="data:image/png;base64,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" alt="Una Mesa" style="width:36px; height:36px; border-radius:10px; display:block; flex-shrink:0;">
+      <span style="font-family:'Syne',sans-serif; font-size:19px; font-weight:800; color:#ede4d4; letter-spacing:0.01em;">una<span style="color:#D8552E">mesa</span></span>
+      <span style="width:1px; height:13px; background:#D8552E33;"></span>
+      <span style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#9a8878;">Contenido Visual</span>
+    </div>
+    <a href="https://wa.me/34000000000" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:8px; padding:8px 20px; border:1px solid #D8552E55; color:#D8552E; text-decoration:none; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; border-radius:2px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+      Hablemos
+    </a>
+  </header>
+
+  <!-- Intro -->
+  <div style="padding:64px 52px 40px;">
+    <div style="font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:#D8552E; margin-bottom:18px;">Portfolio · 2025</div>
+    <h1 style="font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(32px,4vw,58px); font-weight:800; line-height:1.06; margin:0; color:#ede4d4;">
+      Contenido que <span style="color:#D8552E">transforma</span><br>restaurantes.
+    </h1>
+  </div>
+
+  <main style="padding:0 52px 100px;">
+
+    <!-- Hero video -->
+    <div class="video-card" data-embed="https://www.youtube.com/embed/5pNw1xfTIcI?autoplay=1&rel=0&modestbranding=1" data-format="horizontal" style="position:relative; aspect-ratio:16/9; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; margin-bottom:14px;">
+      <img src="https://img.youtube.com/vi/5pNw1xfTIcI/maxresdefault.jpg" alt="Foodporn" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
+      <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07cc 0%,transparent 55%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
+        <div style="width:68px; height:68px; border-radius:50%; border:1.5px solid #D8552E; display:flex; align-items:center; justify-content:center; margin-bottom:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:#ede4d4; margin-bottom:4px; text-align:center;">Foodporn</div>
+        <div style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#b09080;">La esencia del restaurante</div>
+      </div>
+      <div style="position:absolute; top:18px; right:18px; font-size:9px; letter-spacing:0.22em; text-transform:uppercase; color:#D8552E; border:1px solid #D8552E44; padding:5px 11px; border-radius:2px; background:#0d0a0780;">Destacado</div>
+    </div>
+
+    <!-- Grid -->
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-items:start;">
+      
+      <div class="video-card" data-embed="https://www.youtube.com/embed/MWiQ3oEGKRM?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/MWiQ3oEGKRM/maxresdefault.jpg" alt="Cocina Viva" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">Cocina Viva</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">Detrás del fuego</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+      <div class="video-card" data-embed="https://www.youtube.com/embed/O3mnIdx-iFM?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/O3mnIdx-iFM/maxresdefault.jpg" alt="El Plato" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">El Plato</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">Arte culinario</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+      <div class="video-card" data-embed="https://www.youtube.com/embed/9Q4G9gXmhIo?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/9Q4G9gXmhIo/maxresdefault.jpg" alt="Maridaje" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">Maridaje</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">La carta de vinos</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+      <div class="video-card" data-embed="https://www.youtube.com/embed/UO8y6aRUc9Y?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/UO8y6aRUc9Y/maxresdefault.jpg" alt="Ambiente" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">Ambiente</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">Espacio y atmósfera</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+      <div class="video-card" data-embed="https://www.youtube.com/embed/An5wLJp28eo?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/An5wLJp28eo/maxresdefault.jpg" alt="Servicio" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">Servicio</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">La experiencia completa</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+      <div class="video-card" data-embed="https://www.youtube.com/embed/yPz9EaJ3WtE?autoplay=1&rel=0&modestbranding=1" data-format="vertical" style="position:relative; cursor:pointer; border-radius:3px; overflow:hidden; background:#1a130d; border:1px solid #241d15; aspect-ratio:9/16;">
+        <img src="https://img.youtube.com/vi/yPz9EaJ3WtE/maxresdefault.jpg" alt="La Historia" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+        <div style="position:absolute; inset:0; background:linear-gradient(to top,#0d0a07e0 0%,transparent 50%); display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px;">
+          <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#ede4d4; margin-bottom:2px;">La Historia</div>
+          <div style="font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#b09080;">La marca y sus raíces</div>
+        </div>
+        <div style="position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; border:1px solid #D8552E55; display:flex; align-items:center; justify-content:center; background:#0d0a0770;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="#D8552E"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top:72px; padding:56px 48px; border:1px solid #241d15; border-radius:3px; text-align:center;">
+      <div style="font-size:9px; letter-spacing:0.28em; text-transform:uppercase; color:#D8552E; margin-bottom:18px;">¿Listo para empezar?</div>
+      <h2 style="font-family:'Syne',sans-serif; font-size:clamp(24px,2.8vw,42px); font-weight:800; color:#ede4d4; margin:0 0 14px; line-height:1.1;">Llevemos tu restaurante<br>al siguiente nivel.</h2>
+      <p style="font-size:13px; color:#8a7868; margin:0 0 36px; line-height:1.8;">Cada restaurante tiene una historia. La contamos en video.</p>
+      <a href="https://wa.me/34000000000" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:10px; padding:14px 38px; background:#D8552E; color:#fff; text-decoration:none; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; border-radius:2px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+        Escribir por WhatsApp
+      </a>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid #1a140e; padding:24px 52px; display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:#5a3a2a;">una<span style="color:#D8552E80">mesa</span></span>
+    <span style="font-size:10px; letter-spacing:0.1em; color:#4a3530;">Contenido gastronómico · 2025</span>
+  </footer>
+
+  <!-- Modal -->
+  <div id="modal" onclick="closeModal()">
+    <div id="modal-inner" onclick="event.stopPropagation()" style="position:relative;">
+      <button onclick="closeModal()" style="position:absolute; top:-38px; right:0; background:none; border:none; color:#ede4d4; font-size:22px; cursor:pointer; opacity:0.6; line-height:1; padding:4px 8px;">✕</button>
+      <iframe id="modal-iframe" src="" style="width:100%; height:100%; border:none; border-radius:3px; display:block;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script>
+    function openModal(embedUrl, format) {
+      var modal = document.getElementById('modal');
+      var inner = document.getElementById('modal-inner');
+      var iframe = document.getElementById('modal-iframe');
+      var isVertical = format === 'vertical';
+      inner.style.width = isVertical ? 'min(44vw,460px)' : 'min(88vw,960px)';
+      inner.style.aspectRatio = isVertical ? '9/16' : '16/9';
+      iframe.src = embedUrl;
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      var modal = document.getElementById('modal');
+      var iframe = document.getElementById('modal-iframe');
+      modal.classList.remove('open');
+      iframe.src = '';
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.video-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        openModal(card.dataset.embed, card.dataset.format);
+      });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
