@@ -28,11 +28,58 @@ Deno.serve(async (req) => {
       })
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    // Buscar la reserva vinculada a este PaymentIntent
+    const resCheck = await fetch(
+      `${supabaseUrl}/rest/v1/reservations?payment_intent_id=eq.${payment_intent_id}&select=id,deposit_status,status`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    )
+    const reservations = await resCheck.json()
+    const reservation = reservations[0]
+
+    if (!reservation) {
+      return new Response(JSON.stringify({ error: 'no reservation linked to this payment_intent_id' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (reservation.deposit_status === 'captured') {
+      return new Response(JSON.stringify({ error: 'already captured' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (reservation.status === 'cancelled') {
+      return new Response(JSON.stringify({ error: 'cannot capture a cancelled reservation' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2024-06-20',
     })
 
     const paymentIntent = await stripe.paymentIntents.capture(payment_intent_id)
+
+    // Marcar depósito como capturado en la reserva
+    await fetch(
+      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ deposit_status: 'captured' }),
+      }
+    )
 
     return new Response(
       JSON.stringify({
