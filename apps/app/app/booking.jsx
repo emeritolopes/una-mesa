@@ -193,6 +193,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             status:            'confirmed',
             notes:             null,
             payment_intent_id: payment_intent_id,
+            deposit_status:    'pending',
           });
 
           // Crear/actualizar perfil del cliente — non-fatal

@@ -45,9 +45,9 @@ Deno.serve(async (req) => {
   const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
   try {
-    // Fetch token record
+    // Fetch token record (token IS the primary key)
     const tRes = await fetch(
-      `${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=id,reservation_id,expires_at,used_at`,
+      `${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,expires_at,used_at`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     )
     const [nt] = await tRes.json()
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
     if (reservation.deposit_status === 'captured') {
       // Already captured — just mark token used and confirm
-      await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?id=eq.${nt.id}`, {
+      await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${nt.token}`, {
         method: 'PATCH',
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify({ used_at: new Date().toISOString() })
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     })
 
     // Mark token used
-    await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?id=eq.${nt.id}`, {
+    await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${nt.token}`, {
       method: 'PATCH',
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ used_at: new Date().toISOString() })
