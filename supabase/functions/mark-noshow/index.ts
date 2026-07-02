@@ -1,124 +1,71 @@
+// supabase/functions/mark-noshow/index.ts
+// GET ?token=<uuid> — marca la reserva como no_show y cancela el PaymentIntent...
+// NO: en no-show el depósito SE CAPTURA (es la penalización). Cancela solo la mesa.
+// Un solo uso, expira, sin login.
+
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
+const html = (title: string, body: string, ok: boolean) => `<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title}</title></head>
+<body style="font-family:sans-serif;background:#FAF6F0;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
+<div style="background:#fff;border-radius:14px;padding:40px;max-width:420px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07)">
+<div style="font-size:40px;margin-bottom:12px">${ok ? '✅' : '⚠️'}</div>
+<h1 style="font-size:20px;color:#1a130d;margin:0 0 10px">${title}</h1>
+<p style="font-size:14px;color:#777;line-height:1.6;margin:0">${body}</p>
+</div></body></html>`
+
 Deno.serve(async (req) => {
-  // magic-link: opened in browser → returns HTML, no JWT
   const url = new URL(req.url)
   const token = url.searchParams.get('token')
-
-  const page = (title: string, body: string, ok = true) => new Response(
-    `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${title} — Una Mesa</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; }
-  body { margin:0; padding:40px 20px; background:#F5F4F0; font-family:'Manrope',Arial,sans-serif;
-         display:flex; align-items:center; justify-content:center; min-height:100vh; }
-  .card { background:#fff; border-radius:20px; max-width:480px; width:100%; padding:48px 40px;
-          text-align:center; box-shadow:0 4px 32px rgba(0,0,0,.08); }
-  .icon { font-size:52px; margin-bottom:20px; }
-  h1 { margin:0 0 12px; font-size:24px; font-weight:800; color:${ok ? '#121212' : '#CC3300'}; }
-  p { margin:0; font-size:15px; color:#666; line-height:1.6; }
-  .badge { display:inline-block; margin-top:24px; padding:6px 16px; border-radius:20px;
-           font-size:12px; font-weight:700; letter-spacing:.5px;
-           background:${ok ? '#F0FAF0' : '#FFF0EE'}; color:${ok ? '#187C40' : '#CC3300'}; }
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="icon">${ok ? '✅' : '⚠️'}</div>
-  <h1>${title}</h1>
-  <p>${body}</p>
-  <span class="badge">Una Mesa</span>
-</div>
-</body>
-</html>`,
-    { status: ok ? 200 : 422, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
-  )
-
-  if (!token) return page('Enlace inválido', 'Falta el parámetro token.', false)
+  if (!token) return new Response(html('Enlace inválido', 'Falta el token.', false), { headers: { 'Content-Type': 'text/html' }, status: 400 })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
 
-  try {
-    // Fetch token record (token IS the primary key)
-    const tRes = await fetch(
-      `${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,expires_at,used_at`,
-      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
-    )
-    const [nt] = await tRes.json()
+  // 1. Token válido, no usado, no expirado
+  const tRes = await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
+  const tokens = await tRes.json()
+  const t = tokens[0]
+  if (!t) return new Response(html('Enlace inválido', 'Este enlace no existe.', false), { headers: { 'Content-Type': 'text/html' }, status: 404 })
+  if (t.used_at) return new Response(html('Ya utilizado', 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.', false), { headers: { 'Content-Type': 'text/html' }, status: 409 })
+  if (new Date(t.expires_at) < new Date()) return new Response(html('Enlace caducado', 'Este enlace ha expirado.', false), { headers: { 'Content-Type': 'text/html' }, status: 410 })
 
-    if (!nt)                                      return page('Enlace no encontrado', 'Este enlace no existe o ha caducado.', false)
-    if (nt.used_at)                               return page('Ya utilizado', 'Este enlace ya fue usado. El depósito fue procesado anteriormente.', false)
-    if (new Date(nt.expires_at) < new Date())     return page('Enlace caducado', 'El enlace es válido solo 24 h desde la hora de la reserva.', false)
-
-    // Fetch reservation
-    const rRes = await fetch(
-      `${supabaseUrl}/rest/v1/reservations?id=eq.${nt.reservation_id}&select=id,payment_intent_id,deposit_status,status`,
-      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
-    )
-    const [reservation] = await rRes.json()
-
-    if (!reservation)              return page('Reserva no encontrada', 'No se encontró la reserva.', false)
-    if (!reservation.payment_intent_id) return page('Sin cargo pendiente', 'Esta reserva no tiene depósito autorizado.', false)
-
-    if (reservation.deposit_status === 'captured') {
-      // Already captured — just mark token used and confirm
-      await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${nt.token}`, {
-        method: 'PATCH',
-        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ used_at: new Date().toISOString() })
-      })
-      return page('Depósito ya cobrado', 'El depósito de esta reserva ya fue capturado previamente.')
-    }
-
-    // Atomic lock: pending/null → 'capturing'
-    const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
-      method: 'POST',
-      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_reservation_id: nt.reservation_id })
-    })
-    const locked: boolean = await lockRes.json()
-
-    if (!locked) return page('En proceso', 'El depósito ya está siendo procesado. Espera un momento y recarga.', false)
-
-    // Capture via Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
-    let captureStatus = 'captured'
-    try {
-      await stripe.paymentIntents.capture(reservation.payment_intent_id)
-    } catch (e) {
-      console.error('Stripe capture error:', e instanceof Error ? e.message : e)
-      captureStatus = 'capture_failed'
-    }
-
-    // Update reservation
-    await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${nt.reservation_id}`, {
-      method: 'PATCH',
-      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ status: 'no_show', deposit_status: captureStatus })
-    })
-
-    // Mark token used
-    await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${nt.token}`, {
-      method: 'PATCH',
-      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ used_at: new Date().toISOString() })
-    })
-
-    if (captureStatus === 'captured') {
-      return page('No-show registrado', 'El cliente ha sido marcado como no presentado y el depósito ha sido cobrado correctamente.')
-    } else {
-      return page('No-show registrado — error en cobro',
-        'El cliente fue marcado como no-show pero el cobro del depósito falló. Revisa Stripe manualmente.', false)
-    }
-
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Error interno'
-    return page('Error interno', msg, false)
+  // 2. Lock atómico: solo procede si deposit_status era 'pending'
+  const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
+    method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: t.reservation_id }),
+  })
+  const locked = await lockRes.json()
+  if (!locked || locked.length === 0) {
+    return new Response(html('No procesable', 'El depósito de esta reserva ya fue procesado (capturado o cancelado antes).', false), { headers: { 'Content-Type': 'text/html' }, status: 409 })
   }
+
+  // 3. Capturar depósito (penalización por no-show) y marcar reserva
+  const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${t.reservation_id}&select=id,payment_intent_id`, { headers: h })
+  const reservation = (await rRes.json())[0]
+
+  let captureOk = false
+  if (reservation?.payment_intent_id) {
+    try {
+      const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
+      await stripe.paymentIntents.capture(reservation.payment_intent_id)
+      captureOk = true
+    } catch (_) { /* si Stripe falla, deposit_status queda en 'capturing' para revisión manual */ }
+  }
+
+  await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${t.reservation_id}`, {
+    method: 'PATCH', headers: h,
+    body: JSON.stringify({ status: 'no_show', deposit_status: captureOk ? 'captured' : 'capture_failed' }),
+  })
+  await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}`, {
+    method: 'PATCH', headers: h, body: JSON.stringify({ used_at: new Date().toISOString() }),
+  })
+
+  return new Response(
+    html('No-show registrado', captureOk
+      ? 'La reserva se marcó como no-show y el depósito ha sido cobrado.'
+      : 'La reserva se marcó como no-show. El cobro del depósito falló y queda pendiente de revisión.', true),
+    { headers: { 'Content-Type': 'text/html' } }
+  )
 })
