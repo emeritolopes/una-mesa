@@ -21,8 +21,47 @@ Deno.serve(async (req) => {
   try {
     const { amount, currency, restaurant_id, user_id, reservation_id } = await req.json()
 
-    if (!amount || !currency) {
-      return new Response(JSON.stringify({ error: 'amount and currency are required' }), {
+    if (!reservation_id) {
+      return new Response(JSON.stringify({ error: 'reservation_id required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!currency) {
+      return new Response(JSON.stringify({ error: 'currency required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    // Verificar el depósito esperado contra la reserva real — no confiar en 'amount' del cliente
+    const resCheck = await fetch(
+      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=id,venue_id,deposit_amount,deposit_status`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    )
+    const reservations = await resCheck.json()
+    const reservation = reservations[0]
+
+    if (!reservation) {
+      return new Response(JSON.stringify({ error: 'reservation not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (reservation.deposit_status === 'captured') {
+      return new Response(JSON.stringify({ error: 'deposit already captured' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (reservation.deposit_amount !== amount) {
+      return new Response(JSON.stringify({ error: 'amount does not match expected deposit' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -33,13 +72,13 @@ Deno.serve(async (req) => {
     })
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,           // smallest currency unit — e.g. 500 = €5.00
+      amount: reservation.deposit_amount,  // siempre usar el valor de la BD
       currency,
-      capture_method: 'manual',   // authorize only; capture on arrival, cancel on no-show
+      capture_method: 'manual',
       metadata: {
-        restaurant_id: restaurant_id ?? '',
+        restaurant_id: restaurant_id ?? reservation.venue_id ?? '',
         user_id:       user_id       ?? '',
-        reservation_id: reservation_id ?? '',
+        reservation_id,
       },
     })
 

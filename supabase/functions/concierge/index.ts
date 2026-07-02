@@ -61,7 +61,23 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const restaurantList = (restaurants || [])
+    // Extraer email del JWT si el usuario está autenticado — no confiar únicamente en el body
+    let jwtEmail: string | null = null;
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.slice(7);
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        jwtEmail = payload.email || null;
+      } catch (_) { /* JWT malformado o anon token — ignorar */ }
+    }
+    const trustedEmail = jwtEmail ?? user?.email ?? null;
+
+    // Cap de contexto para controlar coste por llamada
+    const cappedHistory = (history || []).slice(-10);
+    const cappedRestaurants = (restaurants || []).slice(0, 20);
+
+    const restaurantList = cappedRestaurants
       .map((r: { id: string; name: string; cuisine: string; area: string; price: string }) =>
         `${r.name} (ID: ${r.id}, ${r.cuisine || ''}, ${r.area || ''}, ${r.price || ''})`)
       .join('\n')
@@ -74,7 +90,7 @@ Deno.serve(async (req) => {
     const systemPrompt = `Eres el conserje digital de Una Mesa, una plataforma premium de reservas de restaurantes en España.
 
 Hoy es ${today} (${todayISO}).
-${user ? `El usuario se llama ${user.name} y su email es ${user.email}.` : ''}
+${user?.name ? `El usuario se llama ${user.name}${trustedEmail ? ` y su email es ${trustedEmail}` : ''}.` : ''}
 
 Tienes acceso a estos restaurantes:
 ${restaurantList}
@@ -91,7 +107,7 @@ Responde siempre en español, de forma elegante y concisa.`;
 
     type AnthropicRole = 'user' | 'assistant'
     const messages: Array<{ role: AnthropicRole; content: string }> = []
-    for (const h of (history || [])) {
+    for (const h of cappedHistory) {
       if (h.who === 'me' && h.text) messages.push({ role: 'user', content: h.text })
       else if (h.who === 'ai' && h.text) messages.push({ role: 'assistant', content: h.text })
     }
@@ -105,7 +121,7 @@ Responde siempre en español, de forma elegante y concisa.`;
     let reservationAction = null
     let iterations = 0
 
-    while (iterations < 5) {
+    while (iterations < 3) {
       iterations++
       const response = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
@@ -171,7 +187,7 @@ Responde siempre en español, de forma elegante y concisa.`;
             body: JSON.stringify({
               venue_id: venueId,
               customer_name: user?.name || 'Cliente',
-              customer_email: user?.email || null,
+              customer_email: trustedEmail,
               pax: partySize,
               date,
               time,
