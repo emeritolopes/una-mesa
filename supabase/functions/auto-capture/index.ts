@@ -1,85 +1,52 @@
+// supabase/functions/auto-capture/index.ts
+// Invocada por pg_cron cada 15 min con Authorization: Bearer <service_role>.
+// Captura depósitos de reservas vencidas (grace period pasado) que siguen 'pending'.
+// Usa try_lock_deposit_capture para no chocar con mark-noshow.
+
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+  // Solo service role puede invocar esto — el JWT anon no basta.
+  const auth = req.headers.get('Authorization') ?? ''
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  if (auth !== `Bearer ${serviceKey}`) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 })
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const stripe      = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
+  const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
+  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
-  try {
-    // Fetch all reservations past grace period that still have an uncaptured deposit
-    const viewRes = await fetch(
-      `${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id,venue_id`,
-      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
-    )
-    const due: Array<{ id: string; payment_intent_id: string; venue_id: string }> = await viewRes.json()
+  const dueRes = await fetch(`${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id&limit=50`, { headers: h })
+  const due = await dueRes.json()
 
-    if (!Array.isArray(due) || due.length === 0) {
-      return new Response(JSON.stringify({ processed: 0, results: [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+  const results: Array<{ id: string; result: string }> = []
 
-    const results = []
+  for (const r of due) {
+    // Lock atómico — si mark-noshow (u otra corrida del cron) llegó primero, esto devuelve vacío y saltamos
+    const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
+      method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: r.id }),
+    })
+    const locked = await lockRes.json()
+    if (!locked || locked.length === 0) { results.push({ id: r.id, result: 'skipped_locked' }); continue }
 
-    for (const r of due) {
-      // Atomic lock — skip if already being captured by another run
-      const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
-        method: 'POST',
-        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_reservation_id: r.id })
-      })
-      const locked: boolean = await lockRes.json()
-
-      if (!locked) {
-        results.push({ id: r.id, outcome: 'skipped_locked' })
-        continue
-      }
-
-      let depositStatus = 'captured'
-      let stripeError: string | null = null
-
-      try {
-        await stripe.paymentIntents.capture(r.payment_intent_id)
-      } catch (e) {
-        stripeError = e instanceof Error ? e.message : String(e)
-        depositStatus = 'capture_failed'
-        console.error(`[auto-capture] Stripe error for ${r.id}:`, stripeError)
-      }
-
-      // Update reservation
+    try {
+      await stripe.paymentIntents.capture(r.payment_intent_id)
       await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${r.id}`, {
-        method: 'PATCH',
-        headers: {
-          apikey: serviceKey, Authorization: `Bearer ${serviceKey}`,
-          'Content-Type': 'application/json', Prefer: 'return=minimal'
-        },
-        body: JSON.stringify({ deposit_status: depositStatus })
+        method: 'PATCH', headers: h,
+        body: JSON.stringify({ status: 'no_show', deposit_status: 'captured' }),
       })
-
-      results.push({ id: r.id, outcome: depositStatus, ...(stripeError ? { error: stripeError } : {}) })
+      results.push({ id: r.id, result: 'captured' })
+    } catch (err) {
+      await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${r.id}`, {
+        method: 'PATCH', headers: h,
+        body: JSON.stringify({ deposit_status: 'capture_failed' }),
+      })
+      results.push({ id: r.id, result: `failed: ${err instanceof Error ? err.message : 'unknown'}` })
     }
-
-    return new Response(JSON.stringify({ processed: results.length, results }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
   }
+
+  return new Response(JSON.stringify({ processed: results.length, results }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
 })
