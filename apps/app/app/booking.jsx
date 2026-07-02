@@ -212,6 +212,38 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
               });
             } catch(e) { console.warn('upsert-customer:', e.message); }
           }
+
+          // Generar token no-show y enviar email al restaurante — non-fatal, fire-and-forget
+          if (savedReservation?.id) {
+            (async () => {
+              try {
+                const { data: token, error: tokenErr } = await window.UMAuth.sb
+                  .rpc('generate_noshow_token', { p_reservation_id: savedReservation.id });
+                if (tokenErr) { console.warn('[UNA MESA] noshow-token:', tokenErr.message); return; }
+
+                const { data: venue } = await window.UMAuth.sb
+                  .from('venues').select('email, name').eq('id', r.id).single();
+                if (!venue?.email || !token) return;
+
+                const dayLabel2 = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+                const noshowUrl = SUPA_BASE + '/mark-noshow?token=' + token;
+                fetch(SUPA_EMAIL_FUNC, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
+                  body: JSON.stringify({
+                    to:              venue.email,
+                    customer_name:   user ? (user.name || user.email) : guestName,
+                    restaurant_name: r.name,
+                    date:            dayLabel2,
+                    time,
+                    pax:             party,
+                    deposit_amount:  depositCents,
+                    noshow_url:      noshowUrl,
+                  }),
+                }).catch(e => console.warn('[UNA MESA] restaurant-email:', e.message));
+              } catch(e) { console.warn('[UNA MESA] noshow-flow:', e.message || e); }
+            })();
+          }
         } catch (e) {
           console.warn('[UNA MESA] saveReservation:', e.message || e);
         }
