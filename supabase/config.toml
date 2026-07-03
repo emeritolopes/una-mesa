@@ -450,6 +450,11 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/stripe-capture/index.ts"
 
+[functions.invite-restaurant]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/invite-restaurant/index.ts"
+
 [functions.mark-noshow]
 enabled = true
 verify_jwt = false

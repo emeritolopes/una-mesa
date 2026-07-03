@@ -10,7 +10,7 @@ function Analytics() {
   const [loading, setLoading] = React.useState(true);
   const [lostExpanded, setLostExpanded] = React.useState(false);
 
-  const venueId = '00000000-0000-0000-0000-000000000001';
+  const venueId = (() => { try { return JSON.parse(localStorage.getItem('unamesa.user')).venue_id; } catch { return null; } })();
 
   React.useEffect(() => {
     const load = async () => {
