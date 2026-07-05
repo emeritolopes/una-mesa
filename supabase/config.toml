@@ -449,3 +449,18 @@ entrypoint = "./functions/send-email/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/stripe-capture/index.ts"
+
+[functions.invite-restaurant]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/invite-restaurant/index.ts"
+
+[functions.mark-noshow]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/mark-noshow/index.ts"
+
+[functions.auto-capture]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/auto-capture/index.ts"

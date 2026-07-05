@@ -370,6 +370,7 @@ function NotificacionesTab() {
 }
 
 function Ajustes() {
+  const venueId = (() => { try { return JSON.parse(localStorage.getItem('unamesa.user')).venue_id; } catch { return null; } })();
   const D = window.DATA;
   const [tab, setTab] = useState('general');
   const [v, setV] = useState({ ...D.venue });
@@ -382,7 +383,7 @@ function Ajustes() {
       const { data } = await window.sb
         .from('venues')
         .select('*')
-        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .eq('id', venueId)
         .single();
       if (data) {
         setV(prev => ({
@@ -409,7 +410,7 @@ function Ajustes() {
           email: v.email,
           menu_url: v.menu_url || null,
         })
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .eq('id', venueId);
       if (error) throw error;
       toast('Cambios guardados');
     } catch(e) {

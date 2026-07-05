@@ -54,10 +54,10 @@ function Sidebar({ view, go, user, onLogout }) {
       </div>
 
       <div className="mx-3 my-3 bg-gray-50 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold font-['Syne'] flex-shrink-0">EB</div>
+        <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold font-['Syne'] flex-shrink-0">{user.initials || 'R'}</div>
         <div className="min-w-0">
-          <div className="text-xs font-medium text-gray-900 truncate">El Bodegón Central</div>
-          <div className="text-[10px] text-gray-400">Restaurante · Madrid</div>
+          <div className="text-xs font-medium text-gray-900 truncate">{user.venue_name || 'Restaurante'}</div>
+          <div className="text-[10px] text-gray-400">Restaurante{user.venue_city ? ` · ${user.venue_city}` : ''}</div>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ function App() {
     return () => window.removeEventListener('storage', handler);
   }, []);
   const login = (u) => { setUser(u); localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
-  const logout = () => { setUser(null); localStorage.removeItem('unamesa.user'); };
+  const logout = () => { window.sb?.auth?.signOut(); setUser(null); localStorage.removeItem('unamesa.user'); };
 
   if (!user) return <><Login onLogin={login} /><ToastHost /></>;
 

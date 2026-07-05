@@ -52,18 +52,51 @@ function BrandPanel() {
 }
 
 function PasswordForm({ onLogin }) {
-  const [email, setEmail] = useState('carlos@bodegoncentral.es');
-  const [pw, setPw] = useState('demo1234');
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!email.includes('@') || pw.length < 4) { setErr('Revisa tu correo y contraseña.'); return; }
     setErr(''); setLoading(true);
-    setTimeout(() => onLogin(window.DATA.admin), 650);
+    try {
+      const { data: { session }, error: authErr } = await window.sb.auth.signInWithPassword({ email, password: pw });
+      if (authErr || !session) { setErr(authErr?.message || 'Credenciales incorrectas.'); return; }
+
+      const userId = session.user.id;
+
+      const { data: ruData } = await window.sb
+        .from('restaurant_users').select('venue_id').eq('user_id', userId).single();
+      if (!ruData?.venue_id) {
+        await window.sb.auth.signOut();
+        setErr('Esta cuenta no tiene un restaurante vinculado. Contacta con soporte.');
+        return;
+      }
+
+      const { data: venue } = await window.sb
+        .from('venues').select('name, city, plan').eq('id', ruData.venue_id).single();
+      const venueName = venue?.name || 'Restaurante';
+      const initials = venueName.split(/\s+/).filter(w => /[a-zA-Z]/.test(w[0])).slice(0, 2).map(w => w[0].toUpperCase()).join('') || 'R';
+
+      onLogin({
+        id: userId,
+        email: session.user.email,
+        name: session.user.email,
+        initials,
+        role: 'Responsable',
+        venue_id: ruData.venue_id,
+        venue_name: venueName,
+        venue_city: venue?.city || '',
+      });
+    } catch(e) {
+      setErr(e.message || 'Error al iniciar sesión.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
