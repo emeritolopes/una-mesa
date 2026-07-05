@@ -28,8 +28,14 @@ Deno.serve(async (req) => {
   if (!caller?.id) return new Response(JSON.stringify({ error: 'invalid session' }), { status: 401, headers: corsHeaders })
 
   const adminCheck = await fetch(`${supabaseUrl}/rest/v1/admins?user_id=eq.${caller.id}&select=user_id`, { headers: h })
+
+  if (!adminCheck.ok) {
+    return new Response(JSON.stringify({ error: 'admin check failed' }), { status: 403, headers: corsHeaders })
+  }
+
   const adminRows = await adminCheck.json()
-  if (!adminRows || adminRows.length === 0) {
+
+  if (!Array.isArray(adminRows) || adminRows.length === 0) {
     return new Response(JSON.stringify({ error: 'forbidden — admin only' }), { status: 403, headers: corsHeaders })
   }
 
