@@ -1,10 +1,51 @@
 /* ════ UNA MESA · Detail screen · Stitch design system ════ */
 
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function dtMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const DT_LANG = dtMarket();
+const DT_T = {
+  es: {
+    notFound: 'Restaurante no encontrado.', backToResults: 'Volver a resultados',
+    featured: 'Destacado', availToday: 'Disponible hoy', matchSuffix: '% afinidad',
+    reviewsParen: n => '('+n+' reseñas)',
+    address: 'Dirección', hours: 'Horario', phone: 'Teléfono', avgPrice: 'Precio medio',
+    priceRange: (r) => r.price==='€€€' ? '35–55€' : '18–30€' /* TODO: confirm real GBP range before launch */,
+    menuTab: 'Carta', reviewsTab: n => 'Reseñas ('+n+')',
+    reviewsCount: n => n+' reseñas',
+    bookTable: 'Reserva tu mesa', at: 'en ',
+    depositPre: 'Depósito de ', depositAmount: '10€/persona' /* TODO: confirm real GBP deposit before launch */, depositPost: ' — se descuenta del total.',
+    timesToday: 'Horarios disponibles hoy',
+    noAvailability: 'Sin disponibilidad hoy. Prueba otra fecha.',
+    chooseDateTime: 'Elegir fecha y hora',
+  },
+  en: {
+    notFound: 'Restaurant not found.', backToResults: 'Back to results',
+    featured: 'Featured', availToday: 'Available today', matchSuffix: '% match',
+    reviewsParen: n => '('+n+' reviews)',
+    address: 'Address', hours: 'Hours', phone: 'Phone', avgPrice: 'Average price',
+    priceRange: (r) => r.price==='€€€' ? '£35–55' : '£18–30' /* TODO: confirm real GBP range before launch — not converted from EUR */,
+    menuTab: 'Menu', reviewsTab: n => 'Reviews ('+n+')',
+    reviewsCount: n => n+' reviews',
+    bookTable: 'Book your table', at: 'at ',
+    depositPre: 'Deposit of ', depositAmount: '£10/person' /* TODO: confirm real GBP deposit before launch — not converted from EUR */, depositPost: ' — deducted from the total.',
+    timesToday: 'Available times today',
+    noAvailability: 'No availability today. Try another date.',
+    chooseDateTime: 'Choose date and time',
+  }
+}[DT_LANG];
+
 function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
   const [tab, setTab] = useState('menu');
-  if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},'Restaurante no encontrado.');
+  if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},DT_T.notFound);
   const fav = favs.includes(r.id);
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
   const now = new Date();
@@ -16,7 +57,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
 
       /* ── Back button ── */
       React.createElement('div', { className:'detail-back', onClick:back },
-        React.createElement(Icon,{name:'chevL'}), 'Volver a resultados'),
+        React.createElement(Icon,{name:'chevL'}), DT_T.backToResults),
 
       /* ── Gallery: 2fr | 1fr 1fr bento grid ── */
       React.createElement('div', { className:'gallery' },
@@ -35,14 +76,14 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
 
           /* Eyebrow pills */
           React.createElement('div', { className:'det-eyebrow' },
-            React.createElement('span', { className:'detail-tag-pill' }, 'Destacado'),
+            React.createElement('span', { className:'detail-tag-pill' }, DT_T.featured),
             React.createElement('span', { className:'det-avail-pill' },
               React.createElement(Icon,{name:'clock',style:{width:11,height:11,flexShrink:0}}),
-              'Disponible hoy'
+              DT_T.availToday
             ),
             React.createElement('span', { className:'det-match-pill' },
               React.createElement(Icon,{name:'sparkle',fill:'currentColor',style:{width:11,height:11,flexShrink:0}}),
-              r.match+'% afinidad'
+              r.match+DT_T.matchSuffix
             )
           ),
 
@@ -53,7 +94,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
               React.createElement('div', { className:'detail-sub' },
                 React.createElement('span', { className:'rt' },
                   React.createElement(Icon,{name:'star',fill:'currentColor'}), r.rating.toFixed(1)),
-                React.createElement('span',{className:'muted'},'('+r.reviews+' reseñas)'),
+                React.createElement('span',{className:'muted'},DT_T.reviewsParen(r.reviews)),
                 React.createElement('span',{className:'dot-sep'}),
                 React.createElement('span',null, r.cuisine),
                 React.createElement('span',{className:'dot-sep'}),
@@ -82,23 +123,23 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
               React.createElement('div',{className:'info-item'},
                 React.createElement(Icon,{name:'pin'}),
                 React.createElement('div',null,
-                  React.createElement('div',{className:'k'},'Dirección'),
+                  React.createElement('div',{className:'k'},DT_T.address),
                   React.createElement('div',{className:'v'},r.address))),
               React.createElement('div',{className:'info-item'},
                 React.createElement(Icon,{name:'clock'}),
                 React.createElement('div',null,
-                  React.createElement('div',{className:'k'},'Horario'),
+                  React.createElement('div',{className:'k'},DT_T.hours),
                   React.createElement('div',{className:'v'},r.hours))),
               React.createElement('div',{className:'info-item'},
                 React.createElement(Icon,{name:'bell'}),
                 React.createElement('div',null,
-                  React.createElement('div',{className:'k'},'Teléfono'),
+                  React.createElement('div',{className:'k'},DT_T.phone),
                   React.createElement('div',{className:'v'},r.phone))),
               React.createElement('div',{className:'info-item'},
                 React.createElement(Icon,{name:'euro'}),
                 React.createElement('div',null,
-                  React.createElement('div',{className:'k'},'Precio medio'),
-                  React.createElement('div',{className:'v'}, r.price==='€€€'?'35–55€':'18–30€')))
+                  React.createElement('div',{className:'k'},DT_T.avgPrice),
+                  React.createElement('div',{className:'v'}, DT_T.priceRange(r))))
             )
           ),
 
@@ -109,12 +150,12 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                 type:'button',
                 className:'det-tab'+(tab==='menu'?' on':''),
                 onClick:()=>setTab('menu')
-              }, 'Carta'),
+              }, DT_T.menuTab),
               React.createElement('button', {
                 type:'button',
                 className:'det-tab'+(tab==='revs'?' on':''),
                 onClick:()=>setTab('revs')
-              }, 'Reseñas ('+r.reviews+')')
+              }, DT_T.reviewsTab(r.reviews))
             ),
 
             /* Menu */
@@ -134,7 +175,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                       React.createElement('div',{className:'rev-big display'},r.rating.toFixed(1)),
                       React.createElement(Stars,{value:r.rating,size:18}),
                       React.createElement('div',{className:'muted',style:{fontSize:'13px',marginTop:'4px'}},
-                        r.reviews+' reseñas')
+                        DT_T.reviewsCount(r.reviews))
                     )
                   ),
                   r.revs.map((rv,i)=>React.createElement('div',{key:i,className:'rev-card'},
@@ -155,22 +196,22 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
           React.createElement('div', { className:'det-bw' },
 
             /* Headline */
-            React.createElement('h3', { className:'det-bw-title' }, 'Reserva tu mesa'),
+            React.createElement('h3', { className:'det-bw-title' }, DT_T.bookTable),
             React.createElement('p',  { className:'det-bw-sub' },
-              'en ', React.createElement('b',null,r.name)
+              DT_T.at, React.createElement('b',null,r.name)
             ),
 
             /* Deposit note · coral */
             React.createElement('div', { className:'det-bw-dep' },
               React.createElement(Icon,{name:'shield',style:{width:16,height:16,flexShrink:0,marginTop:1}}),
               React.createElement('span',null,
-                'Depósito de ', React.createElement('b',null,'10€/persona'),
-                ' — se descuenta del total.'
+                DT_T.depositPre, React.createElement('b',null,DT_T.depositAmount),
+                DT_T.depositPost
               )
             ),
 
             /* Available time slots */
-            React.createElement('p', { className:'det-bw-times-label' }, 'Horarios disponibles hoy'),
+            React.createElement('p', { className:'det-bw-times-label' }, DT_T.timesToday),
             filteredTimes.length
               ? React.createElement('div', { className:'det-bw-times-grid' },
                   filteredTimes.map(([t,st],i) => React.createElement('button', {
@@ -182,7 +223,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                   }, t))
                 )
               : React.createElement('p',{className:'muted',style:{fontSize:'14px',margin:'4px 0 14px'}},
-                  'Sin disponibilidad hoy. Prueba otra fecha.'),
+                  DT_T.noAvailability),
 
             /* Primary CTA */
             React.createElement('button', {
@@ -190,7 +231,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
               onClick:()=>startBook(r.id,null)
             },
               React.createElement(Icon,{name:'cal',style:{width:17,height:17}}),
-              'Elegir fecha y hora'
+              DT_T.chooseDateTime
             )
           )
         )
