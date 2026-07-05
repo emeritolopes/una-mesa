@@ -99,6 +99,39 @@ function Toast({ msg }) {
   );
 }
 
+/* ── Market detection (self-contained copy — see home.jsx for the canonical version) ── */
+function cmMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const CM_LANG = cmMarket();
+const CM_T = {
+  es: {
+    discover:'Descubrir', explore:'Explorar', concierge:'Conserje IA', forRestaurants:'Para restaurantes',
+    searchPh:'Busca restaurante, cocina o zona…', search:'Buscar',
+    lightMode:'Modo claro', darkMode:'Modo oscuro',
+    myProfile:'👤  Mi perfil', logout:'→  Cerrar sesión',
+    signIn:'Iniciar sesión', createProfile:'Crear perfil',
+    closeMenu:'Cerrar menú', openMenu:'Abrir menú',
+    footerTag:'© 2026 Una Mesa · La mesa que siempre te espera',
+    help:'Ayuda', privacy:'Privacidad', terms:'Términos',
+  },
+  en: {
+    discover:'Discover', explore:'Explore', concierge:'AI Concierge', forRestaurants:'For restaurants',
+    searchPh:'Search restaurant, cuisine or area…', search:'Search',
+    lightMode:'Light mode', darkMode:'Dark mode',
+    myProfile:'👤  My profile', logout:'→  Log out',
+    signIn:'Sign in', createProfile:'Create profile',
+    closeMenu:'Close menu', openMenu:'Open menu',
+    footerTag:'© 2026 Una Mesa · The table that always awaits you',
+    help:'Help', privacy:'Privacy', terms:'Terms',
+  }
+}[CM_LANG];
+
 /* ── Header · Stitch navbar (glass, wordmark, underline-active links) ── */
 function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, onSearch }) {
   const [scrolled,   setScrolled]  = useState(false);
@@ -150,13 +183,13 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
 
         /* ── Links de navegación (desktop) ── */
         React.createElement('nav', { className:'hdr-links' },
-          lnk('home',      'Descubrir'),
-          lnk('results',   'Explorar'),
-          lnk('concierge', 'Conserje IA'),
+          lnk('home',      CM_T.discover),
+          lnk('results',   CM_T.explore),
+          lnk('concierge', CM_T.concierge),
           React.createElement('a', {
             className:'hdr-link hdr-link-b2b',
             href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener'
-          }, 'Para restaurantes')
+          }, CM_T.forRestaurants)
         ),
 
         /* ── Barra de búsqueda scroll ── */
@@ -168,19 +201,19 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
           React.createElement('input', {
             ref: inputRef,
             value:q, onChange:e=>setQ(e.target.value), tabIndex:scrolled?0:-1,
-            placeholder:'Busca restaurante, cocina o zona…'
+            placeholder:CM_T.searchPh
           })
         ),
 
         /* ── Acciones derecha ── */
         React.createElement('div', { className:'hdr-nav' },
           React.createElement('button', {
-            className:'icon-btn', title:'Buscar',
+            className:'icon-btn', title:CM_T.search,
             onClick:() => { if (scrolled && inputRef.current) inputRef.current.focus(); else go('results'); }
           }, React.createElement(Icon, { name:'search' })),
 
           React.createElement('button', {
-            className:'icon-btn', title:theme==='noche'?'Modo claro':'Modo oscuro', onClick:onTheme
+            className:'icon-btn', title:theme==='noche'?CM_T.lightMode:CM_T.darkMode, onClick:onTheme
           }, React.createElement(Icon, { name:theme==='noche'?'sun':'moon' })),
 
           user
@@ -205,17 +238,17 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
                   React.createElement('button', {
                     style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'transparent', border:'none', cursor:'pointer', fontSize:14, color:'var(--text)' },
                     onClick: () => { setAvatarOpen(false); onProfile(); }
-                  }, '👤  Mi perfil'),
+                  }, CM_T.myProfile),
                   React.createElement('div', { style:{ height:1, background:'var(--line)', margin:'0 12px' } }),
                   React.createElement('button', {
                     style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D8552E' },
                     onClick: () => { setAvatarOpen(false); onLogout(); }
-                  }, '→  Cerrar sesión')
+                  }, CM_T.logout)
                 )
               )
             : React.createElement(React.Fragment, null,
-                React.createElement('button', { className:'btn btn-ghost btn-sm hdr-signin', onClick:()=>onAuth('login') }, 'Iniciar sesión'),
-                React.createElement('button', { className:'btn btn-acc btn-sm', onClick:()=>onAuth('register') }, 'Crear perfil')
+                React.createElement('button', { className:'btn btn-ghost btn-sm hdr-signin', onClick:()=>onAuth('login') }, CM_T.signIn),
+                React.createElement('button', { className:'btn btn-acc btn-sm', onClick:()=>onAuth('register') }, CM_T.createProfile)
               )
         ),
 
@@ -224,7 +257,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
           type:'button',
           className: 'hdr-burger' + (menuOpen ? ' open' : ''),
           onClick: () => setMenuOpen(o => !o),
-          'aria-label': menuOpen ? 'Cerrar menú' : 'Abrir menú'
+          'aria-label': menuOpen ? CM_T.closeMenu : CM_T.openMenu
         },
           React.createElement('span', null),
           React.createElement('span', null),
@@ -235,14 +268,14 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
 
     /* ── Panel de navegación móvil ── */
     React.createElement('nav', { className: 'hdr-mobile-menu' + (menuOpen ? ' open' : ''), 'aria-hidden': String(!menuOpen) },
-      mlnk('home',      'Descubrir'),
-      mlnk('results',   'Explorar'),
-      mlnk('concierge', 'Conserje IA'),
+      mlnk('home',      CM_T.discover),
+      mlnk('results',   CM_T.explore),
+      mlnk('concierge', CM_T.concierge),
       React.createElement('a', {
         className: 'hdr-mobile-link',
         href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener',
         onClick: () => setMenuOpen(false)
-      }, 'Para restaurantes')
+      }, CM_T.forRestaurants)
     )
   );
 }
@@ -252,12 +285,12 @@ function Footer() {
   return React.createElement('footer', { className:'foot' },
     React.createElement('div', { className:'wrap' },
       React.createElement('div', { className:'foot-in' },
-        React.createElement('span', null, '© 2026 Una Mesa · La mesa que siempre te espera'),
+        React.createElement('span', null, CM_T.footerTag),
         React.createElement('div', { className:'foot-links' },
-          React.createElement('a', { href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, 'Para restaurantes'),
-          React.createElement('a', { href:'#' }, 'Ayuda'),
-          React.createElement('a', { href:'#' }, 'Privacidad'),
-          React.createElement('a', { href:'#' }, 'Términos')
+          React.createElement('a', { href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, CM_T.forRestaurants),
+          React.createElement('a', { href:'#' }, CM_T.help),
+          React.createElement('a', { href:'#' }, CM_T.privacy),
+          React.createElement('a', { href:'#' }, CM_T.terms)
         )
       )
     )
