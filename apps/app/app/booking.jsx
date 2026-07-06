@@ -32,19 +32,19 @@ const BK_T = {
     timeUp: 'Se acabó el tiempo de reserva. ', chooseAgain: 'Vuelve a elegir la hora', toSecure: ' para asegurar tu mesa.', retry: 'Reintentar',
     holdPre: 'Guardamos tu mesa durante ', holdPost: ' minutos. Completa el depósito antes de que acabe.',
     day: 'Día', hour: 'Hora', guests: 'Comensales', stepDate: 'Fecha',
-    depositRow: (dep,party) => 'Depósito ('+dep+'€ × '+party+')',
+    depositRow: (dep,party,sym) => 'Depósito ('+sym+dep+' × '+party+')',
     payingNow: 'A pagar ahora',
     shieldNote: 'No es un cargo extra: se descuenta del total de tu cuenta. Solo se retiene si dejas la mesa vacía sin avisar.',
     howNotify: '¿Cómo quieres recibir la confirmación?', email: 'Correo', sms: 'SMS',
     paymentMethod: 'Método de pago', card: 'Tarjeta', bizum: 'Bizum',
     cardData: 'Datos de la tarjeta', postalCode: 'Cód. postal',
     processing: 'Procesando…', timeExpired: 'Tiempo agotado',
-    payAndBook: dep => 'Pagar '+dep+'€ y reservar', continueAsGuest: 'Continuar como invitado',
+    payAndBook: (dep,sym) => 'Pagar '+sym+dep+' y reservar', continueAsGuest: 'Continuar como invitado',
     tableConfirmed: '¡Mesa confirmada!',
     seeYouAt: (name,method) => 'Te esperamos en '+name+'. Te hemos enviado los detalles por '+method+'.',
     viaSms: 'SMS', viaEmail: 'correo electrónico',
     reservation: 'Reserva', restaurant: 'Restaurante', dayTime: 'Día y hora',
-    deposit: 'Depósito', depositNote: dep => dep+'€ — se descuenta del total al llegar.',
+    deposit: 'Depósito', depositNote: (dep,sym) => sym+dep+' — se descuenta del total al llegar.',
     confirmation: 'Confirmación', bySms: 'Por SMS', byEmail: 'Por correo electrónico',
     backHome: 'Volver al inicio', seeMyBookings: 'Ver mis reservas',
     guestDataTitle: 'Datos para tu reserva',
@@ -54,7 +54,7 @@ const BK_T = {
     genericPayError: 'Error al procesar el pago. Inténtalo de nuevo.',
     pastTimeError: 'No puedes reservar para una hora que ya ha pasado. Por favor elige una hora futura.',
     payInitError: 'No se pudo iniciar el pago',
-    dateLocale: 'es-ES', billingCountry: 'ES', curSym: '€',
+    dateLocale: 'es-ES', billingCountry: 'ES',
   },
   en: {
     notFound: 'Restaurant not found.',
@@ -77,19 +77,19 @@ const BK_T = {
     timeUp: 'Your booking time ran out. ', chooseAgain: 'Choose a time again', toSecure: ' to secure your table.', retry: 'Retry',
     holdPre: 'We\'re holding your table for ', holdPost: ' minutes. Complete the deposit before it runs out.',
     day: 'Day', hour: 'Time', guests: 'Guests', stepDate: 'Date',
-    depositRow: (dep,party) => 'Deposit (£'+dep+' × '+party+')',
+    depositRow: (dep,party,sym) => 'Deposit ('+sym+dep+' × '+party+')',
     payingNow: 'Due now',
     shieldNote: 'Not an extra charge: it\'s deducted from your total bill. It\'s only withheld if you leave the table empty without notice.',
     howNotify: 'How would you like to receive confirmation?', email: 'Email', sms: 'SMS',
     paymentMethod: 'Payment method', card: 'Card', bizum: 'Bizum',
     cardData: 'Card details', postalCode: 'Postal code',
     processing: 'Processing…', timeExpired: 'Time expired',
-    payAndBook: dep => 'Pay £'+dep+' and book', continueAsGuest: 'Continue as guest',
+    payAndBook: (dep,sym) => 'Pay '+sym+dep+' and book', continueAsGuest: 'Continue as guest',
     tableConfirmed: 'Table confirmed!',
     seeYouAt: (name,method) => 'See you at '+name+'. We\'ve sent the details by '+method+'.',
     viaSms: 'SMS', viaEmail: 'email',
     reservation: 'Booking', restaurant: 'Restaurant', dayTime: 'Day and time',
-    deposit: 'Deposit', depositNote: dep => '£'+dep+' — deducted from the total on arrival.',
+    deposit: 'Deposit', depositNote: (dep,sym) => sym+dep+' — deducted from the total on arrival.',
     confirmation: 'Confirmation', bySms: 'By SMS', byEmail: 'By email',
     backHome: 'Back to home', seeMyBookings: 'See my bookings',
     guestDataTitle: 'Your booking details',
@@ -99,7 +99,7 @@ const BK_T = {
     genericPayError: 'Error processing payment. Please try again.',
     pastTimeError: 'You can\'t book a time that has already passed. Please choose a future time.',
     payInitError: 'Could not start payment',
-    dateLocale: 'en-GB', billingCountry: 'GB' /* TODO: assumes GB cardholder — revisit if EU cards need to work on the UK domain too */, curSym: '£',
+    dateLocale: 'en-GB', billingCountry: 'GB' /* TODO: assumes GB cardholder — revisit if EU cards need to work on the UK domain too */,
   }
 }[BK_LANG];
 
@@ -218,7 +218,8 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const filteredTimes  = [...filteredLunch, ...filteredDinner];
   /* Depósito fijo por reserva — deposit_amount viene en céntimos de Supabase (1000 = 10€) */
   const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
-  const deposit      = depositCents / 100;   // euros, para mostrar en UI y email
+  const deposit      = depositCents / 100;   // unidades de la moneda del restaurante, para mostrar en UI y email
+  const curSym       = window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '€'; // símbolo real del restaurante, no del mercado del comensal
 
   const goStep = n => { setPayError(''); setStep(n); };
 
@@ -555,11 +556,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           React.createElement('span',null,BK_T.guests),
           React.createElement('span',{style:{fontWeight:700}}, party)),
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,BK_T.depositRow(deposit,party)),
-          React.createElement('span',{className:'amt'}, BK_T.curSym+(deposit * party))),
+          React.createElement('span',null,BK_T.depositRow(deposit,party,curSym)),
+          React.createElement('span',{className:'amt'}, curSym+(deposit * party))),
         React.createElement('div',{className:'dep-row total'},
           React.createElement('span',null,BK_T.payingNow),
-          React.createElement('span',{className:'amt'}, BK_T.curSym+(deposit * party)))
+          React.createElement('span',{className:'amt'}, curSym+(deposit * party)))
       ),
 
       /* Shield note */
@@ -632,7 +633,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             React.createElement('span', { style:{opacity:.7} }, BK_T.processing)
           ) :
           expired ? BK_T.timeExpired :
-          user    ? BK_T.payAndBook(deposit) :
+          user    ? BK_T.payAndBook(deposit,curSym) :
                     BK_T.continueAsGuest
         ))
     );
@@ -661,7 +662,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           React.createElement('span',{className:'v'}, party)),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},BK_T.deposit),
-          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, BK_T.depositNote(deposit))),
+          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, BK_T.depositNote(deposit,curSym))),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},BK_T.confirmation),
           React.createElement('span',{className:'v'}, notify==='sms'?BK_T.bySms:BK_T.byEmail))

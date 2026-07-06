@@ -24,7 +24,7 @@ const UM_T = {
     featured: 'Destacado', availToday: 'Disponible hoy',
     menuHighlights: 'Destacados del Menú',
     bookTable: 'Reserva tu mesa', guests: 'Invitados', slotsAvail: 'Horarios disponibles',
-    depositPre: 'Reserva con depósito reembolsable de ', depositAmount: '10 €', depositPost: ' para garantizar tu mesa.',
+    depositPre: 'Reserva con depósito reembolsable de ', depositAmountFn: (r) => (window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(r.currency):'€')+(r.deposit||10), depositPost: ' para garantizar tu mesa.',
     confirmBooking: 'Confirmar Reserva',
     personalService: 'Servicio Personalizado', concierge: 'Conserje Digital',
     conciergeQuote: '"¿Buscas algo especial para esta noche? Describe tu antojo, el ambiente o la ocasión y te encuentro la mesa perfecta."',
@@ -47,7 +47,7 @@ const UM_T = {
     featured: 'Featured', availToday: 'Available today',
     menuHighlights: 'Menu Highlights',
     bookTable: 'Book your table', guests: 'Guests', slotsAvail: 'Available times',
-    depositPre: 'Book with a refundable deposit of ', depositAmount: '£10' /* TODO: confirm real GBP deposit before launch — not converted from EUR */, depositPost: ' to secure your table.',
+    depositPre: 'Book with a refundable deposit of ', depositAmountFn: (r) => (window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(r.currency):'£')+(r.deposit||10), depositPost: ' to secure your table.',
     confirmBooking: 'Confirm Booking',
     personalService: 'Personalised Service', concierge: 'Digital Concierge',
     conciergeQuote: '"Looking for something special tonight? Describe the mood, the occasion, or what you\'re craving, and I\'ll find your perfect table."',
@@ -375,7 +375,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
             /* nota depósito */
             React.createElement('div', { className:'deposit-note' },
               React.createElement(Icon,{ name:'info', style:{ width:16, height:16, color:'var(--accent)' } }),
-              React.createElement('span', null, UM_T.depositPre, React.createElement('b', null, UM_T.depositAmount), UM_T.depositPost)
+              React.createElement('span', null, UM_T.depositPre, React.createElement('b', null, UM_T.depositAmountFn(dest)), UM_T.depositPost)
             ),
             /* confirmar */
             React.createElement('button', { className:'book-cta', onClick:confirmBook }, UM_T.confirmBooking)
