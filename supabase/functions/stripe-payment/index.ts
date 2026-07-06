@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, currency, restaurant_id, user_id, reservation_id } = await req.json()
+    const { amount, currency, restaurant_id, user_id, reservation_id, party } = await req.json()
 
     if (!reservation_id) {
       return new Response(JSON.stringify({ error: 'reservation_id required' }), {
@@ -35,32 +35,42 @@ Deno.serve(async (req) => {
       })
     }
 
+    if (!restaurant_id) {
+      return new Response(JSON.stringify({ error: 'restaurant_id required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!party || party < 1) {
+      return new Response(JSON.stringify({ error: 'party required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    // Verificar el depósito esperado contra la reserva real — no confiar en 'amount' del cliente
-    const resCheck = await fetch(
-      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=id,venue_id,deposit_amount,deposit_status`,
+    // Verificar el depósito esperado contra el restaurante real — no confiar en 'amount' del cliente.
+    // Se valida contra `venues`, no contra `reservations`: en este punto la reserva todavía no existe,
+    // se crea después de que el pago se autoriza (ver booking.jsx paso 3).
+    const venueCheck = await fetch(
+      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_amount`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     )
-    const reservations = await resCheck.json()
-    const reservation = reservations[0]
+    const venues = await venueCheck.json()
+    const venue = venues[0]
 
-    if (!reservation) {
-      return new Response(JSON.stringify({ error: 'reservation not found' }), {
+    if (!venue) {
+      return new Response(JSON.stringify({ error: 'restaurant not found' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    if (reservation.deposit_status === 'captured') {
-      return new Response(JSON.stringify({ error: 'deposit already captured' }), {
-        status: 409,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (reservation.deposit_amount !== amount) {
+    const expectedAmount = venue.deposit_amount * party
+    if (amount !== expectedAmount) {
       return new Response(JSON.stringify({ error: 'amount does not match expected deposit' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,12 +82,12 @@ Deno.serve(async (req) => {
     })
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: reservation.deposit_amount,  // siempre usar el valor de la BD
+      amount: expectedAmount,  // siempre usar el valor recalculado desde la BD, no el del cliente
       currency,
       capture_method: 'manual',
       metadata: {
-        restaurant_id: restaurant_id ?? reservation.venue_id ?? '',
-        user_id:       user_id       ?? '',
+        restaurant_id,
+        user_id:       user_id ?? '',
         reservation_id,
       },
     })
