@@ -22,23 +22,8 @@ const tools: Anthropic.Tool[] = [
     }
   },
   {
-    name: 'create_reservation',
-    description: 'Crea una reserva confirmada cuando el usuario ha proporcionado todos los datos y ha confirmado que quiere reservar.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        restaurant_id: { type: 'string', description: 'ID del restaurante' },
-        restaurant_name: { type: 'string', description: 'Nombre del restaurante' },
-        date: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
-        time: { type: 'string', description: 'Hora en formato HH:MM' },
-        party_size: { type: 'number', description: 'Número de personas' }
-      },
-      required: ['restaurant_id', 'restaurant_name', 'date', 'time', 'party_size']
-    }
-  },
-  {
     name: 'start_reservation',
-    description: 'Abre el formulario de reserva en la app cuando el usuario quiere reservar pero faltan datos como el pago del depósito.',
+    description: 'Abre el formulario de reserva en la app cuando el usuario quiere reservar. Úsalo SIEMPRE que el usuario quiera confirmar una reserva — el formulario recoge el pago del depósito, que es obligatorio para toda reserva. Nunca confirmes una reserva sin pasar por aquí.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -99,10 +84,10 @@ ${restaurantList}
 HOW TO ACT:
 1. Help the user find the perfect restaurant based on their preferences
 2. When they want to book, collect: restaurant, date, time, and party size
-3. Use check_availability to verify availability ALWAYS before confirming
-4. If available, use create_reservation to create the booking directly
-5. The booking is confirmed with a refundable deposit — tell the user they'll receive an email with the payment link
-6. You can modify or cancel bookings if the user asks
+3. Use check_availability to verify availability ALWAYS before proceeding
+4. If available, use start_reservation to hand off to the app's booking form — this is the ONLY way to book. Never tell the user their booking is confirmed yourself; the deposit payment in that form is what actually confirms it.
+5. Explain that a refundable deposit is required to secure the table, and that the booking form will guide them through it
+6. You can help the user understand or plan changes to an existing booking, but cancellations and modifications happen in the app's own booking screen, not through you
 
 Always respond in English, elegantly and concisely.` : `Eres el conserje digital de Una Mesa, una plataforma premium de reservas de restaurantes en España.
 
@@ -115,10 +100,10 @@ ${restaurantList}
 CÓMO ACTUAR:
 1. Ayuda al usuario a encontrar el restaurante perfecto según sus preferencias
 2. Cuando quiera reservar, recoge: restaurante, fecha, hora y número de personas
-3. Usa check_availability para verificar disponibilidad SIEMPRE antes de confirmar
-4. Si hay disponibilidad, usa create_reservation para crear la reserva directamente
-5. La reserva se confirma con un depósito reembolsable — informa al usuario que recibirá un email con el link de pago
-6. Puedes modificar o cancelar reservas si el usuario lo pide
+3. Usa check_availability para verificar disponibilidad SIEMPRE antes de continuar
+4. Si hay disponibilidad, usa start_reservation para pasar el testigo al formulario de reserva de la app — es la ÚNICA forma de reservar. Nunca le digas al usuario que su reserva está confirmada tú mismo; el pago del depósito en ese formulario es lo que realmente la confirma.
+5. Explica que hace falta un depósito reembolsable para asegurar la mesa, y que el formulario le va a guiar por ese paso
+6. Puedes ayudar al usuario a entender o planear cambios sobre una reserva existente, pero las cancelaciones y modificaciones se hacen en la pantalla de reservas de la app, no a través de ti
 
 Responde siempre en español, de forma elegante y concisa.`;
 
@@ -190,42 +175,6 @@ Responde siempre en español, de forma elegante y concisa.`;
               ? `Available for ${partySize} people on ${date} at ${time}.`
               : `Disponible para ${partySize} personas el ${date} a las ${time}.`;
           }
-        }
-
-        else if (toolUse.name === 'create_reservation') {
-          const venueId = input.restaurant_id as string;
-          const venueName = input.restaurant_name as string;
-          const date = input.date as string;
-          const time = input.time as string;
-          const partySize = input.party_size as number;
-
-          const res = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
-            method: 'POST',
-            headers: {
-              'apikey': serviceKey,
-              'Authorization': `Bearer ${serviceKey}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({
-              venue_id: venueId,
-              customer_name: user?.name || (lang === 'en' ? 'Guest' : 'Cliente'),
-              customer_email: trustedEmail,
-              pax: partySize,
-              date,
-              time,
-              status: 'confirmed',
-              source: 'chat_agent'
-            })
-          });
-          const reservation = await res.json();
-          result = res.ok && reservation[0]?.id
-            ? (lang === 'en'
-                ? `Booking created successfully. ID: ${reservation[0].id.slice(0,8).toUpperCase()}. The user will receive a confirmation email.`
-                : `Reserva creada exitosamente. ID: ${reservation[0].id.slice(0,8).toUpperCase()}. El usuario recibirá un email de confirmación.`)
-            : (lang === 'en'
-                ? `Error creating the booking: ${JSON.stringify(reservation)}`
-                : `Error al crear la reserva: ${JSON.stringify(reservation)}`);
         }
 
         else if (toolUse.name === 'start_reservation') {

@@ -258,7 +258,6 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
         },
         body: JSON.stringify({
           amount:         depositCents * party,   // céntimos × personas
-          currency:       'eur',
           restaurant_id:  r.id,
           user_id:        user?.id || '',
           reservation_id: reservationCode,
@@ -344,6 +343,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
                     pax:             party,
                     deposit_amount:  depositCents,
                     noshow_url:      noshowUrl,
+                    lang:            BK_LANG,
                   }),
                 }).catch(e => console.warn('[UNA MESA] restaurant-email:', e.message));
               } catch(e) { console.warn('[UNA MESA] noshow-flow:', e.message || e); }
@@ -370,6 +370,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             pax:             party,
             deposit_amount:  depositCents,
             menu_url:        r.menu_url || 'https://www.elbodegonalicante.com/wp-content/uploads/2026/05/carta_el_bodegon_english.pdf',
+            lang:            BK_LANG,
           }),
         }).catch(e => console.warn('[UNA MESA] send-email:', e.message));
       }
