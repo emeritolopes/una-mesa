@@ -19,17 +19,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, currency, restaurant_id, user_id, reservation_id, party } = await req.json()
+    const { amount, restaurant_id, user_id, reservation_id, party } = await req.json()
 
     if (!reservation_id) {
       return new Response(JSON.stringify({ error: 'reservation_id required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (!currency) {
-      return new Response(JSON.stringify({ error: 'currency required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -52,11 +45,12 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    // Verificar el depósito esperado contra el restaurante real — no confiar en 'amount' del cliente.
-    // Se valida contra `venues`, no contra `reservations`: en este punto la reserva todavía no existe,
-    // se crea después de que el pago se autoriza (ver booking.jsx paso 3).
+    // Verificar el depósito Y la moneda esperados contra el restaurante real — no confiar
+    // en 'amount' ni en 'currency' del cliente. Se valida contra `venues`, no contra
+    // `reservations`: en este punto la reserva todavía no existe, se crea después de que
+    // el pago se autoriza (ver booking.jsx paso 3).
     const venueCheck = await fetch(
-      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_amount`,
+      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_amount,currency`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     )
     const venues = await venueCheck.json()
@@ -82,8 +76,8 @@ Deno.serve(async (req) => {
     })
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: expectedAmount,  // siempre usar el valor recalculado desde la BD, no el del cliente
-      currency,
+      amount: expectedAmount,       // siempre el valor recalculado desde la BD, no el del cliente
+      currency: venue.currency,    // siempre la moneda del restaurante, no la del navegador del comensal
       capture_method: 'manual',
       metadata: {
         restaurant_id,
