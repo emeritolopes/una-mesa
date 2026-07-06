@@ -1,5 +1,38 @@
 /* ════ UNA MESA · App root (state + routing) ════ */
 
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function apMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const AP_LANG = apMarket();
+const AP_T = {
+  es: {
+    removedFav: 'Quitado de favoritos', addedFav: '♥ Guardado en favoritos',
+    rewardRedeemed: cost => 'Recompensa canjeada · −'+cost+' Cucharas',
+    hello: name => '¡Hola, '+name+'!',
+    accountCreated: 'Cuenta creada · +25 Cucharas de Oro',
+    tableConfirmedToast: name => 'Mesa confirmada en '+name,
+    loggedOut: 'Sesión cerrada',
+    currentLocationSentinel: 'tu ubicación actual', yourArea: 'tu zona',
+    countryFallback: 'España',
+  },
+  en: {
+    removedFav: 'Removed from favourites', addedFav: '♥ Saved to favourites',
+    rewardRedeemed: cost => 'Reward redeemed · −'+cost+' Spoons',
+    hello: name => 'Hi, '+name+'!',
+    accountCreated: 'Account created · +25 Golden Spoons',
+    tableConfirmedToast: name => 'Table confirmed at '+name,
+    loggedOut: 'Logged out',
+    currentLocationSentinel: 'your current location', yourArea: 'your area',
+    countryFallback: 'the UK',
+  }
+}[AP_LANG];
+
 /* glitch-free theme switch: one uniform crossfade applied only during the change */
 function animateThemeTo(t){
   const el = document.documentElement;
@@ -88,7 +121,7 @@ function App() {
     navigator.geolocation.getCurrentPosition(
       pos=> {
         const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        setGeo({status:'granted',label:'tu ubicación actual',ref:{x:50,y:50},lat,lng});
+        setGeo({status:'granted',label:AP_T.currentLocationSentinel,ref:{x:50,y:50},lat,lng});
         window.__geoDebug = { lat, lng }; console.log('[GEO]', window.__geoDebug);
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
           .then(r => r.json())
@@ -141,20 +174,20 @@ function App() {
   const toggleFav = rid => {
     setFavs(f => {
       const has = f.includes(rid);
-      flash(has ? 'Quitado de favoritos' : '♥ Guardado en favoritos');
+      flash(has ? AP_T.removedFav : AP_T.addedFav);
       return has ? f.filter(x=>x!==rid) : [...f, rid];
     });
   };
   const requireAuth = cb => { pendingRef.current = cb; setReserveGate(true); };
   const awardSpoons = n => { setSpoons(s=>{ const t=s+n; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; }); };
-  const redeemReward = cost => { let ok=false; setSpoons(s=>{ if(s>=cost){ ok=true; const t=s-cost; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; } return s; }); if(ok) flash('Recompensa canjeada · −'+cost+' Cucharas'); return ok; };
+  const redeemReward = cost => { let ok=false; setSpoons(s=>{ if(s>=cost){ ok=true; const t=s-cost; try{localStorage.setItem('um-spoons',String(t));}catch(e){} return t; } return s; }); if(ok) flash(AP_T.rewardRedeemed(cost)); return ok; };
   const onAuth = u => {
     setUser(u); setAuthOpen(null); setReserveGate(false);
-    flash('¡Hola, '+formatName(u).split(' ')[0]+'!');
+    flash(AP_T.hello(formatName(u).split(' ')[0]));
     if (pendingRef.current) { const cb = pendingRef.current; pendingRef.current=null; setTimeout(cb, 60); }
   };
   /* reservation gate outcomes */
-  const gateCreateAccount = u => { awardSpoons(25); flash('Cuenta creada · +25 Cucharas de Oro'); onAuth(u); };
+  const gateCreateAccount = u => { awardSpoons(25); flash(AP_T.accountCreated); onAuth(u); };
   const gateGuest = () => {
     setReserveGate(false);
     const cb = pendingRef.current; pendingRef.current=null;
@@ -174,14 +207,14 @@ function App() {
   };
   const onConfirm = booking => {
     setBookings(b => [booking, ...b]);
-    flash('Mesa confirmada en '+booking.name);
+    flash(AP_T.tableConfirmedToast(booking.name));
     if (booking.member) awardSpoons(25);
   };
   onConfirm._goProfile = () => go('profile');
 
   const logout = () => {
     if (window.UMAuth) window.UMAuth.signOut().catch(() => {});
-    setUser(null); go('home'); flash('Sesión cerrada');
+    setUser(null); go('home'); flash(AP_T.loggedOut);
   };
 
   let screen;
@@ -190,7 +223,7 @@ function App() {
   else if (route.view==='concierge')
     screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go, user });
   else if (route.view==='results')
-    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== 'tu ubicación actual' ? geo.label : 'tu zona', geo });
+    screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== AP_T.currentLocationSentinel ? geo.label : AP_T.yourArea, geo });
   else if (route.view==='detail')
     screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')
@@ -216,7 +249,7 @@ function App() {
       onAccount:gateCreateAccount, onGuest:gateGuest }) : null,
     claimOpen ? React.createElement(window.ClaimSpoonsModal, {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
-    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label==='tu ubicación actual' ? 'España' : geo.label, initialMode:authOpen }) : null,
+    authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label===AP_T.currentLocationSentinel ? AP_T.countryFallback : geo.label, initialMode:authOpen }) : null,
     React.createElement(window.Toast, { msg:toast })
   );
 }
