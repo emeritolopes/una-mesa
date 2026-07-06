@@ -1,5 +1,108 @@
 /* ════ UNA MESA · Booking flow · Stitch design system ════ */
 
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function bkMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const BK_LANG = bkMarket();
+const BK_T = {
+  es: {
+    notFound: 'Restaurante no encontrado.',
+    dows: ['D','L','M','X','J','V','S'], today: 'Hoy',
+    dowRowHeader: ['L','M','X','J','V','S','D'],
+    cancel: 'Cancelar', continue_: 'Continuar', back: 'Atrás',
+    whatDay: '¿Qué día?', chooseDate: 'Elige la fecha de tu reserva.',
+    whatTime: '¿A qué hora?', realtimeAvail: ' · disponibilidad en tiempo real',
+    lunch: 'Mediodía', dinner: 'Noche', lastSlots: 'Últimas',
+    noSlotsForDay: 'Sin horarios para ese día.',
+    howMany: '¿Cuántos sois?', numGuests: 'Número de comensales.',
+    guestSingular: 'comensal', guestPlural: 'comensales',
+    largeGroupNote: 'Para grupos grandes podemos avisar al restaurante con antelación.',
+    confirmSecure: 'Confirma y asegura tu mesa',
+    depositIntro: 'Un pequeño depósito que se descuenta de tu cuenta final.',
+    depositWhyTitle: '¿Por qué un depósito?',
+    depositWhyBody1: 'Porque "reservo y ya si eso aparezco" se había convertido en deporte nacional. Tranqui, no es un peaje: se ',
+    depositWhyBold: 'descuenta del total',
+    depositWhyBody2: ' de tu cuenta al final. Solo lo pierdes si decides hacerte el fantasma y dejar la mesa vacía.',
+    timeUp: 'Se acabó el tiempo de reserva. ', chooseAgain: 'Vuelve a elegir la hora', toSecure: ' para asegurar tu mesa.', retry: 'Reintentar',
+    holdPre: 'Guardamos tu mesa durante ', holdPost: ' minutos. Completa el depósito antes de que acabe.',
+    day: 'Día', hour: 'Hora', guests: 'Comensales', stepDate: 'Fecha',
+    depositRow: (dep,party) => 'Depósito ('+dep+'€ × '+party+')',
+    payingNow: 'A pagar ahora',
+    shieldNote: 'No es un cargo extra: se descuenta del total de tu cuenta. Solo se retiene si dejas la mesa vacía sin avisar.',
+    howNotify: '¿Cómo quieres recibir la confirmación?', email: 'Correo', sms: 'SMS',
+    paymentMethod: 'Método de pago', card: 'Tarjeta', bizum: 'Bizum',
+    cardData: 'Datos de la tarjeta', postalCode: 'Cód. postal',
+    processing: 'Procesando…', timeExpired: 'Tiempo agotado',
+    payAndBook: dep => 'Pagar '+dep+'€ y reservar', continueAsGuest: 'Continuar como invitado',
+    tableConfirmed: '¡Mesa confirmada!',
+    seeYouAt: (name,method) => 'Te esperamos en '+name+'. Te hemos enviado los detalles por '+method+'.',
+    viaSms: 'SMS', viaEmail: 'correo electrónico',
+    reservation: 'Reserva', restaurant: 'Restaurante', dayTime: 'Día y hora',
+    deposit: 'Depósito', depositNote: dep => dep+'€ — se descuenta del total al llegar.',
+    confirmation: 'Confirmación', bySms: 'Por SMS', byEmail: 'Por correo electrónico',
+    backHome: 'Volver al inicio', seeMyBookings: 'Ver mis reservas',
+    guestDataTitle: 'Datos para tu reserva',
+    guestDataBody: 'Necesitamos tus datos para enviarte la confirmación y el link de pago del depósito.',
+    fullName: 'Nombre completo *', emailField: 'Email *', phoneOptional: 'Teléfono (opcional)',
+    confirmBooking: 'Confirmar reserva',
+    genericPayError: 'Error al procesar el pago. Inténtalo de nuevo.',
+    pastTimeError: 'No puedes reservar para una hora que ya ha pasado. Por favor elige una hora futura.',
+    payInitError: 'No se pudo iniciar el pago',
+    dateLocale: 'es-ES', billingCountry: 'ES', curSym: '€',
+  },
+  en: {
+    notFound: 'Restaurant not found.',
+    dows: ['S','M','T','W','T','F','S'], today: 'Today',
+    dowRowHeader: ['M','T','W','T','F','S','S'],
+    cancel: 'Cancel', continue_: 'Continue', back: 'Back',
+    whatDay: 'What day?', chooseDate: 'Choose your booking date.',
+    whatTime: 'What time?', realtimeAvail: ' · real-time availability',
+    lunch: 'Lunch', dinner: 'Dinner', lastSlots: 'Almost full',
+    noSlotsForDay: 'No time slots for that day.',
+    howMany: 'How many of you?', numGuests: 'Number of guests.',
+    guestSingular: 'guest', guestPlural: 'guests',
+    largeGroupNote: 'For large groups we can give the restaurant advance notice.',
+    confirmSecure: 'Confirm and secure your table',
+    depositIntro: 'A small deposit that gets deducted from your final bill.',
+    depositWhyTitle: 'Why a deposit?',
+    depositWhyBody1: 'Because "I\'ll book and maybe show up" had become a national sport. Don\'t worry, it\'s not a toll: it gets ',
+    depositWhyBold: 'deducted from your total',
+    depositWhyBody2: ' at the end. You only lose it if you decide to ghost and leave the table empty.',
+    timeUp: 'Your booking time ran out. ', chooseAgain: 'Choose a time again', toSecure: ' to secure your table.', retry: 'Retry',
+    holdPre: 'We\'re holding your table for ', holdPost: ' minutes. Complete the deposit before it runs out.',
+    day: 'Day', hour: 'Time', guests: 'Guests', stepDate: 'Date',
+    depositRow: (dep,party) => 'Deposit (£'+dep+' × '+party+')',
+    payingNow: 'Due now',
+    shieldNote: 'Not an extra charge: it\'s deducted from your total bill. It\'s only withheld if you leave the table empty without notice.',
+    howNotify: 'How would you like to receive confirmation?', email: 'Email', sms: 'SMS',
+    paymentMethod: 'Payment method', card: 'Card', bizum: 'Bizum',
+    cardData: 'Card details', postalCode: 'Postal code',
+    processing: 'Processing…', timeExpired: 'Time expired',
+    payAndBook: dep => 'Pay £'+dep+' and book', continueAsGuest: 'Continue as guest',
+    tableConfirmed: 'Table confirmed!',
+    seeYouAt: (name,method) => 'See you at '+name+'. We\'ve sent the details by '+method+'.',
+    viaSms: 'SMS', viaEmail: 'email',
+    reservation: 'Booking', restaurant: 'Restaurant', dayTime: 'Day and time',
+    deposit: 'Deposit', depositNote: dep => '£'+dep+' — deducted from the total on arrival.',
+    confirmation: 'Confirmation', bySms: 'By SMS', byEmail: 'By email',
+    backHome: 'Back to home', seeMyBookings: 'See my bookings',
+    guestDataTitle: 'Your booking details',
+    guestDataBody: 'We need your details to send you the confirmation and the deposit payment link.',
+    fullName: 'Full name *', emailField: 'Email *', phoneOptional: 'Phone (optional)',
+    confirmBooking: 'Confirm booking',
+    genericPayError: 'Error processing payment. Please try again.',
+    pastTimeError: 'You can\'t book a time that has already passed. Please choose a future time.',
+    payInitError: 'Could not start payment',
+    dateLocale: 'en-GB', billingCountry: 'GB' /* TODO: assumes GB cardholder — revisit if EU cards need to work on the UK domain too */, curSym: '£',
+  }
+}[BK_LANG];
+
 const STRIPE_PK      = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
 const SUPA_BASE      = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1';
 const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
@@ -42,7 +145,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const cardCvcRef    = useRef(null); // DOM div for Stripe cardCvc element
   const cardElRef     = useRef(null); // { stripe, cardNumber } — live objects
 
-  if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},'Restaurante no encontrado.');
+  if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},BK_T.notFound);
 
   /* ── Countdown timer ── */
   React.useEffect(()=>{
@@ -100,7 +203,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
 
   const mmss   = s => Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   const holdLow = hold<=60;
-  const dows   = ['D','L','M','X','J','V','S'];
+  const dows   = BK_T.dows;
   const days   = Array.from({length:14},(_,i)=>{ const d=new Date(today); d.setDate(today.getDate()+i); return d; });
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];
 
@@ -163,7 +266,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'No se pudo iniciar el pago');
+      if (!res.ok) throw new Error(json.error || BK_T.payInitError);
 
       const { client_secret, payment_intent_id } = json;
 
@@ -171,7 +274,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       const { error } = await cardElRef.current.stripe.confirmCardPayment(client_secret, {
         payment_method: {
           card: cardElRef.current.cardNumber,
-          billing_details: { address: { postal_code: postalCode, country: 'ES' } },
+          billing_details: { address: { postal_code: postalCode, country: BK_T.billingCountry } },
         },
       });
 
@@ -226,7 +329,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
                   .from('venues').select('email, name').eq('id', r.id).single();
                 if (!venue?.email || !token) return;
 
-                const dayLabel2 = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+                const dayLabel2 = (day || today).toLocaleDateString(BK_T.dateLocale, { weekday:'long', day:'numeric', month:'long' });
                 const noshowUrl = SUPA_BASE + '/mark-noshow?token=' + token;
                 fetch(SUPA_EMAIL_FUNC, {
                   method: 'POST',
@@ -253,7 +356,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       /* 4 · Send confirmation email — non-fatal */
       const recipientEmail = user ? user.email : guestEmail;
       if (recipientEmail) {
-        const dayLabel = (day || today).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+        const dayLabel = (day || today).toLocaleDateString(BK_T.dateLocale, { weekday:'long', day:'numeric', month:'long' });
         fetch(SUPA_EMAIL_FUNC, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
@@ -274,7 +377,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       finish(payment_intent_id, reservationCode);
 
     } catch (err) {
-      setPayError(err.message || 'Error al procesar el pago. Inténtalo de nuevo.');
+      setPayError(err.message || BK_T.genericPayError);
     } finally {
       setPayLoading(false);
     }
@@ -289,14 +392,14 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     const nowCheck = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
     const requestedDT = new Date(`${selectedDate}T${(time||'').slice(0,5)}:00`);
     if (requestedDT < nowCheck) {
-      setPayError('No puedes reservar para una hora que ya ha pasado. Por favor elige una hora futura.');
+      setPayError(BK_T.pastTimeError);
       return;
     }
     stripeConfirm();
   };
 
   /* ════ Numbered step indicator ════ */
-  const stepDefs = ['Fecha','Hora','Personas','Depósito'];
+  const stepDefs = [BK_T.stepDate, BK_T.hour, BK_T.guests, BK_T.deposit];
   const Steps = React.createElement('div', { className:'bk-steps' },
     stepDefs.map((label, i) => React.createElement(React.Fragment, { key:i },
       i > 0 ? React.createElement('div', {
@@ -332,7 +435,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             className:'timecell'+(time===t?' on':'')+(st==='full'?' full':''),
             disabled: st==='full',
             onClick: ()=>{ setTime(t); goStep(2); }
-          }, t, st==='few' ? React.createElement('span',{className:'tag'},'Últimas') : null))
+          }, t, st==='few' ? React.createElement('span',{className:'tag'},BK_T.lastSlots) : null))
         )
       )
     : null;
@@ -345,10 +448,10 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   /* ── Step 0 · Date picker ── */
   if (step===0) {
     body = React.createElement(React.Fragment, null,
-      React.createElement('div',{className:'bk-h'},'¿Qué día?'),
-      React.createElement('div',{className:'bk-sub'},'Elige la fecha de tu reserva.'),
+      React.createElement('div',{className:'bk-h'},BK_T.whatDay),
+      React.createElement('div',{className:'bk-sub'},BK_T.chooseDate),
       React.createElement('div',{className:'dow-row'},
-        ['L','M','X','J','V','S','D'].map(d=>React.createElement('span',{key:d},d))),
+        BK_T.dowRowHeader.map((d,i)=>React.createElement('span',{key:i},d))),
       React.createElement('div',{className:'daygrid'},
         (() => {
           const firstDow = days[0].getDay();
@@ -370,118 +473,117 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
         })()
       ),
       React.createElement('div',{className:'bk-actions'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:back},'Cancelar'),
-        React.createElement('button',{className:'btn btn-acc',disabled:!day,onClick:()=>goStep(1)},'Continuar'))
+        React.createElement('button',{className:'btn btn-ghost',onClick:back},BK_T.cancel),
+        React.createElement('button',{className:'btn btn-acc',disabled:!day,onClick:()=>goStep(1)},BK_T.continue_))
     );
 
   /* ── Step 1 · Time picker ── */
   } else if (step===1) {
     body = React.createElement(React.Fragment, null,
-      React.createElement('div',{className:'bk-h'},'¿A qué hora?'),
+      React.createElement('div',{className:'bk-h'},BK_T.whatTime),
       React.createElement('div',{className:'bk-sub'},
-        (day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):'Hoy')+' · disponibilidad en tiempo real'),
+        (day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):BK_T.today)+BK_T.realtimeAvail),
       filteredTimes.length
         ? React.createElement(React.Fragment, null,
-            makeTimeSection('Mediodía', filteredLunch),
-            makeTimeSection('Noche', filteredDinner)
+            makeTimeSection(BK_T.lunch, filteredLunch),
+            makeTimeSection(BK_T.dinner, filteredDinner)
           )
-        : React.createElement('p',{className:'muted'},'Sin horarios para ese día.'),
+        : React.createElement('p',{className:'muted'},BK_T.noSlotsForDay),
       React.createElement('div',{className:'bk-actions'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(0)},'Atrás'),
-        React.createElement('button',{className:'btn btn-acc',disabled:!time,onClick:()=>goStep(2)},'Continuar'))
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(0)},BK_T.back),
+        React.createElement('button',{className:'btn btn-acc',disabled:!time,onClick:()=>goStep(2)},BK_T.continue_))
     );
 
   /* ── Step 2 · Party size ── */
   } else if (step===2) {
     body = React.createElement(React.Fragment, null,
-      React.createElement('div',{className:'bk-h'},'¿Cuántos sois?'),
-      React.createElement('div',{className:'bk-sub'},'Número de comensales.'),
+      React.createElement('div',{className:'bk-h'},BK_T.howMany),
+      React.createElement('div',{className:'bk-sub'},BK_T.numGuests),
       React.createElement('div',{className:'partyrow'},
         React.createElement('button',{className:'party-btn',onClick:()=>setParty(Math.max(1,party-1))},'−'),
         React.createElement('div',null,
           React.createElement('div',{className:'party-n display'},party),
-          React.createElement('div',{className:'party-lbl'}, party===1?'comensal':'comensales')),
+          React.createElement('div',{className:'party-lbl'}, party===1?BK_T.guestSingular:BK_T.guestPlural)),
         React.createElement('button',{className:'party-btn',onClick:()=>setParty(Math.min(12,party+1))},'+')
       ),
       party>=9 ? React.createElement('p',{className:'muted',style:{textAlign:'center',fontSize:'13.5px'}},
-        'Para grupos grandes podemos avisar al restaurante con antelación.') : null,
+        BK_T.largeGroupNote) : null,
       React.createElement('div',{className:'bk-actions'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(1)},'Atrás'),
-        React.createElement('button',{className:'btn btn-acc',onClick:()=>goStep(3)},'Continuar'))
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(1)},BK_T.back),
+        React.createElement('button',{className:'btn btn-acc',onClick:()=>goStep(3)},BK_T.continue_))
     );
 
   /* ── Step 3 · Deposit & payment ── */
   } else if (step===3) {
     body = React.createElement(React.Fragment, null,
-      React.createElement('div',{className:'bk-h'},'Confirma y asegura tu mesa'),
+      React.createElement('div',{className:'bk-h'},BK_T.confirmSecure),
       React.createElement('div',{className:'bk-sub dep-sub'},
-        'Un pequeño depósito que se descuenta de tu cuenta final.',
+        BK_T.depositIntro,
         React.createElement('span',{className:'info-tip',tabIndex:0},
           React.createElement(Icon,{name:'info'}),
           React.createElement('span',{className:'info-pop'},
-            React.createElement('b',null,'¿Por qué un depósito?'),
-            'Porque "reservo y ya si eso aparezco" se había convertido en deporte nacional. Tranqui, no es un peaje: se ',
-            React.createElement('b',null,'descuenta del total'),
-            ' de tu cuenta al final. Solo lo pierdes si decides hacerte el fantasma y dejar la mesa vacía.'))),
+            React.createElement('b',null,BK_T.depositWhyTitle),
+            BK_T.depositWhyBody1,
+            React.createElement('b',null,BK_T.depositWhyBold),
+            BK_T.depositWhyBody2))),
 
       /* Countdown */
       expired
         ? React.createElement('div',{className:'hold-timer expired'},
             React.createElement(Icon,{name:'clock'}),
-            React.createElement('span',null,'Se acabó el tiempo de reserva. ',
-              React.createElement('b',null,'Vuelve a elegir la hora'),' para asegurar tu mesa.'),
+            React.createElement('span',null,BK_T.timeUp,
+              React.createElement('b',null,BK_T.chooseAgain),BK_T.toSecure),
             React.createElement('button',{className:'hold-retry',
-              onClick:()=>{ setHold(360); setExpired(false); goStep(1); }},'Reintentar'))
+              onClick:()=>{ setHold(360); setExpired(false); goStep(1); }},BK_T.retry))
         : React.createElement('div',{className:'hold-timer'+(holdLow?' low':'')},
             React.createElement(Icon,{name:'clock'}),
-            React.createElement('span',null,'Guardamos tu mesa durante ',
-              React.createElement('b',{className:'hold-count'}, mmss(hold)),' minutos. Completa el depósito antes de que acabe.')),
+            React.createElement('span',null,BK_T.holdPre,
+              React.createElement('b',{className:'hold-count'}, mmss(hold)),BK_T.holdPost)),
 
       /* Booking summary */
       React.createElement('div',{className:'dep-box'},
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,'Día'),
+          React.createElement('span',null,BK_T.day),
           React.createElement('span',{style:{fontWeight:700}},
-            day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):'Hoy')),
+            day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):BK_T.today)),
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,'Hora'),
+          React.createElement('span',null,BK_T.hour),
           React.createElement('span',{style:{fontWeight:700}}, time||'—')),
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,'Comensales'),
+          React.createElement('span',null,BK_T.guests),
           React.createElement('span',{style:{fontWeight:700}}, party)),
         React.createElement('div',{className:'dep-row'},
-          React.createElement('span',null,'Depósito ('+deposit+'€ × '+party+')'),
-          React.createElement('span',{className:'amt'}, (deposit * party)+'€')),
+          React.createElement('span',null,BK_T.depositRow(deposit,party)),
+          React.createElement('span',{className:'amt'}, BK_T.curSym+(deposit * party))),
         React.createElement('div',{className:'dep-row total'},
-          React.createElement('span',null,'A pagar ahora'),
-          React.createElement('span',{className:'amt'}, (deposit * party)+'€'))
+          React.createElement('span',null,BK_T.payingNow),
+          React.createElement('span',{className:'amt'}, BK_T.curSym+(deposit * party)))
       ),
 
       /* Shield note */
       React.createElement('div',{className:'bw-dep',style:{marginBottom:'16px'}},
         React.createElement(Icon,{name:'shield'}),
-        React.createElement('span',null,
-          'No es un cargo extra: se descuenta del total de tu cuenta. Solo se retiene si dejas la mesa vacía sin avisar.')),
+        React.createElement('span',null,BK_T.shieldNote)),
 
       /* Notification method */
-      React.createElement('p',{className:'bk-section-label'},'¿Cómo quieres recibir la confirmación?'),
+      React.createElement('p',{className:'bk-section-label'},BK_T.howNotify),
       React.createElement('div',{className:'pay-methods',style:{marginBottom:'18px'}},
         React.createElement('button',{className:'pay-m'+(notify==='email'?' on':''),onClick:()=>setNotify('email')},
-          React.createElement(Icon,{name:'mail'}),'Correo'),
+          React.createElement(Icon,{name:'mail'}),BK_T.email),
         React.createElement('button',{className:'pay-m'+(notify==='sms'?' on':''),onClick:()=>setNotify('sms')},
-          React.createElement(Icon,{name:'phone'}),'SMS')),
+          React.createElement(Icon,{name:'phone'}),BK_T.sms)),
 
-      /* Payment method */
-      React.createElement('p',{className:'bk-section-label'},'Método de pago'),
+      /* Payment method — Bizum is Spain-only, hidden for the English market */
+      React.createElement('p',{className:'bk-section-label'},BK_T.paymentMethod),
       React.createElement('div',{className:'pay-methods'},
         React.createElement('button',{className:'pay-m'+(pay==='card'?' on':''),onClick:()=>setPay('card')},
-          React.createElement(Icon,{name:'card'}),'Tarjeta'),
-        React.createElement('button',{className:'pay-m'+(pay==='bizum'?' on':''),onClick:()=>setPay('bizum')},
-          React.createElement(Icon,{name:'euro'}),'Bizum')),
+          React.createElement(Icon,{name:'card'}),BK_T.card),
+        BK_LANG === 'es' ? React.createElement('button',{className:'pay-m'+(pay==='bizum'?' on':''),onClick:()=>setPay('bizum')},
+          React.createElement(Icon,{name:'euro'}),BK_T.bizum) : null),
 
       /* ── Stripe card elements (separate fields + Spanish postal code) ── */
       pay === 'card' ? React.createElement('div', { style:{marginTop:'18px'} },
-        React.createElement('p', { className:'bk-section-label' }, 'Datos de la tarjeta'),
+        React.createElement('p', { className:'bk-section-label' }, BK_T.cardData),
         /* Card number */
         React.createElement('div', {
           ref: cardNumberRef,
@@ -499,7 +601,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           }),
           React.createElement('input', {
             type:'text', inputMode:'numeric', maxLength:5, pattern:'[0-9]{5}',
-            placeholder:'Cód. postal',
+            placeholder:BK_T.postalCode,
             value: postalCode,
             onChange: e => setPostalCode(e.target.value.replace(/\D/g,'').slice(0,5)),
             style:{
@@ -517,7 +619,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       }, payError) : null,
 
       React.createElement('div',{className:'bk-actions'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(2),disabled:payLoading},'Atrás'),
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>goStep(2),disabled:payLoading},BK_T.back),
         React.createElement('button',{
           className:'btn btn-acc',
           style:{flex:1},
@@ -525,11 +627,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           onClick: handleConfirm
         },
           payLoading ? React.createElement(React.Fragment, null,
-            React.createElement('span', { style:{opacity:.7} }, 'Procesando…')
+            React.createElement('span', { style:{opacity:.7} }, BK_T.processing)
           ) :
-          expired ? 'Tiempo agotado' :
-          user    ? ('Pagar '+deposit+'€ y reservar') :
-                    'Continuar como invitado'
+          expired ? BK_T.timeExpired :
+          user    ? BK_T.payAndBook(deposit) :
+                    BK_T.continueAsGuest
         ))
     );
 
@@ -538,34 +640,34 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     body = React.createElement('div', { className:'confirm-card' },
       React.createElement('div',{className:'confirm-ico'},
         React.createElement(Icon,{name:'check'})),
-      React.createElement('h2',{className:'display'},'¡Mesa confirmada!'),
+      React.createElement('h2',{className:'display'},BK_T.tableConfirmed),
       React.createElement('p',{className:'muted',style:{marginBottom:'4px'}},
-        'Te esperamos en '+r.name+'. Te hemos enviado los detalles por '+(notify==='sms'?'SMS':'correo electrónico')+'.'),
+        BK_T.seeYouAt(r.name, notify==='sms'?BK_T.viaSms:BK_T.viaEmail)),
       React.createElement('div',{className:'confirm-detail'},
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Reserva'),
+          React.createElement('span',{className:'k'},BK_T.reservation),
           React.createElement('span',{className:'v'},confCode)),
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Restaurante'),
+          React.createElement('span',{className:'k'},BK_T.restaurant),
           React.createElement('span',{className:'v'},r.name)),
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Día y hora'),
+          React.createElement('span',{className:'k'},BK_T.dayTime),
           React.createElement('span',{className:'v'},
-            (day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):'Hoy')+' · '+time)),
+            (day?(dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)):BK_T.today)+' · '+time)),
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Comensales'),
+          React.createElement('span',{className:'k'},BK_T.guests),
           React.createElement('span',{className:'v'}, party)),
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Depósito'),
-          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, deposit+'€ — se descuenta del total al llegar.')),
+          React.createElement('span',{className:'k'},BK_T.deposit),
+          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, BK_T.depositNote(deposit))),
         React.createElement('div',{className:'cd-row'},
-          React.createElement('span',{className:'k'},'Confirmación'),
-          React.createElement('span',{className:'v'}, notify==='sms'?'Por SMS':'Por correo electrónico'))
+          React.createElement('span',{className:'k'},BK_T.confirmation),
+          React.createElement('span',{className:'v'}, notify==='sms'?BK_T.bySms:BK_T.byEmail))
       ),
       React.createElement('div',{className:'bk-actions',style:{justifyContent:'center'}},
-        React.createElement('button',{className:'btn btn-ghost',onClick:back},'Volver al inicio'),
+        React.createElement('button',{className:'btn btn-ghost',onClick:back},BK_T.backHome),
         React.createElement('button',{className:'btn btn-acc',
-          onClick:()=>onConfirm._goProfile&&onConfirm._goProfile()},'Ver mis reservas'))
+          onClick:()=>onConfirm._goProfile&&onConfirm._goProfile()},BK_T.seeMyBookings))
     );
   }
 
@@ -579,23 +681,23 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     React.createElement('div', {
       style: { background: '#fff', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%' }
     },
-      React.createElement('h3', { style: { fontWeight: 800, fontSize: 17, marginBottom: 6, marginTop: 0 } }, 'Datos para tu reserva'),
+      React.createElement('h3', { style: { fontWeight: 800, fontSize: 17, marginBottom: 6, marginTop: 0 } }, BK_T.guestDataTitle),
       React.createElement('p', { style: { fontSize: 13, color: '#6B7280', marginBottom: 20 } },
-        'Necesitamos tus datos para enviarte la confirmación y el link de pago del depósito.'
+        BK_T.guestDataBody
       ),
       React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
         React.createElement('input', {
-          type: 'text', placeholder: 'Nombre completo *', value: guestName,
+          type: 'text', placeholder: BK_T.fullName, value: guestName,
           onChange: e => setGuestName(e.target.value),
           style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
         }),
         React.createElement('input', {
-          type: 'email', placeholder: 'Email *', value: guestEmail,
+          type: 'email', placeholder: BK_T.emailField, value: guestEmail,
           onChange: e => setGuestEmail(e.target.value),
           style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
         }),
         React.createElement('input', {
-          type: 'tel', placeholder: 'Teléfono (opcional)', value: guestPhone,
+          type: 'tel', placeholder: BK_T.phoneOptional, value: guestPhone,
           onChange: e => setGuestPhone(e.target.value),
           style: { padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E5E7EB', fontSize: 14, outline: 'none' }
         }),
@@ -609,11 +711,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             padding: '14px', borderRadius: 12, background: '#D8552E',
             color: '#fff', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', marginTop: 4
           }
-        }, 'Confirmar reserva'),
+        }, BK_T.confirmBooking),
         React.createElement('button', {
           onClick: () => setShowGuestForm(false),
           style: { background: 'none', border: 'none', color: '#9CA3AF', fontSize: 13, cursor: 'pointer' }
-        }, 'Cancelar')
+        }, BK_T.cancel)
       )
     )
   );
