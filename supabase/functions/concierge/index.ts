@@ -57,7 +57,8 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders })
 
   try {
-    const { message, history, restaurants, user } = await req.json()
+    const { message, history, restaurants, user, lang: langRaw } = await req.json()
+    const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -82,12 +83,28 @@ Deno.serve(async (req) => {
         `${r.name} (ID: ${r.id}, ${r.cuisine || ''}, ${r.area || ''}, ${r.price || ''})`)
       .join('\n')
 
-    const today = new Date().toLocaleDateString('es-ES', {
+    const today = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
       timeZone: 'Europe/Madrid', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
     const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
 
-    const systemPrompt = `Eres el conserje digital de Una Mesa, una plataforma premium de reservas de restaurantes en España.
+    const systemPrompt = lang === 'en' ? `You are the digital concierge for Una Mesa, a premium restaurant booking platform in the UK.
+
+Today is ${today} (${todayISO}).
+${user?.name ? `The user's name is ${user.name}${trustedEmail ? ` and their email is ${trustedEmail}` : ''}.` : ''}
+
+You have access to these restaurants:
+${restaurantList}
+
+HOW TO ACT:
+1. Help the user find the perfect restaurant based on their preferences
+2. When they want to book, collect: restaurant, date, time, and party size
+3. Use check_availability to verify availability ALWAYS before confirming
+4. If available, use create_reservation to create the booking directly
+5. The booking is confirmed with a refundable deposit — tell the user they'll receive an email with the payment link
+6. You can modify or cancel bookings if the user asks
+
+Always respond in English, elegantly and concisely.` : `Eres el conserje digital de Una Mesa, una plataforma premium de reservas de restaurantes en España.
 
 Hoy es ${today} (${todayISO}).
 ${user?.name ? `El usuario se llama ${user.name}${trustedEmail ? ` y su email es ${trustedEmail}` : ''}.` : ''}
@@ -161,11 +178,17 @@ Responde siempre en español, de forma elegante y concisa.`;
             const allTimes = [...(venues[0].times?.lunch || []), ...(venues[0].times?.dinner || [])]
               .map(([t]: [string, string]) => t);
             const available = allTimes.includes(time);
-            result = available
-              ? `Disponible. Hay mesa para ${partySize} personas el ${date} a las ${time}.`
-              : `No disponible a las ${time}. Horarios disponibles: ${allTimes.join(', ')}.`;
+            result = lang === 'en'
+              ? (available
+                  ? `Available. There's a table for ${partySize} people on ${date} at ${time}.`
+                  : `Not available at ${time}. Available times: ${allTimes.join(', ')}.`)
+              : (available
+                  ? `Disponible. Hay mesa para ${partySize} personas el ${date} a las ${time}.`
+                  : `No disponible a las ${time}. Horarios disponibles: ${allTimes.join(', ')}.`);
           } else {
-            result = `Disponible para ${partySize} personas el ${date} a las ${time}.`;
+            result = lang === 'en'
+              ? `Available for ${partySize} people on ${date} at ${time}.`
+              : `Disponible para ${partySize} personas el ${date} a las ${time}.`;
           }
         }
 
@@ -186,7 +209,7 @@ Responde siempre en español, de forma elegante y concisa.`;
             },
             body: JSON.stringify({
               venue_id: venueId,
-              customer_name: user?.name || 'Cliente',
+              customer_name: user?.name || (lang === 'en' ? 'Guest' : 'Cliente'),
               customer_email: trustedEmail,
               pax: partySize,
               date,
@@ -197,13 +220,19 @@ Responde siempre en español, de forma elegante y concisa.`;
           });
           const reservation = await res.json();
           result = res.ok && reservation[0]?.id
-            ? `Reserva creada exitosamente. ID: ${reservation[0].id.slice(0,8).toUpperCase()}. El usuario recibirá un email de confirmación.`
-            : `Error al crear la reserva: ${JSON.stringify(reservation)}`;
+            ? (lang === 'en'
+                ? `Booking created successfully. ID: ${reservation[0].id.slice(0,8).toUpperCase()}. The user will receive a confirmation email.`
+                : `Reserva creada exitosamente. ID: ${reservation[0].id.slice(0,8).toUpperCase()}. El usuario recibirá un email de confirmación.`)
+            : (lang === 'en'
+                ? `Error creating the booking: ${JSON.stringify(reservation)}`
+                : `Error al crear la reserva: ${JSON.stringify(reservation)}`);
         }
 
         else if (toolUse.name === 'start_reservation') {
           reservationAction = input;
-          result = 'Abriendo el formulario de reserva con los datos proporcionados.';
+          result = lang === 'en'
+            ? 'Opening the booking form with the provided details.'
+            : 'Abriendo el formulario de reserva con los datos proporcionados.';
         }
 
         toolResults.push({

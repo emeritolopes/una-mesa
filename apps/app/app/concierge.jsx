@@ -1,5 +1,65 @@
 /* ════ UNA MESA · Conserje IA (interactive chat) ════ */
 
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function ccMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const CC_LANG = ccMarket();
+const CC_T = {
+  es: {
+    greeting: '¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta.',
+    examples: [
+      'Quiero una mesa para 5 en Madrid para veganos',
+      'Cena romántica con terraza para dos',
+      'Algo de marisco para 6, sin gastar mucho',
+      'El mejor sitio de arroces para comer hoy'
+    ],
+    eyebrow: 'Conserje IA',
+    headingA: 'Dime qué te apetece y ', headingHl: 'yo reservo', headingB: '.',
+    sub: 'Pregunta con tus palabras — ocasión, personas, dieta, zona o presupuesto. El conserje entiende y te trae la mesa.',
+    inputPh: 'Escribe lo que te apetece…',
+    searching: 'Buscando…', send: 'Enviar',
+    bookFor: n => 'Reservar para '+n, bookNow: 'Reservar ahora',
+    /* templatedReply (fallback local si falla la IA remota) */
+    tableFor: n => 'mesa para '+n,
+    dietOptions: arr => 'opciones '+arr.join(' y '),
+    atTime: t => 'a las '+t,
+    forDinner: 'para cenar', forLunch: 'para comer',
+    otherCityHead: 'De momento no operamos en esa ciudad, así que te muestro lo mejor de aquí que encaja con lo que buscas',
+    matchHead: bits => 'Perfecto — busco ' + bits,
+    genericHead: 'He buscado entre los mejores restaurantes',
+    theseAreMyRecs: names => '. Estas son mis recomendaciones: ' + names + '.',
+  },
+  en: {
+    greeting: 'Hi! I\'m your Una Mesa concierge. Tell me what you fancy — for example, "a table for 5, something vegan with outdoor seating" — and I\'ll find you the perfect table.',
+    examples: [
+      'I want a table for 5 in London, vegan-friendly',
+      'Romantic dinner with a terrace for two',
+      'Something seafood-y for 6, without breaking the bank',
+      'The best rice place for lunch today'
+    ],
+    eyebrow: 'AI Concierge',
+    headingA: 'Tell me what you fancy and ', headingHl: 'I\'ll book it', headingB: '.',
+    sub: 'Ask in your own words — occasion, people, diet, area or budget. The concierge understands and brings you the table.',
+    inputPh: 'Type what you fancy…',
+    searching: 'Searching…', send: 'Send',
+    bookFor: n => 'Book for '+n, bookNow: 'Book now',
+    tableFor: n => 'a table for '+n,
+    dietOptions: arr => arr.join(' and ')+' options',
+    atTime: t => 'at '+t,
+    forDinner: 'for dinner', forLunch: 'for lunch',
+    otherCityHead: "We don't currently operate in that city, so here's the best of what we have that matches what you're after",
+    matchHead: bits => 'Perfect — looking for ' + bits,
+    genericHead: "I've searched among the best restaurants",
+    theseAreMyRecs: names => '. Here are my recommendations: ' + names + '.',
+  }
+}[CC_LANG];
+
 const CONCIERGE_URL = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/concierge';
 const CONCIERGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
@@ -93,39 +153,40 @@ function matchRestaurants(intent){
   return (ok.length ? ok : scored.sort((a,b)=>b.score-a.score)).map(x=>x.r);
 }
 
-/* ── friendly reply (Claude if available, templated fallback) ── */
+/* ── friendly reply (Claude if available, templated fallback) ──
+   NOTA: parseIntent() detecta señales (número de personas, cocina, vibe...)
+   con patrones afinados solo para español. Para consultas en inglés, casi
+   siempre no va a extraer nada — este fallback entonces cae al mensaje
+   genérico (CC_T.genericHead), no al personalizado. Es una limitación
+   aceptada, no un bug oculto: la ruta principal (IA remota) ya entiende
+   inglés de verdad; esto solo afecta al fallback cuando esa llamada falla. */
 function templatedReply(intent, picks){
   const bits = [];
-  if (intent.party) bits.push('mesa para ' + intent.party);
-  if (intent.dietary.length) bits.push('opciones ' + intent.dietary.join(' y '));
+  if (intent.party) bits.push(CC_T.tableFor(intent.party));
+  if (intent.dietary.length) bits.push(CC_T.dietOptions(intent.dietary));
   if (intent.cuisines.length) bits.push(intent.cuisines.join(' / ').toLowerCase());
   if (intent.vibes.length) bits.push(intent.vibes.join(', ').toLowerCase());
-  if (intent.time && intent.time!=='noche' && intent.time!=='comida') bits.push('a las ' + intent.time);
-  else if (intent.time) bits.push('para ' + intent.time==='noche'?'cenar':'comer');
+  if (intent.time && intent.time!=='noche' && intent.time!=='comida') bits.push(CC_T.atTime(intent.time));
+  else if (intent.time) bits.push(intent.time==='noche'?CC_T.forDinner:CC_T.forLunch);
   const otherCity = intent.city && intent.city !== 'vigo';
   let head;
-  if (otherCity) head = 'De momento no operamos en esa ciudad, así que te muestro lo mejor de aquí que encaja con lo que buscas';
-  else head = bits.length ? ('Perfecto — busco ' + bits.join(', ')) : 'He buscado entre los mejores restaurantes';
+  if (otherCity) head = CC_T.otherCityHead;
+  else head = bits.length ? CC_T.matchHead(bits.join(', ')) : CC_T.genericHead;
   const names = picks.slice(0,3).map(r=>r.name).join(', ');
-  return head + '. Estas son mis recomendaciones: ' + names + '.';
+  return head + CC_T.theseAreMyRecs(names);
 }
 
 /* ════ Conserje screen · Stitch dark redesign ════ */
 function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, go, user }){
   const [msgs, setMsgs] = useState([
-    { who:'ai', text:'¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta.' }
+    { who:'ai', text:CC_T.greeting }
   ]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef(null);
   const seeded = useRef(false);
 
-  const examples = [
-    'Quiero una mesa para 5 en Madrid para veganos',
-    'Cena romántica con terraza para dos',
-    'Algo de marisco para 6, sin gastar mucho',
-    'El mejor sitio de arroces para comer hoy'
-  ];
+  const examples = CC_T.examples;
 
   useEffect(()=>{
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -154,6 +215,7 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
           history,
           restaurants,
           user: user || null,
+          lang: CC_LANG,
         }),
       });
 
@@ -192,14 +254,14 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
 
       /* ── Header ── */
       React.createElement('div', { className:'cc-head' },
-        React.createElement('span', { className:'eyebrow' }, 'Conserje IA'),
+        React.createElement('span', { className:'eyebrow' }, CC_T.eyebrow),
         React.createElement('h1', { className:'display' },
-          'Dime qué te apetece y ',
-          React.createElement('span',{className:'hl'},'yo reservo'),
-          '.'
+          CC_T.headingA,
+          React.createElement('span',{className:'hl'},CC_T.headingHl),
+          CC_T.headingB
         ),
         React.createElement('p', null,
-          'Pregunta con tus palabras — ocasión, personas, dieta, zona o presupuesto. El conserje entiende y te trae la mesa.'
+          CC_T.sub
         )
       ),
 
@@ -233,13 +295,13 @@ function ConciergeScreen({ initialQuery, openRest, favs, toggleFav, startBook, g
           React.createElement(Icon,{ name:'sparkle' }),
           React.createElement('input', {
             value:input, onChange:e=>setInput(e.target.value),
-            placeholder:'Escribe lo que te apetece…', disabled:busy, autoFocus:true
+            placeholder:CC_T.inputPh, disabled:busy, autoFocus:true
           }),
           React.createElement('button', {
             type:'submit',
             className:'cc-send-btn',
             disabled: busy || !input.trim(),
-            title: busy ? 'Buscando…' : 'Enviar'
+            title: busy ? CC_T.searching : CC_T.send
           },
             React.createElement(Icon,{name:'arrow',style:{width:22,height:22}})
           )
@@ -282,7 +344,7 @@ function ConciergeMsg({ m, openRest, favs, toggleFav, startBook }){
             onClick:()=>startBook(r.id, slotFor(r), presetParty)
           },
             React.createElement(Icon,{name:'cal'}),
-            presetParty ? ('Reservar para '+presetParty) : 'Reservar ahora'
+            presetParty ? CC_T.bookFor(presetParty) : CC_T.bookNow
           )
         ))
       ) : null
