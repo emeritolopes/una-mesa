@@ -262,6 +262,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           restaurant_id:  r.id,
           user_id:        user?.id || '',
           reservation_id: reservationCode,
+          party,
         }),
       });
 
