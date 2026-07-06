@@ -8,35 +8,37 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { email } = await req.json();
-
-    if (!email) {
-      return new Response(JSON.stringify({ error: 'Email requerido' }),
-        { status: 400, headers: corsHeaders });
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // La identidad se deriva SIEMPRE del JWT de quien llama, nunca de un email
+    // enviado en el body — de lo contrario cualquier usuario autenticado podría
+    // borrar la cuenta de cualquier otra persona con solo conocer su email.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: corsHeaders });
+    }
+
+    const callerRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { apikey: serviceKey, Authorization: authHeader }
+    });
+    if (!callerRes.ok) {
+      return new Response(JSON.stringify({ error: 'invalid session' }),
+        { status: 401, headers: corsHeaders });
+    }
+    const caller = await callerRes.json();
+    if (!caller?.id) {
+      return new Response(JSON.stringify({ error: 'invalid session' }),
+        { status: 401, headers: corsHeaders });
+    }
+
+    const userId = caller.id;
     const headers = {
       'apikey': serviceKey,
       'Authorization': `Bearer ${serviceKey}`,
       'Content-Type': 'application/json'
     };
-
-    // Buscar usuario por email
-    const usersRes = await fetch(
-      `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
-      { headers }
-    );
-    const usersData = await usersRes.json();
-    const user = usersData.users?.[0];
-
-    if (!user?.id) {
-      return new Response(JSON.stringify({ success: true, local_only: true }),
-        { headers: corsHeaders });
-    }
-
-    const userId = user.id;
 
     // 1. Anonimizar reservas (no eliminar — el restaurante las necesita)
     await fetch(`${supabaseUrl}/rest/v1/reservations?user_id=eq.${userId}`, {

@@ -1,6 +1,89 @@
 /* ════ UNA MESA · Auth modal + Profile screen ════ */
 
-const CUISINE_PREFS = ['Marisco','Asador','Arroces','Japonés','Tapas','Vegetariano','Brunch','Fusión','Italiano','Gallego'];
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function prMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const PR_LANG = prMarket();
+const PR_T = {
+  es: {
+    cuisines: ['Marisco','Asador','Arroces','Japonés','Tapas','Vegetariano','Brunch','Fusión','Italiano','Gallego'],
+    createProfile: 'Crea tu perfil', welcomeBack: 'Bienvenido de nuevo',
+    signupSub: 'Personalizamos tus recomendaciones según tu gusto y tu zona.', loginSub: 'Entra para reservar y ver tus mesas.',
+    createProfileTab: 'Crear perfil', signIn: 'Iniciar sesión',
+    continueWithGoogle: 'Continuar con Google',
+    orCreateWithEmail: 'o crea tu perfil con email', orWithEmail: 'o con tu email',
+    nameLabel: 'Nombre', namePh: 'Tu nombre',
+    emailLabel: 'Email', emailPh: 'tu@email.com',
+    passwordLabel: 'Contraseña',
+    locationLabel: 'Ubicación', locationPh: 'Tu ciudad o barrio (p. ej. Alicante)',
+    cuisinePrefsLabel: 'Preferencias culinarias',
+    createProfileBtn: 'Crear perfil', enterBtn: 'Entrar',
+    demoNote: 'Demo · no se envían datos reales.',
+    restaurantFallback: 'Restaurante',
+    tabReservas: 'Mis reservas', tabPassport: 'Pasaporte', tabFavs: 'Favoritos', tabRewards: 'Recompensas',
+    upcoming: 'Próximas', history: 'Historial',
+    noBookings: 'Aún no tienes reservas.', findRestaurants: 'Buscar restaurantes',
+    noFavs: 'Sin favoritos todavía. Toca el corazón en cualquier restaurante.', explore: 'Explorar',
+    cancelBtn: 'Cancelar',
+    cancelModalTitle: '¿Cancelar esta reserva?',
+    cancelModalBody: 'El depósito será reembolsado en 5-10 días hábiles.',
+    goBack: 'Volver', yesCancel: 'Sí, cancelar',
+    hello: name => '¡Hola, '+name+'!',
+    loyaltyProgram: 'Programa Mesa', pts: ' pts',
+    visitsToNext: n => n+' visitas para tu próxima recompensa',
+    dangerZone: 'Zona de peligro', deleteAccount: 'Eliminar mi cuenta',
+    deleteModalTitle: '¿Eliminar tu cuenta?',
+    deleteModalBody: 'Esta acción es irreversible. Se eliminarán todos tus datos personales. Tus reservas pasadas quedarán anonimizadas.',
+    deleting: 'Eliminando...', yesDelete: 'Sí, eliminar',
+    days: ['dom','lun','mar','mié','jue','vie','sáb'],
+    months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
+    today: 'Hoy', guestSingular: ' comensal', guestPlural: ' comensales',
+    bookingLabel: 'Reserva', depositLabelLower: 'depósito', currency: '€',
+  },
+  en: {
+    cuisines: ['Seafood','Grill','Rice dishes','Japanese','Tapas','Vegetarian','Brunch','Fusion','Italian','Galician'],
+    createProfile: 'Create your profile', welcomeBack: 'Welcome back',
+    signupSub: 'We personalise your recommendations based on your taste and area.', loginSub: 'Sign in to book and see your tables.',
+    createProfileTab: 'Create profile', signIn: 'Sign in',
+    continueWithGoogle: 'Continue with Google',
+    orCreateWithEmail: 'or create your profile with email', orWithEmail: 'or with your email',
+    nameLabel: 'Name', namePh: 'Your name',
+    emailLabel: 'Email', emailPh: 'you@email.com',
+    passwordLabel: 'Password',
+    locationLabel: 'Location', locationPh: 'Your city or neighbourhood (e.g. London)',
+    cuisinePrefsLabel: 'Cuisine preferences',
+    createProfileBtn: 'Create profile', enterBtn: 'Enter',
+    demoNote: 'Demo · no real data is sent.',
+    restaurantFallback: 'Restaurant',
+    tabReservas: 'My bookings', tabPassport: 'Passport', tabFavs: 'Favourites', tabRewards: 'Rewards',
+    upcoming: 'Upcoming', history: 'History',
+    noBookings: "You don't have any bookings yet.", findRestaurants: 'Find restaurants',
+    noFavs: 'No favourites yet. Tap the heart on any restaurant.', explore: 'Explore',
+    cancelBtn: 'Cancel',
+    cancelModalTitle: 'Cancel this booking?',
+    cancelModalBody: 'The deposit will be refunded within 5-10 business days.',
+    goBack: 'Go back', yesCancel: 'Yes, cancel',
+    hello: name => 'Hi, '+name+'!',
+    loyaltyProgram: 'Mesa Programme', pts: ' pts',
+    visitsToNext: n => n+' visits to your next reward',
+    dangerZone: 'Danger zone', deleteAccount: 'Delete my account',
+    deleteModalTitle: 'Delete your account?',
+    deleteModalBody: 'This action is irreversible. All your personal data will be deleted. Your past bookings will be anonymised.',
+    deleting: 'Deleting...', yesDelete: 'Yes, delete',
+    days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    today: 'Today', guestSingular: ' guest', guestPlural: ' guests',
+    bookingLabel: 'Booking', depositLabelLower: 'deposit', currency: '£',
+  }
+}[PR_LANG];
+
+const CUISINE_PREFS = PR_T.cuisines;
 
 function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
   const [mode, setMode] = useState(initialMode || 'signup'); // login | signup
@@ -11,43 +94,50 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
   const togglePref = p => setPrefs(s => s.includes(p) ? s.filter(x=>x!==p) : [...s, p]);
   const submit = e => {
     e.preventDefault();
-    const display = mode==='signup' ? (name.trim()||'Comensal') : formatName({ name:'', email:email.trim() });
-    onAuth({ name: display.charAt(0).toUpperCase()+display.slice(1), email: email||'tú@unamesa.co', prefs, location: loc });
+    const display = mode==='signup' ? (name.trim()||(PR_LANG==='en'?'Guest':'Comensal')) : formatName({ name:'', email:email.trim() });
+    onAuth({ name: display.charAt(0).toUpperCase()+display.slice(1), email: email||(PR_LANG==='en'?'you@unamesa.co.uk':'tú@unamesa.co'), prefs, location: loc });
   };
   const isSignup = mode==='signup';
   return React.createElement(Modal, { onClose, max: isSignup ? 460 : 420 },
-    React.createElement('h2', null, isSignup ? 'Crea tu perfil' : 'Bienvenido de nuevo'),
-    React.createElement('p', { className:'msub' }, isSignup ? 'Personalizamos tus recomendaciones según tu gusto y tu zona.' : 'Entra para reservar y ver tus mesas.'),
+    React.createElement('h2', null, isSignup ? PR_T.createProfile : PR_T.welcomeBack),
+    React.createElement('p', { className:'msub' }, isSignup ? PR_T.signupSub : PR_T.loginSub),
     React.createElement('div', { className:'seg' },
-      React.createElement('button',{className:isSignup?'on':'',onClick:()=>setMode('signup')},'Crear perfil'),
-      React.createElement('button',{className:!isSignup?'on':'',onClick:()=>setMode('login')},'Iniciar sesión')),
+      React.createElement('button',{className:isSignup?'on':'',onClick:()=>setMode('signup')},PR_T.createProfileTab),
+      React.createElement('button',{className:!isSignup?'on':'',onClick:()=>setMode('login')},PR_T.signIn)),
     React.createElement('div', { className:'sso' },
-      React.createElement('button',{className:'sso-btn',onClick:()=>onAuth({name:'Comensal',email:'tú@gmail.com',prefs,location:loc})},
-        React.createElement(Icon,{name:'google'}),'Continuar con Google')),
-    React.createElement('div', { className:'divider' }, isSignup ? 'o crea tu perfil con email' : 'o con tu email'),
+      React.createElement('button',{className:'sso-btn',onClick:()=>{
+        if (window.UMAuth && window.UMAuth.sb) {
+          window.UMAuth.sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + '/#profile' }
+          });
+        }
+      }},
+        React.createElement(Icon,{name:'google'}),PR_T.continueWithGoogle)),
+    React.createElement('div', { className:'divider' }, isSignup ? PR_T.orCreateWithEmail : PR_T.orWithEmail),
     React.createElement('form', { onSubmit:submit },
       isSignup?React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Nombre'),
-        React.createElement('input',{value:name,onChange:e=>setName(e.target.value),placeholder:'Tu nombre',required:true})):null,
+        React.createElement('label',null,PR_T.nameLabel),
+        React.createElement('input',{value:name,onChange:e=>setName(e.target.value),placeholder:PR_T.namePh,required:true})):null,
       React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Email'),
-        React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:'tu@email.com',required:true})),
+        React.createElement('label',null,PR_T.emailLabel),
+        React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:PR_T.emailPh,required:true})),
       React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Contraseña'),
+        React.createElement('label',null,PR_T.passwordLabel),
         React.createElement('input',{type:'password',placeholder:'••••••••',required:true})),
       isSignup?React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Ubicación'),
-        React.createElement('input',{value:loc,onChange:e=>setLoc(e.target.value),placeholder:'Tu ciudad o barrio (p. ej. Alicante)'})):null,
+        React.createElement('label',null,PR_T.locationLabel),
+        React.createElement('input',{value:loc,onChange:e=>setLoc(e.target.value),placeholder:PR_T.locationPh})):null,
       isSignup?React.createElement('div',{className:'field'},
-        React.createElement('label',null,'Preferencias culinarias'),
+        React.createElement('label',null,PR_T.cuisinePrefsLabel),
         React.createElement('div',{className:'pref-chips'},
           CUISINE_PREFS.map(p=>React.createElement('button',{
             key:p, type:'button', className:'chip'+(prefs.includes(p)?' on':''), onClick:()=>togglePref(p)
           }, p)))):null,
       React.createElement('button',{className:'btn btn-acc btn-block btn-lg',type:'submit',style:{marginTop:'8px'}},
-        isSignup?'Crear perfil':'Entrar')),
+        isSignup?PR_T.createProfileBtn:PR_T.enterBtn)),
     React.createElement('p',{className:'muted',style:{fontSize:'12px',textAlign:'center',marginTop:'16px'}},
-      'Demo · no se envían datos reales.')
+      PR_T.demoNote)
   );
 }
 
@@ -55,20 +145,21 @@ function mapSupaBooking(r) {
   const today = new Date().toLocaleDateString('en-CA');
   const isPast = r.date < today || r.status === 'cancelled';
   const d = new Date(r.date + 'T12:00:00');
-  const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const DAYS = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const MONTHS = PR_T.months;
+  const DAYS = PR_T.days;
+  const depositPerPerson = r.deposit_amount ?? r.venues?.deposit_amount ?? 1000; // céntimos por persona; 1000 solo si de verdad falta el dato
   return {
     rawId:           r.id,
     id:              r.id.toString().slice(0, 8).toUpperCase(),
     rid:             r.venue_id,
-    name:            r.venues?.name || 'Restaurante',
+    name:            r.venues?.name || PR_T.restaurantFallback,
     cz:              { from: '#2D2420', to: '#4A3728' },
     glyph:           'spoon',
     dayLabel:        `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`,
     time:            (r.time || '').slice(0, 5),
     party:           r.pax,
-    deposit:         r.pax * 10,
-    depositCents:    r.pax * 1000,
+    deposit:         (depositPerPerson * r.pax) / 100,
+    depositCents:    depositPerPerson * r.pax,
     paymentIntentId: r.payment_intent_id || null,
     userId:          r.user_id || null,
     status:          isPast ? 'past' : 'up',
@@ -94,7 +185,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         const { data: { user: authUser } } = await sb.auth.getUser();
 
         let query = sb.from('reservations')
-          .select('*, venues(name, address, photo_url, cuisine)')
+          .select('*, venues(name, address, photo_url, cuisine, deposit_amount)')
           .in('status', ['confirmed', 'unconfirmed', 'pending'])
           .order('date', { ascending: false });
 
@@ -185,10 +276,13 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const deleteAccount = async () => {
     setDeleting(true);
     try {
-      const userData = localStorage.getItem('um-app-user');
-      const localUser = userData ? JSON.parse(userData) : null;
-
-      if (!localUser?.email) {
+      if (!window.UMAuth?.sb) {
+        console.error('No hay sesión activa');
+        setDeleting(false);
+        return;
+      }
+      const { data: { session } } = await window.UMAuth.sb.auth.getSession();
+      if (!session?.access_token) {
         console.error('No hay sesión activa');
         setDeleting(false);
         return;
@@ -196,8 +290,10 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
       const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/delete-account', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: localUser.email })
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + session.access_token,
+        },
       });
 
       if (res.ok) {
@@ -227,8 +323,8 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     React.createElement('div', { className:'booking-thumb', style:{ width:56, height:56, borderRadius:12, background:'linear-gradient(150deg, #2D2420, #4A3728)', flexShrink:0 } }),
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
-      React.createElement('div',{className:'br-meta'}, (b.dayLabel||'Hoy')+' · '+b.time+' · '+b.party+(b.party===1?' comensal':' comensales')),
-      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},'Reserva '+b.id+' · depósito '+b.deposit+'€')),
+      React.createElement('div',{className:'br-meta'}, (b.dayLabel||PR_T.today)+' · '+b.time+' · '+b.party+(b.party===1?PR_T.guestSingular:PR_T.guestPlural)),
+      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+PR_T.currency+b.deposit)),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
       React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante'),
@@ -237,7 +333,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
             className:'btn btn-sm',
             style:{color:'#E85D3A',background:'transparent',border:'1px solid rgba(232,93,58,0.4)',borderRadius:'8px',padding:'4px 12px',fontSize:'12px',cursor:'pointer',lineHeight:'1.5'},
             onClick:()=>{ setCancelError(''); setCancelTarget(b); }
-          },'Cancelar')
+          },PR_T.cancelBtn)
         : null
     ));
   };
@@ -255,19 +351,19 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         maxWidth: 400, width: '90%', textAlign: 'center'
       }
     },
-      React.createElement('h3', { style: { fontFamily: 'Playfair Display', marginBottom: 12 } }, '¿Cancelar esta reserva?'),
+      React.createElement('h3', { style: { fontFamily: 'Playfair Display', marginBottom: 12 } }, PR_T.cancelModalTitle),
       React.createElement('p', { style: { color: '#666', marginBottom: 24, fontSize: 14 } },
-        'El depósito será reembolsado en 5-10 días hábiles.'
+        PR_T.cancelModalBody
       ),
       React.createElement('div', { style: { display: 'flex', gap: 12, justifyContent: 'center' } },
         React.createElement('button', {
           onClick: () => setCancelTarget(null),
           style: { padding: '10px 24px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer' }
-        }, 'Volver'),
+        }, PR_T.goBack),
         React.createElement('button', {
           onClick: () => { doCancel(cancelTarget); setCancelTarget(null); },
           style: { padding: '10px 24px', borderRadius: 8, border: 'none', background: '#FF5733', color: 'white', cursor: 'pointer' }
-        }, 'Sí, cancelar')
+        }, PR_T.yesCancel)
       )
     )
   );
@@ -277,23 +373,23 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     panel = (upcoming.length||past.length)
       ? React.createElement('div', null,
           upcoming.length?React.createElement('div',null,
-            React.createElement('div',{className:'prof-sec-label'},'Próximas'),
+            React.createElement('div',{className:'prof-sec-label'},PR_T.upcoming),
             upcoming.map(b=>BookingRow(b,false))):null,
           past.length?React.createElement('div',{style:{marginTop:'22px'}},
-            React.createElement('div',{className:'prof-sec-label'},'Historial'),
+            React.createElement('div',{className:'prof-sec-label'},PR_T.history),
             past.map(b=>BookingRow(b,true))):null)
       : React.createElement('div',{className:'empty'},
           React.createElement(Icon,{name:'cal'}),
-          React.createElement('p',null,'Aún no tienes reservas.'),
-          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('results')},'Buscar restaurantes'));
+          React.createElement('p',null,PR_T.noBookings),
+          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('results')},PR_T.findRestaurants));
   } else if (tab==='favoritos') {
     panel = favList.length
       ? React.createElement('div',{className:'rgrid'},
           favList.map(r=>React.createElement(RestaurantCard,{key:r.id,r,fav:true,onFav:toggleFav,onOpen:openRest,onBook:startBook})))
       : React.createElement('div',{className:'empty'},
           React.createElement(Icon,{name:'heart'}),
-          React.createElement('p',null,'Sin favoritos todavía. Toca el corazón en cualquier restaurante.'),
-          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('results')},'Explorar'));
+          React.createElement('p',null,PR_T.noFavs),
+          React.createElement('button',{className:'btn btn-acc',style:{marginTop:'14px'},onClick:()=>go('results')},PR_T.explore));
   } else if (tab==='pasaporte') {
     panel = React.createElement('div', null,
       React.createElement(window.GastroPassport, { data, bookings, openRest, go }),
@@ -325,10 +421,10 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       ),
       React.createElement('h3', {
         style: { fontWeight: 800, fontSize: 16, color: '#111', marginBottom: 8 }
-      }, '¿Eliminar tu cuenta?'),
+      }, PR_T.deleteModalTitle),
       React.createElement('p', {
         style: { fontSize: 13, color: '#6B7280', lineHeight: 1.6, marginBottom: 24 }
-      }, 'Esta acción es irreversible. Se eliminarán todos tus datos personales. Tus reservas pasadas quedarán anonimizadas.'),
+      }, PR_T.deleteModalBody),
       React.createElement('div', { style: { display: 'flex', gap: 10 } },
         React.createElement('button', {
           onClick: () => setShowDeleteModal(false),
@@ -337,7 +433,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
             border: '1.5px solid #E5E7EB', background: '#fff',
             fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
           }
-        }, 'Cancelar'),
+        }, PR_T.cancelBtn),
         React.createElement('button', {
           onClick: deleteAccount,
           disabled: deleting,
@@ -348,7 +444,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
             cursor: deleting ? 'not-allowed' : 'pointer',
             opacity: deleting ? 0.6 : 1
           }
-        }, deleting ? 'Eliminando...' : 'Sí, eliminar')
+        }, deleting ? PR_T.deleting : PR_T.yesDelete)
       )
     )
   );
@@ -361,26 +457,26 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         React.createElement('div', { className:'prof-hero' },
           React.createElement('div',{className:'prof-av'}, formatName(user)[0].toUpperCase()),
           React.createElement('div',null,
-            React.createElement('div',{className:'prof-name display'}, '¡Hola, '+formatName(user).split(' ')[0]+'!'),
+            React.createElement('div',{className:'prof-name display'}, PR_T.hello(formatName(user).split(' ')[0])),
             React.createElement('div',{className:'prof-mail'}, user.email)),
           React.createElement('div',{className:'loyalty', style:{marginTop:60}},
-            React.createElement('div',{className:'ll'},'Programa Mesa'),
-            React.createElement('div',{className:'lv'}, points+' pts'),
+            React.createElement('div',{className:'ll'},PR_T.loyaltyProgram),
+            React.createElement('div',{className:'lv'}, points+PR_T.pts),
             React.createElement('div',{className:'lbar'},React.createElement('i',{style:{width:Math.max(8,points)+'%'}})),
-            React.createElement('div',{className:'lnext'}, toNext+' visitas para tu próxima recompensa'))
+            React.createElement('div',{className:'lnext'}, PR_T.visitsToNext(toNext)))
         ),
         React.createElement('div', { className:'tabs' },
-          React.createElement('div',{className:'tab'+(tab==='reservas'?' on':''),onClick:()=>setTab('reservas')},'Mis reservas'),
-          React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},'Pasaporte'),
-          React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},'Favoritos'),
-          React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},'Recompensas')),
+          React.createElement('div',{className:'tab'+(tab==='reservas'?' on':''),onClick:()=>setTab('reservas')},PR_T.tabReservas),
+          React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},PR_T.tabPassport),
+          React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},PR_T.tabFavs),
+          React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},PR_T.tabRewards)),
         panel,
         React.createElement('div', { style: { marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #FEE2E2' } },
-          React.createElement('p', { style: { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' } }, 'Zona de peligro'),
+          React.createElement('p', { style: { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' } }, PR_T.dangerZone),
           React.createElement('button', {
             onClick: handleDeleteClick,
             style: { fontSize: '14px', color: '#EF4444', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }
-          }, 'Eliminar mi cuenta')
+          }, PR_T.deleteAccount)
         )
       )
     )
