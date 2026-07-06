@@ -308,8 +308,17 @@
   async function loadRestaurants() {
     if (!window.supabase) return null;
     try {
+      /* Ciudad objetivo según mercado — 'Madrid' es donde están los restaurantes reales
+         actuales; cuando se onboarde el primer restaurante de Londres, debe llevar
+         city='London' en `venues` para que esta consulta lo encuentre. */
+      let targetCity = 'Madrid';
+      try {
+        const q = new URLSearchParams(window.location.search).get('market');
+        if (q === 'uk' || q === 'en' || window.location.hostname.endsWith('.co.uk')) targetCity = 'London';
+      } catch (_) {}
+
       const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
-      const { data: rows, error } = await sb.from('venues').select('*').eq('city', 'Madrid');
+      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity);
       if (error) throw error;
       if (!rows || !rows.length) return null;
       return rows.map(mapVenue);
