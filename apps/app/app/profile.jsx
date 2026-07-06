@@ -44,7 +44,7 @@ const PR_T = {
     days: ['dom','lun','mar','mié','jue','vie','sáb'],
     months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
     today: 'Hoy', guestSingular: ' comensal', guestPlural: ' comensales',
-    bookingLabel: 'Reserva', depositLabelLower: 'depósito', currency: '€',
+    bookingLabel: 'Reserva', depositLabelLower: 'depósito',
   },
   en: {
     cuisines: ['Seafood','Grill','Rice dishes','Japanese','Tapas','Vegetarian','Brunch','Fusion','Italian','Galician'],
@@ -79,7 +79,7 @@ const PR_T = {
     days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     today: 'Today', guestSingular: ' guest', guestPlural: ' guests',
-    bookingLabel: 'Booking', depositLabelLower: 'deposit', currency: '£',
+    bookingLabel: 'Booking', depositLabelLower: 'deposit',
   }
 }[PR_LANG];
 
@@ -148,6 +148,7 @@ function mapSupaBooking(r) {
   const MONTHS = PR_T.months;
   const DAYS = PR_T.days;
   const depositPerPerson = r.deposit_amount ?? r.venues?.deposit_amount ?? 1000; // céntimos por persona; 1000 solo si de verdad falta el dato
+  const currency = (r.venues?.currency || 'eur').toLowerCase();
   return {
     rawId:           r.id,
     id:              r.id.toString().slice(0, 8).toUpperCase(),
@@ -160,6 +161,7 @@ function mapSupaBooking(r) {
     party:           r.pax,
     deposit:         (depositPerPerson * r.pax) / 100,
     depositCents:    depositPerPerson * r.pax,
+    currency:        currency,
     paymentIntentId: r.payment_intent_id || null,
     userId:          r.user_id || null,
     status:          isPast ? 'past' : 'up',
@@ -185,7 +187,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         const { data: { user: authUser } } = await sb.auth.getUser();
 
         let query = sb.from('reservations')
-          .select('*, venues(name, address, photo_url, cuisine, deposit_amount)')
+          .select('*, venues(name, address, photo_url, cuisine, deposit_amount, currency)')
           .in('status', ['confirmed', 'unconfirmed', 'pending'])
           .order('date', { ascending: false });
 
@@ -324,7 +326,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
       React.createElement('div',{className:'br-meta'}, (b.dayLabel||PR_T.today)+' · '+b.time+' · '+b.party+(b.party===1?PR_T.guestSingular:PR_T.guestPlural)),
-      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+PR_T.currency+b.deposit)),
+      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+b.deposit)),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
       React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante'),

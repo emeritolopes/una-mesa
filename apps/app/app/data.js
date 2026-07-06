@@ -207,6 +207,10 @@
   window.UM_AREAS = AREAS;
   window.UM_DIST = distKm;
   window.UM_GEOCODE = geocode;
+  window.UM_CURRENCY_SYMBOL = function(code){
+    const symbols = { eur:'€', gbp:'£', usd:'$' };
+    return symbols[(code||'eur').toLowerCase()] || '€';
+  };
 
   /* ══════════════════════════════════════════════
      Supabase loader — maps venues rows → SPA shape
@@ -301,6 +305,7 @@
       kw:      v.kw || v.keywords || [],
       deposit_amount: parseInt(v.deposit_amount, 10) || 1000,           // céntimos, tal cual Supabase (1000 = 10€)
       deposit:        (parseInt(v.deposit_amount, 10) || 1000) / 100,   // euros, solo para mostrar
+      currency:       (v.currency || 'eur').toLowerCase(),              // moneda real del restaurante, no del mercado del comensal
       photo_url: v.photo_url || v.image_url || v.photo || null,
     };
   }
