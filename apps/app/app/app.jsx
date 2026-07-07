@@ -110,6 +110,12 @@ function App() {
         setUser(null);
       } else if (appUser) {
         setUser(appUser);
+        // Tras un login real (OAuth u otro), llevar a la pantalla de perfil.
+        // No dependemos de que el redirect de OAuth conserve ningún hash propio —
+        // navegamos aquí, en JS, una vez que la sesión ya está confirmada.
+        if (event === 'SIGNED_IN') {
+          setRoute({ view:'profile', rid:null, query:'', presetTime:null });
+        }
       }
     });
     return () => sub && sub.unsubscribe();
