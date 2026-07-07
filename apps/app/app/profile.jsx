@@ -24,8 +24,18 @@ const PR_T = {
     locationLabel: 'Ubicación', locationPh: 'Tu ciudad o barrio (p. ej. Alicante)',
     cuisinePrefsLabel: 'Preferencias culinarias',
     createProfileBtn: 'Crear perfil', enterBtn: 'Entrar',
-    demoNote: 'Demo · no se envían datos reales.',
     restaurantFallback: 'Restaurante',
+    connErr: 'Error de conexión. Por favor recarga la página.',
+    checkInbox: 'Revisa tu bandeja de entrada para confirmar tu cuenta y luego inicia sesión.',
+    createAccountErr: 'Error al crear la cuenta. Inténtalo de nuevo.',
+    badCredentials: 'Email o contraseña incorrectos.',
+    confirmEmailFirst: 'Confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.',
+    signinErr: 'Error al iniciar sesión. Inténtalo de nuevo.',
+    enterEmailForReset: 'Introduce tu email para resetear la contraseña.',
+    resetEmailSent: 'Te hemos enviado un email para resetear tu contraseña.',
+    resetEmailErr: 'Error al enviar el email de reseteo.',
+    signingIn: 'Iniciando sesión…', creatingAccount: 'Creando cuenta…',
+    forgotPassword: '¿Olvidaste tu contraseña?',
     tabReservas: 'Mis reservas', tabPassport: 'Pasaporte', tabFavs: 'Favoritos', tabRewards: 'Recompensas',
     upcoming: 'Próximas', history: 'Historial',
     noBookings: 'Aún no tienes reservas.', findRestaurants: 'Buscar restaurantes',
@@ -59,8 +69,18 @@ const PR_T = {
     locationLabel: 'Location', locationPh: 'Your city or neighbourhood (e.g. London)',
     cuisinePrefsLabel: 'Cuisine preferences',
     createProfileBtn: 'Create profile', enterBtn: 'Enter',
-    demoNote: 'Demo · no real data is sent.',
     restaurantFallback: 'Restaurant',
+    connErr: 'Connection error. Please reload the page.',
+    checkInbox: 'Check your inbox to confirm your account, then sign in.',
+    createAccountErr: 'Error creating your account. Please try again.',
+    badCredentials: 'Incorrect email or password.',
+    confirmEmailFirst: 'Confirm your email before signing in. Check your inbox.',
+    signinErr: 'Error signing in. Please try again.',
+    enterEmailForReset: 'Enter your email to reset your password.',
+    resetEmailSent: "We've sent you an email to reset your password.",
+    resetEmailErr: 'Error sending the reset email.',
+    signingIn: 'Signing in…', creatingAccount: 'Creating account…',
+    forgotPassword: 'Forgot your password?',
     tabReservas: 'My bookings', tabPassport: 'Passport', tabFavs: 'Favourites', tabRewards: 'Rewards',
     upcoming: 'Upcoming', history: 'History',
     noBookings: "You don't have any bookings yet.", findRestaurants: 'Find restaurants',
@@ -89,14 +109,61 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
   const [mode, setMode] = useState(initialMode || 'signup'); // login | signup
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [prefs, setPrefs] = useState([]);
   const [loc, setLoc] = useState(geoLabel || '');
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+  const [loading, setLoading] = useState(false);
   const togglePref = p => setPrefs(s => s.includes(p) ? s.filter(x=>x!==p) : [...s, p]);
-  const submit = e => {
+
+  const submit = async e => {
     e.preventDefault();
-    const display = mode==='signup' ? (name.trim()||(PR_LANG==='en'?'Guest':'Comensal')) : formatName({ name:'', email:email.trim() });
-    onAuth({ name: display.charAt(0).toUpperCase()+display.slice(1), email: email||(PR_LANG==='en'?'you@unamesa.co.uk':'tú@unamesa.co'), prefs, location: loc });
+    setError(''); setInfo('');
+    if (!window.UMAuth) { setError(PR_T.connErr); return; }
+    setLoading(true);
+    try {
+      if (mode === 'signup') {
+        const appUser = await window.UMAuth.signUp(email.trim().toLowerCase(), password, name.trim());
+        if (!appUser) {
+          setError(PR_T.checkInbox);
+          setLoading(false);
+          return;
+        }
+        onAuth({ ...appUser, prefs, location: loc });
+      } else {
+        const appUser = await window.UMAuth.signIn(email.trim(), password);
+        onAuth({ ...appUser, prefs, location: loc });
+      }
+    } catch (err) {
+      const msg = err.message || '';
+      if (mode === 'signup') {
+        setError(msg || PR_T.createAccountErr);
+      } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
+        setError(PR_T.badCredentials);
+      } else if (msg.includes('not confirmed') || msg.includes('Email not confirmed')) {
+        setError(PR_T.confirmEmailFirst);
+      } else {
+        setError(PR_T.signinErr);
+      }
+    }
+    setLoading(false);
   };
+
+  const resetPassword = async () => {
+    setError(''); setInfo('');
+    if (!email.trim()) { setError(PR_T.enterEmailForReset); return; }
+    if (!window.UMAuth || !window.UMAuth.sb) { setError(PR_T.connErr); return; }
+    try {
+      await window.UMAuth.sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin
+      });
+      setInfo(PR_T.resetEmailSent);
+    } catch (e) {
+      setError(PR_T.resetEmailErr);
+    }
+  };
+
   const isSignup = mode==='signup';
   return React.createElement(Modal, { onClose, max: isSignup ? 460 : 420 },
     React.createElement('h2', null, isSignup ? PR_T.createProfile : PR_T.welcomeBack),
@@ -118,13 +185,13 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
     React.createElement('form', { onSubmit:submit },
       isSignup?React.createElement('div',{className:'field'},
         React.createElement('label',null,PR_T.nameLabel),
-        React.createElement('input',{value:name,onChange:e=>setName(e.target.value),placeholder:PR_T.namePh,required:true})):null,
+        React.createElement('input',{value:name,onChange:e=>setName(e.target.value),placeholder:PR_T.namePh,required:true,disabled:loading})):null,
       React.createElement('div',{className:'field'},
         React.createElement('label',null,PR_T.emailLabel),
-        React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:PR_T.emailPh,required:true})),
+        React.createElement('input',{type:'email',value:email,onChange:e=>setEmail(e.target.value),placeholder:PR_T.emailPh,required:true,disabled:loading})),
       React.createElement('div',{className:'field'},
         React.createElement('label',null,PR_T.passwordLabel),
-        React.createElement('input',{type:'password',placeholder:'••••••••',required:true})),
+        React.createElement('input',{type:'password',value:password,onChange:e=>setPassword(e.target.value),placeholder:'••••••••',required:true,minLength:isSignup?6:undefined,disabled:loading})),
       isSignup?React.createElement('div',{className:'field'},
         React.createElement('label',null,PR_T.locationLabel),
         React.createElement('input',{value:loc,onChange:e=>setLoc(e.target.value),placeholder:PR_T.locationPh})):null,
@@ -134,10 +201,14 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
           CUISINE_PREFS.map(p=>React.createElement('button',{
             key:p, type:'button', className:'chip'+(prefs.includes(p)?' on':''), onClick:()=>togglePref(p)
           }, p)))):null,
-      React.createElement('button',{className:'btn btn-acc btn-block btn-lg',type:'submit',style:{marginTop:'8px'}},
-        isSignup?PR_T.createProfileBtn:PR_T.enterBtn)),
-    React.createElement('p',{className:'muted',style:{fontSize:'12px',textAlign:'center',marginTop:'16px'}},
-      PR_T.demoNote)
+      error ? React.createElement('p', { style:{ color:'#dc2626', fontSize:13, margin:'10px 0 0', lineHeight:1.4 } }, error) : null,
+      info ? React.createElement('p', { style:{ color:'#16a34a', fontSize:13, margin:'10px 0 0', lineHeight:1.4 } }, info) : null,
+      React.createElement('button',{className:'btn btn-acc btn-block btn-lg',type:'submit',style:{marginTop:'12px'},disabled:loading},
+        loading ? (isSignup?PR_T.creatingAccount:PR_T.signingIn) : (isSignup?PR_T.createProfileBtn:PR_T.enterBtn)),
+      !isSignup ? React.createElement('button', {
+        type:'button', onClick:resetPassword,
+        style:{ background:'none', border:'none', color:'#D8552E', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
+      }, PR_T.forgotPassword) : null)
   );
 }
 
