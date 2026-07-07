@@ -322,7 +322,12 @@
         if (q === 'uk' || q === 'en' || window.location.hostname.endsWith('.co.uk')) targetCity = 'London';
       } catch (_) {}
 
-      const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      // Reutiliza el cliente único de auth.js (window.UMAuth.sb) en vez de crear uno nuevo —
+      // dos instancias de GoTrueClient en la misma pestaña compiten por la misma sesión
+      // y pueden dejarla en un estado inconsistente (Supabase lo advierte explícitamente
+      // como "undefined behavior"). Fallback a un cliente nuevo solo si por algún motivo
+      // auth.js no llegó a inicializarse todavía.
+      const sb = (window.UMAuth && window.UMAuth.sb) || window.supabase.createClient(SUPA_URL, SUPA_KEY);
       const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity);
       if (error) throw error;
       if (!rows || !rows.length) return null;
