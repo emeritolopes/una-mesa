@@ -59,6 +59,15 @@ const RA_T = {
     claimSub: 'Tu reserva está confirmada. Crea tu cuenta gratis ahora y recibe 25 Cucharas de Oro de esta reserva, además de recomendaciones personalizadas y recompensas exclusivas.',
     claimCta: 'Crear cuenta y reclamar recompensas',
     maybeLater: 'Quizás más tarde',
+    resetTitle: 'Elige una contraseña nueva',
+    resetSub: 'Escríbela dos veces para confirmar.',
+    newPasswordLabel: 'Contraseña nueva', confirmPasswordLabel: 'Confirmar contraseña',
+    resetMismatch: 'Las contraseñas no coinciden.',
+    resetTooShort: 'La contraseña debe tener al menos 6 caracteres.',
+    resetSubmit: 'Guardar contraseña', resetSaving: 'Guardando…',
+    resetGenericErr: 'No se pudo cambiar la contraseña. Pide un nuevo link e inténtalo de nuevo.',
+    resetSuccess: '¡Contraseña actualizada! Ya puedes iniciar sesión con ella.',
+    resetGoHome: 'Volver al inicio',
   },
   en: {
     benefits: [
@@ -103,6 +112,15 @@ const RA_T = {
     claimSub: 'Your booking is confirmed. Create your free account now and get 25 Golden Spoons for this booking, plus personalised recommendations and exclusive rewards.',
     claimCta: 'Create account and claim rewards',
     maybeLater: 'Maybe later',
+    resetTitle: 'Choose a new password',
+    resetSub: 'Enter it twice to confirm.',
+    newPasswordLabel: 'New password', confirmPasswordLabel: 'Confirm password',
+    resetMismatch: "Passwords don't match.",
+    resetTooShort: 'Password must be at least 6 characters.',
+    resetSubmit: 'Save password', resetSaving: 'Saving…',
+    resetGenericErr: 'Could not change your password. Request a new link and try again.',
+    resetSuccess: 'Password updated! You can now sign in with it.',
+    resetGoHome: 'Back to home',
   }
 }[RA_LANG];
 
@@ -198,7 +216,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
     }
     try {
       await window.UMAuth.sb.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin + '/#reset-password'
+        redirectTo: window.location.origin
       });
       setError('');
       setInfo(RA_T.resetEmailSent);
@@ -306,4 +324,55 @@ function ClaimSpoonsModal({ onClose, onCreate }){
   );
 }
 
-Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal });
+/* ── pantalla real de "elegir contraseña nueva", tras volver del link de recuperación ── */
+function ResetPasswordScreen({ onDone }){
+  const [pw1, setPw1] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const submit = async e => {
+    e.preventDefault();
+    setError('');
+    if (pw1.length < 6) { setError(RA_T.resetTooShort); return; }
+    if (pw1 !== pw2) { setError(RA_T.resetMismatch); return; }
+    if (!window.UMAuth || !window.UMAuth.sb) { setError(RA_T.resetGenericErr); return; }
+    setLoading(true);
+    try {
+      const { error: err } = await window.UMAuth.sb.auth.updateUser({ password: pw1 });
+      if (err) throw err;
+      setDone(true);
+    } catch (e) {
+      setError(RA_T.resetGenericErr);
+    }
+    setLoading(false);
+  };
+
+  if (done) {
+    return React.createElement(Modal, { onClose: onDone, max:420 },
+      React.createElement('div', { className:'rb-head' },
+        React.createElement('div', { className:'rb-badge' }, React.createElement(Icon,{name:'check'})),
+        React.createElement('h2', null, RA_T.resetSuccess)),
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:onDone }, RA_T.resetGoHome)
+    );
+  }
+
+  return React.createElement(Modal, { onClose: onDone, max:420 },
+    React.createElement('div', { className:'rb-head' },
+      React.createElement('h2', null, RA_T.resetTitle),
+      React.createElement('p', { className:'msub' }, RA_T.resetSub)),
+    React.createElement('form', { onSubmit: submit },
+      React.createElement('div', { className:'field' },
+        React.createElement('label', null, RA_T.newPasswordLabel),
+        React.createElement('input', { type:'password', value:pw1, onChange:e=>setPw1(e.target.value), placeholder:'••••••••', required:true, minLength:6, disabled:loading, autoFocus:true })),
+      React.createElement('div', { className:'field' },
+        React.createElement('label', null, RA_T.confirmPasswordLabel),
+        React.createElement('input', { type:'password', value:pw2, onChange:e=>setPw2(e.target.value), placeholder:'••••••••', required:true, minLength:6, disabled:loading })),
+      error ? React.createElement('p', { style:{ color:'#dc2626', fontSize:13, margin:'10px 0 0', lineHeight:1.4 } }, error) : null,
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', type:'submit', style:{marginTop:'12px'}, disabled:loading },
+        loading ? RA_T.resetSaving : RA_T.resetSubmit))
+  );
+}
+
+Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen });
