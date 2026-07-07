@@ -122,7 +122,7 @@ function App() {
       pos=> {
         const lat = pos.coords.latitude, lng = pos.coords.longitude;
         setGeo({status:'granted',label:AP_T.currentLocationSentinel,ref:{x:50,y:50},lat,lng});
-        window.__geoDebug = { lat, lng }; console.log('[GEO]', window.__geoDebug);
+        
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
           .then(r => r.json())
           .then(d => {
