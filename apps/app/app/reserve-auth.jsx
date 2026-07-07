@@ -135,7 +135,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
   const signInWithGoogle = async () => {
     await window.UMAuth.sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/#profile' }
+      options: { redirectTo: window.location.origin }
     });
   };
 

@@ -109,7 +109,7 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
         if (window.UMAuth && window.UMAuth.sb) {
           window.UMAuth.sb.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: window.location.origin + '/#profile' }
+            options: { redirectTo: window.location.origin }
           });
         }
       }},
