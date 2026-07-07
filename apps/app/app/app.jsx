@@ -63,6 +63,7 @@ function App() {
   const [authOpen, setAuthOpen] = useState(null); // null | 'login' | 'register'
   const [reserveGate, setReserveGate] = useState(false);
   const [claimOpen, setClaimOpen] = useState(false);
+  const [resetPwOpen, setResetPwOpen] = useState(false);
   const [spoons, setSpoons] = useState(0);
   const [toast, setToast] = useState('');
   const [geo, setGeo] = useState({ status:'idle', label:'', ref:{x:50,y:50} });
@@ -108,6 +109,11 @@ function App() {
     const sub = window.UMAuth.onAuthStateChange((event, appUser) => {
       if (event === 'SIGNED_OUT') {
         setUser(null);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // El usuario volvió de un link de "olvidé mi contraseña" — Supabase ya
+        // le dio una sesión temporal solo para este propósito; mostramos el
+        // formulario para que elija una nueva, en vez de tratarlo como login normal.
+        setResetPwOpen(true);
       } else if (appUser) {
         setUser(appUser);
         // Tras un login real (OAuth u otro), llevar a la pantalla de perfil.
@@ -256,6 +262,7 @@ function App() {
     claimOpen ? React.createElement(window.ClaimSpoonsModal, {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
     authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label===AP_T.currentLocationSentinel ? AP_T.countryFallback : geo.label, initialMode:authOpen }) : null,
+    resetPwOpen ? React.createElement(window.ResetPasswordScreen, { onDone:()=>{ setResetPwOpen(false); go('home'); } }) : null,
     React.createElement(window.Toast, { msg:toast })
   );
 }
