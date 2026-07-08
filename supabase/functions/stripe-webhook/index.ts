@@ -175,8 +175,20 @@ Deno.serve(async (req) => {
     }
 
     // 5 · Email de confirmación al comensal — non-fatal.
+    //     Incluye un link de cancelación de un solo uso, generado ahora — el
+    //     invitado nunca tiene cuenta, este token es la única forma de que
+    //     pueda demostrar que la reserva es suya más adelante.
     if (customerEmail) {
       try {
+        let cancelUrl: string | null = null
+        try {
+          const cancelTokenRes = await fetch(`${supabaseUrl}/rest/v1/rpc/generate_cancel_token`, {
+            method: 'POST', headers: sbHeaders, body: JSON.stringify({ p_reservation_id: reservation.id }),
+          })
+          const cancelToken = await cancelTokenRes.json()
+          if (cancelToken) cancelUrl = `${supabaseUrl}/functions/v1/cancel-reservation-guest?token=${cancelToken}&lang=${lang}`
+        } catch (e) { console.warn('[stripe-webhook] cancel-token:', e instanceof Error ? e.message : e) }
+
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
           method: 'POST',
           headers: sbHeaders,
@@ -189,6 +201,7 @@ Deno.serve(async (req) => {
             pax: party,
             deposit_amount: depositAmount,
             menu_url: menuUrl,
+            cancel_url: cancelUrl,
             lang,
           }),
         })
