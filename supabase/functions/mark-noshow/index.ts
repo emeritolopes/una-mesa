@@ -1,6 +1,6 @@
 // supabase/functions/mark-noshow/index.ts
-// GET ?token=<uuid>&lang=<es|en> — marca la reserva como no_show y captura el PaymentIntent...
-// El depósito SE CAPTURA (es la penalización). Cancela solo la mesa.
+// GET ?token=<uuid>&lang=<es|en> &mdash; marca la reserva como no_show y captura el PaymentIntent...
+// El dep&oacute;sito SE CAPTURA (es la penalizaci&oacute;n). Cancela solo la mesa.
 // Un solo uso, expira, sin login.
 
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
@@ -8,13 +8,13 @@ import Stripe from 'https://esm.sh/stripe@14?target=deno'
 const ET = {
   es: {
     lang: 'es',
-    invalidTitle: 'Enlace inválido', invalidMissing: 'Falta el token.', invalidNotExist: 'Este enlace no existe.',
-    usedTitle: 'Ya utilizado', usedBody: 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.',
+    invalidTitle: 'Enlace inv&aacute;lido', invalidMissing: 'Falta el token.', invalidNotExist: 'Este enlace no existe.',
+    usedTitle: 'Ya utilizado', usedBody: 'Este enlace ya se us&oacute;. Si fue un error, contacta con Una Mesa.',
     expiredTitle: 'Enlace caducado', expiredBody: 'Este enlace ha expirado.',
-    unprocessableTitle: 'No procesable', unprocessableBody: 'El depósito de esta reserva ya fue procesado (capturado o cancelado antes).',
+    unprocessableTitle: 'No procesable', unprocessableBody: 'El dep&oacute;sito de esta reserva ya fue procesado (capturado o cancelado antes).',
     doneTitle: 'No-show registrado',
-    doneOk: 'La reserva se marcó como no-show y el depósito ha sido cobrado.',
-    doneFailed: 'La reserva se marcó como no-show. El cobro del depósito falló y queda pendiente de revisión.',
+    doneOk: 'La reserva se marc&oacute; como no-show y el dep&oacute;sito ha sido cobrado.',
+    doneFailed: 'La reserva se marc&oacute; como no-show. El cobro del dep&oacute;sito fall&oacute; y queda pendiente de revisi&oacute;n.',
   },
   en: {
     lang: 'en',
@@ -33,7 +33,7 @@ const html = (title: string, body: string, ok: boolean, lang: string) => `<!DOCT
 <title>${title}</title></head>
 <body style="font-family:sans-serif;background:#FAF6F0;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
 <div style="background:#fff;border-radius:14px;padding:40px;max-width:420px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07)">
-<div style="font-size:40px;margin-bottom:12px">${ok ? '✅' : '⚠️'}</div>
+<div style="font-size:40px;margin-bottom:12px">${ok ? '&#9989;' : '&#9888;'}</div>
 <h1 style="font-size:20px;color:#1a130d;margin:0 0 10px">${title}</h1>
 <p style="font-size:14px;color:#777;line-height:1.6;margin:0">${body}</p>
 </div></body></html>`
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
 
-  // 1. Token válido, no usado, no expirado
+  // 1. Token v&aacute;lido, no usado, no expirado
   const tRes = await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
   const tokens = await tRes.json()
   const tk = tokens[0]
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 409 })
   if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 410 })
 
-  // 2. Lock atómico: solo procede si deposit_status era 'pending'
+  // 2. Lock at&oacute;mico: solo procede si deposit_status era 'pending'
   const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
     method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: tk.reservation_id }),
   })
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     return new Response(html(t.unprocessableTitle, t.unprocessableBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 409 })
   }
 
-  // 3. Capturar depósito (penalización por no-show) y marcar reserva
+  // 3. Capturar dep&oacute;sito (penalizaci&oacute;n por no-show) y marcar reserva
   const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,payment_intent_id`, { headers: h })
   const reservation = (await rRes.json())[0]
 
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
       await stripe.paymentIntents.capture(reservation.payment_intent_id)
       captureOk = true
-    } catch (_) { /* si Stripe falla, deposit_status queda en 'capturing' para revisión manual */ }
+    } catch (_) { /* si Stripe falla, deposit_status queda en 'capturing' para revisi&oacute;n manual */ }
   }
 
   await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}`, {
