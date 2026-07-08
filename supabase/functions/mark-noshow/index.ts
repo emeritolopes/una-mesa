@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   const lang: 'es' | 'en' = url.searchParams.get('lang') === 'en' ? 'en' : 'es'
   const t = ET[lang]
 
-  if (!token) return new Response(html(t.invalidTitle, t.invalidMissing, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 400 })
+  if (!token) return new Response(html(t.invalidTitle, t.invalidMissing, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 400 })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -54,9 +54,9 @@ Deno.serve(async (req) => {
   const tRes = await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
   const tokens = await tRes.json()
   const tk = tokens[0]
-  if (!tk) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 404 })
-  if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 409 })
-  if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 410 })
+  if (!tk) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 404 })
+  if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 409 })
+  if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 410 })
 
   // 2. Lock atómico: solo procede si deposit_status era 'pending'
   const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
   })
   const locked = await lockRes.json()
   if (!locked || locked.length === 0) {
-    return new Response(html(t.unprocessableTitle, t.unprocessableBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 409 })
+    return new Response(html(t.unprocessableTitle, t.unprocessableBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 409 })
   }
 
   // 3. Capturar depósito (penalización por no-show) y marcar reserva
@@ -90,6 +90,6 @@ Deno.serve(async (req) => {
 
   return new Response(
     html(t.doneTitle, captureOk ? t.doneOk : t.doneFailed, true, t.lang),
-    { headers: { 'Content-Type': 'text/html' } }
+    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
   )
 })
