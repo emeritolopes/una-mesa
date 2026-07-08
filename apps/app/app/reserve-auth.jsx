@@ -68,6 +68,14 @@ const RA_T = {
     resetGenericErr: 'No se pudo cambiar la contraseña. Pide un nuevo link e inténtalo de nuevo.',
     resetSuccess: '¡Contraseña actualizada! Ya puedes iniciar sesión con ella.',
     resetGoHome: 'Volver al inicio',
+    cancelScreenLoading: 'Cancelando tu reserva…',
+    cancelScreenSuccessRefunded: 'Tu reserva se canceló. El depósito se reembolsará en 5-10 días hábiles.',
+    cancelScreenSuccessForfeited: 'Tu reserva se canceló. Como fue con menos de 24 horas de antelación, el depósito no es reembolsable.',
+    cancelScreenInvalid: 'Este enlace no es válido.',
+    cancelScreenUsed: 'Este enlace ya se usó. Si fue un error, contacta con el restaurante.',
+    cancelScreenExpired: 'Este enlace ha expirado — probablemente porque la reserva ya pasó.',
+    cancelScreenAlready: 'Esta reserva ya estaba cancelada.',
+    cancelScreenError: 'No se pudo procesar la cancelación. Inténtalo de nuevo o contacta con el restaurante.',
   },
   en: {
     benefits: [
@@ -121,6 +129,14 @@ const RA_T = {
     resetGenericErr: 'Could not change your password. Request a new link and try again.',
     resetSuccess: 'Password updated! You can now sign in with it.',
     resetGoHome: 'Back to home',
+    cancelScreenLoading: 'Cancelling your booking…',
+    cancelScreenSuccessRefunded: 'Your booking has been cancelled. The deposit will be refunded within 5-10 business days.',
+    cancelScreenSuccessForfeited: "Your booking has been cancelled. Since it was less than 24 hours in advance, the deposit isn't refundable.",
+    cancelScreenInvalid: "This link isn't valid.",
+    cancelScreenUsed: 'This link was already used. If this was a mistake, contact the restaurant.',
+    cancelScreenExpired: 'This link has expired — likely because the booking time has already passed.',
+    cancelScreenAlready: 'This booking was already cancelled.',
+    cancelScreenError: 'Could not process the cancellation. Please try again or contact the restaurant.',
   }
 }[RA_LANG];
 
@@ -375,4 +391,49 @@ function ResetPasswordScreen({ onDone }){
   );
 }
 
-Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen });
+/* ── pantalla que consume el link de cancelación de invitado — vive en la
+   propia app, no en una URL cruda de Supabase, para evitar que webviews de
+   clientes de correo (Gmail confirmado) muestren la respuesta como texto
+   plano sin renderizar en vez de abrir una página real. ── */
+function CancelBookingScreen({ token, onDone }){
+  const [state, setState] = useState('loading'); // loading | success | error
+  const [code, setCode] = useState(null);
+  const [refunded, setRefunded] = useState(false);
+
+  useEffect(() => {
+    if (!token) { setState('error'); setCode('invalid'); return; }
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/cancel-reservation-guest?token=' + encodeURIComponent(token))
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok) { setState('success'); setRefunded(!!json.refunded); }
+        else { setState('error'); setCode(json.code || 'error'); }
+      })
+      .catch(() => { setState('error'); setCode('error'); });
+  }, [token]);
+
+  const errorMsg = () => {
+    switch (code) {
+      case 'used': return RA_T.cancelScreenUsed;
+      case 'expired': return RA_T.cancelScreenExpired;
+      case 'already_cancelled': return RA_T.cancelScreenAlready;
+      case 'invalid': return RA_T.cancelScreenInvalid;
+      default: return RA_T.cancelScreenError;
+    }
+  };
+
+  return React.createElement(Modal, { onClose: onDone, max:420 },
+    React.createElement('div', { className:'rb-head' },
+      state === 'success'
+        ? React.createElement('div', { className:'rb-badge' }, React.createElement(Icon,{name:'check'}))
+        : null,
+      React.createElement('h2', null,
+        state === 'loading' ? RA_T.cancelScreenLoading
+        : state === 'success' ? (refunded ? RA_T.cancelScreenSuccessRefunded : RA_T.cancelScreenSuccessForfeited)
+        : errorMsg()
+      )
+    ),
+    state !== 'loading' ? React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:onDone }, RA_T.resetGoHome) : null
+  );
+}
+
+Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen, CancelBookingScreen });
