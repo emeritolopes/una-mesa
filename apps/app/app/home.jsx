@@ -156,10 +156,10 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
   const nearby   = [...withDist].sort((a,b)=>a.d-b.d).slice(0,4);
 
   /* restaurante destacado (top rated) */
-  const dest       = byRating[0];
+  const dest       = byRating[0] || null;
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const destTimes = [...(dest.times.dinner||[]), ...(dest.times.lunch||[])]
+  const destTimes = dest ? [...(dest.times.dinner||[]), ...(dest.times.lunch||[])]
     .filter(([time]) => {
       const [h, m] = time.split(':').map(Number);
       return (h * 60 + m) > currentMinutes + 30;
@@ -169,8 +169,8 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
       const [bh, bm] = b.split(':').map(Number);
       return (ah * 60 + am) - (bh * 60 + bm);
     })
-    .slice(0, 6);
-  const destMenu   = dest.menu && dest.menu[0] ? dest.menu[0].items.slice(0,3) : [];
+    .slice(0, 6) : [];
+  const destMenu   = dest && dest.menu && dest.menu[0] ? dest.menu[0].items.slice(0,3) : [];
 
   const heroChips    = UM_T.chips;
   const aiSuggestions = UM_T.aiSuggestions;
@@ -183,6 +183,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
   const submitAi   = e => { e.preventDefault(); if(ai.trim()) askConcierge(ai); };
   const submitAddr = e => { e.preventDefault(); if(addr.trim()) setManualLocation(addr.trim()); };
   const confirmBook = () => {
+    if (!dest) return;
     const t = selTime || (destTimes[0] && destTimes[0][0]);
     if(t) startBook(dest.id, t, selParty);
     else openRest(dest.id);
@@ -292,7 +293,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     /* ═══════════════════════════════════════
        2. SELECCIÓN DE LA SEMANA  —  bento grid 2 + 1
     ═══════════════════════════════════════ */
-    React.createElement('section', { className:'stitch-bento-section' },
+    byRating.length > 0 ? React.createElement('section', { className:'stitch-bento-section' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'stitch-sec-head' },
           React.createElement('div', null,
@@ -304,16 +305,16 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
         ),
         React.createElement('div', { className:'stitch-bento-grid' },
           React.createElement(BentoCard, { r:byRating[0], big:true,  onOpen:openRest, img:'dish.jpg' }),
-          React.createElement(BentoCard, { r:byRating[1], big:false, onOpen:openRest, img:'albert-YYZU0Lo1uXE-unsplash.jpg' })
+          byRating[1] ? React.createElement(BentoCard, { r:byRating[1], big:false, onOpen:openRest, img:'albert-YYZU0Lo1uXE-unsplash.jpg' }) : null
         )
       )
-    ),
+    ) : null,
 
     /* ═══════════════════════════════════════
        3. DESTACADO  —  info restaurante + foto plato + widget reserva
        Stitch: bg-desert-sand/30, grid 2/3 + 1/3
     ═══════════════════════════════════════ */
-    React.createElement('section', { className:'detail-section' },
+    dest ? React.createElement('section', { className:'detail-section' },
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'detail-grid' },
 
@@ -382,7 +383,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           )
         )
       )
-    ),
+    ) : null,
 
     /* ═══════════════════════════════════════
        4. CONSERJE DIGITAL  —  sección fondo oscuro
