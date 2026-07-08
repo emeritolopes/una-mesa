@@ -85,11 +85,5 @@ window.formatName = function(user) {
     return subscription;
   }
 
-  async function saveReservation(reservation) {
-    const { data, error } = await sb.from('reservations').insert([reservation]).select().single();
-    if (error) throw error;
-    return data;
-  }
-
-  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, saveReservation, sb };
+  window.UMAuth = { signUp, signIn, signOut, getUser, onAuthStateChange, sb };
 })();
