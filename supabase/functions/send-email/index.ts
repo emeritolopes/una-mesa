@@ -63,7 +63,7 @@ const ET = {
     confirmIntro: (r: string) => `You're all set at <strong style="color:#121212;">${r}</strong>. Here are your booking details.`,
     labelRestaurante: 'Restaurant',
     reembolsable: 'refundable',
-    depositNote: (dep: string) => `Your <strong style="color:#121212;">${dep}</strong> deposit is deducted from your bill total when you arrive at the restaurant. If you need to cancel, do so more than 24h in advance to get it back in full.`,
+    depositNote: (dep: string) => `Your <strong style="color:#121212;">£${dep}</strong> deposit is deducted from your bill total when you arrive at the restaurant. If you need to cancel, do so more than 24h in advance to get it back in full.`,
     menuButton: 'View restaurant menu',
     menuNote: 'Check the menu before you arrive and come ready to order.',
     cancelButton: 'Cancel my booking',
