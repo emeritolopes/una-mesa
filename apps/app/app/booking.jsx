@@ -250,7 +250,16 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     setPayLoading(true);
 
     try {
-      /* 1 · Create PaymentIntent via Edge Function (authorize only — manual capture) */
+      const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
+      const custName  = user ? (user.name || user.email) : guestName;
+      const custEmail = user ? (user.email || null) : guestEmail || null;
+      const custPhone = user ? null : guestPhone || null;
+
+      /* 1 · Create PaymentIntent via Edge Function (authorize only — manual capture).
+         Los datos de la reserva viajan en la metadata del PaymentIntent — el
+         webhook de Stripe es quien crea la reserva de verdad, después de
+         verificar la firma del evento. El cliente ya no inserta nada directo
+         en la base de datos. */
       const res = await fetch(SUPA_PAY_FUNC, {
         method: 'POST',
         headers: {
@@ -258,11 +267,17 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           'Authorization': 'Bearer ' + SUPA_ANON_KEY,
         },
         body: JSON.stringify({
-          amount:         depositCents * party,   // céntimos × personas
-          restaurant_id:  r.id,
-          user_id:        user?.id || '',
-          reservation_id: reservationCode,
+          amount:          depositCents * party,   // céntimos × personas
+          restaurant_id:   r.id,
+          user_id:         user?.id || '',
+          reservation_id:  reservationCode,
           party,
+          date:            dateStr,
+          time,
+          customer_name:   custName,
+          customer_phone:  custPhone,
+          customer_email:  custEmail,
+          lang:            BK_LANG,
         }),
       });
 
@@ -271,7 +286,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
 
       const { client_secret, payment_intent_id } = json;
 
-      /* 2 · Confirm card with Stripe.js (result: requires_capture — card not charged yet) */
+      /* 2 · Confirm card with Stripe.js (result: requires_capture — card not charged yet).
+         En cuanto esto tiene éxito, Stripe dispara el evento
+         payment_intent.amount_capturable_updated hacia stripe-webhook, que
+         crea la reserva, el perfil del cliente, el token de no-show, y manda
+         los dos emails — todo server-side, verificado por firma. */
       const { error } = await cardElRef.current.stripe.confirmCardPayment(client_secret, {
         payment_method: {
           card: cardElRef.current.cardNumber,
@@ -281,102 +300,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
 
       if (error) throw new Error(error.message);
 
-      /* 3 · Save reservation to Supabase — non-fatal if it fails */
-      if (window.UMAuth && window.UMAuth.saveReservation) {
-        try {
-          const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
-          const savedReservation = await window.UMAuth.saveReservation({
-            venue_id:          r.id,
-            user_id:           user?.id || null,
-            customer_name:     user ? (user.name || user.email) : guestName,
-            customer_phone:    user ? null : guestPhone || null,
-            customer_email:    user ? (user.email || null) : guestEmail || null,
-            pax:               party,
-            date:              dateStr,
-            time:              time,
-            status:            'confirmed',
-            notes:             null,
-            payment_intent_id: payment_intent_id,
-            deposit_status:    'pending',
-          });
-
-          // Crear/actualizar perfil del cliente — non-fatal
-          const ucName  = user ? (user.name || user.email) : guestName;
-          const ucEmail = user ? (user.email || null) : guestEmail || null;
-          const ucPhone = user ? null : guestPhone || null;
-          if (ucName || ucEmail) {
-            try {
-              await window.UMAuth.sb.functions.invoke('upsert-customer', {
-                body: {
-                  venue_id:       r.id,
-                  reservation_id: savedReservation?.id || null,
-                  customer_name:  ucName,
-                  customer_phone: ucPhone,
-                  customer_email: ucEmail,
-                }
-              });
-            } catch(e) { console.warn('upsert-customer:', e.message); }
-          }
-
-          // Generar token no-show y enviar email al restaurante — non-fatal, fire-and-forget
-          if (savedReservation?.id) {
-            (async () => {
-              try {
-                const { data: token, error: tokenErr } = await window.UMAuth.sb
-                  .rpc('generate_noshow_token', { p_reservation_id: savedReservation.id });
-                if (tokenErr) { console.warn('[UNA MESA] noshow-token:', tokenErr.message); return; }
-
-                const { data: venue } = await window.UMAuth.sb
-                  .from('venues').select('email, name').eq('id', r.id).single();
-                if (!venue?.email || !token) return;
-
-                const dayLabel2 = (day || today).toLocaleDateString(BK_T.dateLocale, { weekday:'long', day:'numeric', month:'long' });
-                const noshowUrl = SUPA_BASE + '/mark-noshow?token=' + token;
-                fetch(SUPA_EMAIL_FUNC, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
-                  body: JSON.stringify({
-                    to:              venue.email,
-                    customer_name:   user ? (user.name || user.email) : guestName,
-                    restaurant_name: r.name,
-                    date:            dayLabel2,
-                    time,
-                    pax:             party,
-                    deposit_amount:  depositCents,
-                    noshow_url:      noshowUrl,
-                    lang:            BK_LANG,
-                  }),
-                }).catch(e => console.warn('[UNA MESA] restaurant-email:', e.message));
-              } catch(e) { console.warn('[UNA MESA] noshow-flow:', e.message || e); }
-            })();
-          }
-        } catch (e) {
-          console.warn('[UNA MESA] saveReservation:', e.message || e);
-        }
-      }
-
-      /* 4 · Send confirmation email — non-fatal */
-      const recipientEmail = user ? user.email : guestEmail;
-      if (recipientEmail) {
-        const dayLabel = (day || today).toLocaleDateString(BK_T.dateLocale, { weekday:'long', day:'numeric', month:'long' });
-        fetch(SUPA_EMAIL_FUNC, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
-          body: JSON.stringify({
-            to:              recipientEmail,
-            customer_name:   user ? (user.name || user.email) : guestName,
-            restaurant_name: r.name,
-            date:            dayLabel,
-            time:            time,
-            pax:             party,
-            deposit_amount:  depositCents,
-            menu_url:        r.menu_url || 'https://www.elbodegonalicante.com/wp-content/uploads/2026/05/carta_el_bodegon_english.pdf',
-            lang:            BK_LANG,
-          }),
-        }).catch(e => console.warn('[UNA MESA] send-email:', e.message));
-      }
-
-      /* 5 · Authorization OK → finalise booking */
+      /* 3 · Autorización OK → finalizar reserva en la UI */
       finish(payment_intent_id, reservationCode);
 
     } catch (err) {
