@@ -42,7 +42,8 @@ const PR_T = {
     noFavs: 'Sin favoritos todavía. Toca el corazón en cualquier restaurante.', explore: 'Explorar',
     cancelBtn: 'Cancelar',
     cancelModalTitle: '¿Cancelar esta reserva?',
-    cancelModalBody: 'El depósito será reembolsado en 5-10 días hábiles.',
+    cancelModalBody: 'Si cancelas con más de 24h de antelación, el depósito se reembolsa en 5-10 días hábiles. Con menos de 24h, el depósito no se reembolsa.',
+    cancelGenericErr: 'No se pudo cancelar la reserva. Inténtalo de nuevo.',
     goBack: 'Volver', yesCancel: 'Sí, cancelar',
     hello: name => '¡Hola, '+name+'!',
     loyaltyProgram: 'Programa Mesa', pts: ' pts',
@@ -87,6 +88,7 @@ const PR_T = {
     noFavs: 'No favourites yet. Tap the heart on any restaurant.', explore: 'Explore',
     cancelBtn: 'Cancel',
     cancelModalTitle: 'Cancel this booking?',
+    cancelGenericErr: 'Could not cancel the booking. Please try again.',
     cancelModalBody: 'The deposit will be refunded within 5-10 business days.',
     goBack: 'Go back', yesCancel: 'Yes, cancel',
     hello: name => 'Hi, '+name+'!',
@@ -287,60 +289,29 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
     const sb = window.UMAuth.sb;
 
-    /* 1 · Stripe refund — NON-FATAL, never blocks step 2 */
-    try {
-      const { data, error } = await sb.functions.invoke('stripe-refund', { body: { payment_intent_id: b.paymentIntentId } });
-      if (error) { const t = await error.context?.text?.(); console.warn('[UNA MESA] stripe-refund:', t); }
-    } catch(e) { console.warn('[UNA MESA] stripe-refund:', e.message); }
-
-    /* 2 · DB update — ALWAYS runs */
-    const { data: updateData, error: updateError } = await sb.functions.invoke('update-reservation', {
-      body: { reservation_id: b.rawId, status: 'cancelled' }
+    /* Cancelar — cancel-reservation verifica que la reserva sea tuya (o de tu
+       restaurante), aplica la política de 24h con la zona horaria real del
+       venue, resuelve Stripe (cancela o reembolsa según corresponda), registra
+       la cancelación, y manda el email — todo server-side, en una sola llamada
+       autoritativa. Ya no hace falta ningún paso adicional desde el cliente. */
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/cancel-reservation', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + (session?.access_token || ''),
+      },
+      body: JSON.stringify({ reservation_id: b.rawId, lang: PR_LANG }),
     });
-    if (updateError || updateData?.error) {
-      console.warn('[CANCEL DB]', updateError || updateData.error);
+    const json = await res.json();
+    if (!res.ok) {
+      console.warn('[UNA MESA] cancel-reservation:', json.error);
+      setCancelError(json.error || PR_T.cancelGenericErr);
       setCancelBusy(false);
       return;
     }
 
-    /* 3 · Log cancellation record — non-fatal */
-    try {
-      await sb.from('cancellations').insert([{
-        reservation_id: b.rawId,
-        user_id:        b.userId,
-        reason:         'user_cancelled',
-        refund_amount:  b.depositCents,
-      }]);
-    } catch(e) { console.warn('[UNA MESA] cancellations insert:', e.message); }
-
-    /* 4 · Send cancellation email — non-fatal */
-    console.log('=== EMAIL GUARD v2 ===', { hasUser: !!user, email: user?.email });
-    if (user?.email) {
-      try {
-        console.log('[EMAIL INVOKE] llamando send-cancellation-email...');
-        const { data, error } = await sb.functions.invoke('send-cancellation-email', {
-          body: {
-            to:              user.email,
-            customer_name:   user.name || user.email,
-            restaurant_name: b.name,
-            date:            b.dayLabel,
-            time:            b.time,
-            pax:             b.party,
-            deposit_amount:  b.depositCents,
-          }
-        });
-        if (error) {
-          const errText = await error.context?.text?.();
-          console.warn('[EMAIL ERROR]', errText || error.message);
-        } else {
-          console.log('[EMAIL OK]', data);
-        }
-      } catch(e) { console.warn('[EMAIL EXCEPTION]', e.message); }
-    } else {
-      console.warn('[EMAIL SKIP] sin user.email');
-    }
-
-    /* 5 · Update local UI */
+    /* Update local UI */
     setSupaBookings(prev => prev.filter(x => x.rawId !== b.rawId));
     setCancelTarget(null);
     setCancelBusy(false);

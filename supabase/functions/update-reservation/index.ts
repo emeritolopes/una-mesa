@@ -1,3 +1,10 @@
+// DEPRECATED — esta función no verificaba en absoluto quién llamaba: cualquiera
+// con la anon key podía cancelar la reserva de cualquier persona mandando solo
+// un reservation_id. Reemplazada por cancel-reservation, que sí verifica dueño
+// (diner o restaurante), aplica la política de 24h, y resuelve Stripe de forma
+// consistente con la base de datos. Se deja este stub en vez de borrar el
+// archivo para que cualquier caller viejo reciba un error claro, no un 404 mudo.
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -5,39 +12,9 @@ const corsHeaders = {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders });
-
-  try {
-    const { reservation_id, status } = await req.json();
-    if (!reservation_id || !status) {
-      return new Response(JSON.stringify({ error: 'reservation_id and status required' }), { status: 400, headers: corsHeaders });
-    }
-
-    // Solo permite cancelar — no permite otros status arbitrarios
-    if (!['cancelled'].includes(status)) {
-      return new Response(JSON.stringify({ error: 'Invalid status' }), { status: 400, headers: corsHeaders });
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    const res = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': serviceKey,
-        'Authorization': `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ status })
-    });
-
-    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
-
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    return new Response(JSON.stringify({ error: message }), { status: 500, headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+  return new Response(
+    JSON.stringify({ error: 'deprecated — use cancel-reservation instead' }),
+    { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  )
 })
