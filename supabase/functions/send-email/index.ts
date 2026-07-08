@@ -4,6 +4,80 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+/* ── Email copy dictionary. 'lang' comes from the caller (booking.jsx sends its market's
+   language); defaults to 'es' so any existing caller that doesn't send it keeps working
+   exactly as before. ── */
+const ET = {
+  es: {
+    htmlLang: 'es',
+    restaurantTitle: (r: string) => `Nueva reserva — ${r}`,
+    restaurantEyebrow: 'Nueva reserva confirmada',
+    restaurantHeading: (name: string, date: string, time: string) => `${name} · ${date} a las ${time}`,
+    restaurantIntro: (r: string) => `El cliente ha pagado el depósito y su reserva está confirmada en <strong>${r}</strong>.`,
+    labelCliente: 'Cliente', labelFecha: 'Fecha', labelHora: 'Hora', labelPersonas: 'Personas', labelDeposito: 'Depósito',
+    autorizado: 'autorizado',
+    noshowWarningTitle: '⚠️ Si el cliente no se presenta',
+    noshowWarningBody: (dep: string) => `Usa el botón de abajo <strong>solo si el cliente no apareció</strong>. Al pulsarlo, el depósito de <strong>${dep}€ se cobrará automáticamente</strong>. La acción es irreversible.`,
+    noshowButton: (dep: string) => `Marcar como no-show · Cobrar ${dep}€`,
+    noshowValidity: 'Enlace válido 24 h desde la hora de la reserva. Solo un uso.',
+    footerTag: 'Una Mesa · La mesa que siempre te espera',
+    subjectRestaurant: (name: string, date: string, time: string) => `Nueva reserva: ${name} · ${date} ${time}`,
+
+    customerTitle: (r: string) => `Tu reserva en ${r}`,
+    confirmEyebrow: 'Confirmación de reserva',
+    confirmHeading: (name: string) => `¡Tu mesa está<br>confirmada, ${name}!`,
+    confirmIntro: (r: string) => `Todo listo en <strong style="color:#121212;">${r}</strong>. Aquí tienes los detalles de tu reserva.`,
+    labelRestaurante: 'Restaurante',
+    reembolsable: 'reembolsable',
+    depositNote: (dep: string) => `Tu depósito de <strong style="color:#121212;">${dep}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación para recuperarlo íntegro.`,
+    menuButton: 'Ver la carta del restaurante',
+    menuNote: 'Consulta el menú antes de llegar y llega listo para pedir.',
+    cancelButton: 'Cancelar mi reserva',
+    cancelNote: '¿No puedes venir? Cancela con más de 24h de antelación para recuperar tu depósito.',
+    pendingTitle: '⏳ Reserva pendiente de confirmación',
+    pendingBody: (dep: string) => `Para <strong>garantizar tu mesa</strong>, completa el pago del depósito de <strong>${dep}€</strong> antes de <strong>2 horas</strong>. Si no se recibe el pago, la reserva se cancelará automáticamente.`,
+    payButton: (dep: string) => `Confirmar mesa — Pagar ${dep}€`,
+    viewBooking: 'Ver mi reserva',
+    footerReceived: 'Has recibido este email porque realizaste una reserva en Una Mesa.',
+    subjectCustomer: (r: string) => `¡Tu mesa en ${r} está confirmada!`,
+    currency: '€',
+  },
+  en: {
+    htmlLang: 'en',
+    restaurantTitle: (r: string) => `New booking — ${r}`,
+    restaurantEyebrow: 'New booking confirmed',
+    restaurantHeading: (name: string, date: string, time: string) => `${name} · ${date} at ${time}`,
+    restaurantIntro: (r: string) => `The customer has paid the deposit and their booking is confirmed at <strong>${r}</strong>.`,
+    labelCliente: 'Customer', labelFecha: 'Date', labelHora: 'Time', labelPersonas: 'Guests', labelDeposito: 'Deposit',
+    autorizado: 'authorised',
+    noshowWarningTitle: '⚠️ If the customer does not show up',
+    noshowWarningBody: (dep: string) => `Use the button below <strong>only if the customer didn't show up</strong>. Clicking it will <strong>automatically charge the £${dep} deposit</strong>. This action is irreversible.`,
+    noshowButton: (dep: string) => `Mark as no-show · Charge £${dep}`,
+    noshowValidity: 'Link valid for 24h from the booking time. Single use only.',
+    footerTag: 'Una Mesa · The table that always awaits you',
+    subjectRestaurant: (name: string, date: string, time: string) => `New booking: ${name} · ${date} ${time}`,
+
+    customerTitle: (r: string) => `Your booking at ${r}`,
+    confirmEyebrow: 'Booking confirmation',
+    confirmHeading: (name: string) => `Your table is<br>confirmed, ${name}!`,
+    confirmIntro: (r: string) => `You're all set at <strong style="color:#121212;">${r}</strong>. Here are your booking details.`,
+    labelRestaurante: 'Restaurant',
+    reembolsable: 'refundable',
+    depositNote: (dep: string) => `Your <strong style="color:#121212;">${dep}</strong> deposit is deducted from your bill total when you arrive at the restaurant. If you need to cancel, do so more than 24h in advance to get it back in full.`,
+    menuButton: 'View restaurant menu',
+    menuNote: 'Check the menu before you arrive and come ready to order.',
+    cancelButton: 'Cancel my booking',
+    cancelNote: "Can't make it? Cancel more than 24h in advance to get your deposit back.",
+    pendingTitle: '⏳ Booking pending confirmation',
+    pendingBody: (dep: string) => `To <strong>secure your table</strong>, complete the £${dep} deposit payment within <strong>2 hours</strong>. If payment isn't received, the booking will be cancelled automatically.`,
+    payButton: (dep: string) => `Confirm table — Pay £${dep}`,
+    viewBooking: 'View my booking',
+    footerReceived: "You're receiving this email because you made a booking with Una Mesa.",
+    subjectCustomer: (r: string) => `Your table at ${r} is confirmed!`,
+    currency: '£',
+  },
+}
+
 function buildRestaurantHtml(opts: {
   customer_name: string
   restaurant_name: string
@@ -12,15 +86,17 @@ function buildRestaurantHtml(opts: {
   pax: number
   deposit_amount: number
   noshow_url: string
+  lang: 'es' | 'en'
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, noshow_url } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, noshow_url, lang } = opts
+  const t = ET[lang] || ET.es
   const depositEur = (deposit_amount / 100).toFixed(0)
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${t.htmlLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nueva reserva — ${restaurant_name}</title>
+<title>${t.restaurantTitle(restaurant_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
@@ -45,13 +121,13 @@ function buildRestaurantHtml(opts: {
                 <tr>
                   <td style="padding:40px 48px 0;">
                     <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#D8552E;">
-                      Nueva reserva confirmada
+                      ${t.restaurantEyebrow}
                     </p>
                     <h1 style="margin:0 0 12px;font-size:26px;font-weight:800;color:#121212;line-height:1.2;letter-spacing:-0.5px;">
-                      ${customer_name} · ${date} a las ${time}
+                      ${t.restaurantHeading(customer_name, date, time)}
                     </h1>
                     <p style="margin:0 0 32px;font-size:15px;color:#555;line-height:1.6;">
-                      El cliente ha pagado el depósito y su reserva está confirmada en <strong>${restaurant_name}</strong>.
+                      ${t.restaurantIntro(restaurant_name)}
                     </p>
 
                     <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F8F5;border-radius:12px;border:1px solid #EDECEA;">
@@ -60,7 +136,7 @@ function buildRestaurantHtml(opts: {
                           <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
                               <td style="padding-bottom:16px;border-bottom:1px solid #EDECEA;">
-                                <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Cliente</p>
+                                <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelCliente}</p>
                                 <p style="margin:0;font-size:17px;font-weight:700;color:#121212;">${customer_name}</p>
                               </td>
                             </tr>
@@ -69,11 +145,11 @@ function buildRestaurantHtml(opts: {
                                 <table width="100%" cellpadding="0" cellspacing="0">
                                   <tr>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Fecha</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelFecha}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${date}</p>
                                     </td>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Hora</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelHora}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${time}</p>
                                     </td>
                                   </tr>
@@ -85,12 +161,12 @@ function buildRestaurantHtml(opts: {
                                 <table width="100%" cellpadding="0" cellspacing="0">
                                   <tr>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Personas</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelPersonas}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${pax}</p>
                                     </td>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Depósito</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#D8552E;">${depositEur}€ <span style="font-size:12px;font-weight:500;color:#999;">· autorizado</span></p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#D8552E;">${t.currency}${depositEur} <span style="font-size:12px;font-weight:500;color:#999;">· ${t.autorizado}</span></p>
                                     </td>
                                   </tr>
                                 </table>
@@ -103,15 +179,14 @@ function buildRestaurantHtml(opts: {
                   </td>
                 </tr>
 
-                <!-- No-show warning block -->
                 <tr>
                   <td style="padding:28px 48px 0;">
                     <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0;border-radius:12px;border:2px solid #D8552E;">
                       <tr>
                         <td style="padding:20px 24px;">
-                          <p style="margin:0 0 6px;font-size:13px;font-weight:800;color:#D8552E;text-transform:uppercase;letter-spacing:.5px;">⚠️ Si el cliente no se presenta</p>
+                          <p style="margin:0 0 6px;font-size:13px;font-weight:800;color:#D8552E;text-transform:uppercase;letter-spacing:.5px;">${t.noshowWarningTitle}</p>
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.6;">
-                            Usa el botón de abajo <strong>solo si el cliente no apareció</strong>. Al pulsarlo, el depósito de <strong>${depositEur}€ se cobrará automáticamente</strong>. La acción es irreversible.
+                            ${t.noshowWarningBody(depositEur)}
                           </p>
                         </td>
                       </tr>
@@ -123,10 +198,10 @@ function buildRestaurantHtml(opts: {
                   <td style="padding:20px 48px 40px;" align="center">
                     <a href="${noshow_url}"
                        style="display:inline-block;background:#D8552E;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:800;padding:16px 40px;border-radius:50px;letter-spacing:0.2px;">
-                      Marcar como no-show · Cobrar ${depositEur}€
+                      ${t.noshowButton(depositEur)}
                     </a>
                     <p style="margin:12px 0 0;font-size:11px;color:#AAA;">
-                      Enlace válido 24 h desde la hora de la reserva. Solo un uso.
+                      ${t.noshowValidity}
                     </p>
                   </td>
                 </tr>
@@ -137,7 +212,7 @@ function buildRestaurantHtml(opts: {
 
           <tr>
             <td align="center" style="padding:28px 0 0;">
-              <p style="margin:0;font-size:12px;color:#AAA;font-weight:500;">Una Mesa · La mesa que siempre te espera</p>
+              <p style="margin:0;font-size:12px;color:#AAA;font-weight:500;">${t.footerTag}</p>
             </td>
           </tr>
 
@@ -158,16 +233,20 @@ function buildHtml(opts: {
   deposit_amount: number
   payment_link?: string
   menu_url?: string
+  cancel_url?: string
+  lang: 'es' | 'en'
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, lang } = opts
+  const t = ET[lang] || ET.es
   const firstName = customer_name.split(' ')[0] || customer_name
+  const depositAmt = (deposit_amount / 100).toFixed(0)
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${t.htmlLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tu reserva en ${restaurant_name}</title>
+<title>${t.customerTitle(restaurant_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
@@ -176,8 +255,6 @@ function buildHtml(opts: {
       <td align="center">
         <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
-          <!-- Header -->
-          <!-- Logo Una Mesa -->
           <tr>
             <td align="center" style="padding:0 0 28px 0;">
               <img src="https://app.unamesa.co/una-mesa-logo.png"
@@ -187,41 +264,36 @@ function buildHtml(opts: {
             </td>
           </tr>
 
-          <!-- Main card -->
           <tr>
             <td style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
 
-              <!-- Coral top bar -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="background:#FF5733;height:6px;font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
               </table>
 
-              <!-- Body -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding:40px 48px 0;">
 
-                    <!-- Title -->
                     <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FF5733;">
-                      Confirmación de reserva
+                      ${t.confirmEyebrow}
                     </p>
                     <h1 style="margin:0 0 12px;font-size:28px;font-weight:800;color:#121212;line-height:1.2;letter-spacing:-0.5px;">
-                      ¡Tu mesa está<br>confirmada, ${firstName}!
+                      ${t.confirmHeading(firstName)}
                     </h1>
                     <p style="margin:0 0 32px;font-size:15px;color:#555;line-height:1.6;">
-                      Todo listo en <strong style="color:#121212;">${restaurant_name}</strong>. Aquí tienes los detalles de tu reserva.
+                      ${t.confirmIntro(restaurant_name)}
                     </p>
 
-                    <!-- Details card -->
                     <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F8F5;border-radius:12px;border:1px solid #EDECEA;">
                       <tr>
                         <td style="padding:24px 28px;">
                           <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
                               <td style="padding-bottom:16px;border-bottom:1px solid #EDECEA;">
-                                <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Restaurante</p>
+                                <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelRestaurante}</p>
                                 <p style="margin:0;font-size:17px;font-weight:700;color:#121212;">${restaurant_name}</p>
                               </td>
                             </tr>
@@ -230,11 +302,11 @@ function buildHtml(opts: {
                                 <table width="100%" cellpadding="0" cellspacing="0">
                                   <tr>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Fecha</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelFecha}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${date}</p>
                                     </td>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Hora</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelHora}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${time}</p>
                                     </td>
                                   </tr>
@@ -246,12 +318,12 @@ function buildHtml(opts: {
                                 <table width="100%" cellpadding="0" cellspacing="0">
                                   <tr>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Personas</p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelPersonas}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${pax}</p>
                                     </td>
                                     <td width="50%">
-                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">Depósito</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${(deposit_amount / 100).toFixed(0)}€ <span style="font-size:12px;font-weight:500;color:#999;">· reembolsable</span></p>
+                                      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${t.reembolsable}</span></p>
                                     </td>
                                   </tr>
                                 </table>
@@ -262,12 +334,11 @@ function buildHtml(opts: {
                       </tr>
                     </table>
 
-                    <!-- Deposit note -->
                     <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FFF5F2;border-radius:10px;border-left:3px solid #FF5733;">
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            Tu depósito de <strong style="color:#121212;">${(deposit_amount / 100).toFixed(0)}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si necesitas cancelar, hazlo con más de 24h de antelación para recuperarlo íntegro.
+                            ${t.depositNote(depositAmt)}
                           </p>
                         </td>
                       </tr>
@@ -276,32 +347,29 @@ function buildHtml(opts: {
                   </td>
                 </tr>
 
-                <!-- Botón carta del restaurante — solo si se proporciona -->
                 ${menu_url ? `
                 <tr>
                   <td style="padding:20px 48px 0;" align="center">
                     <a href="${menu_url}"
                        style="display:inline-block;background:#FAF6F0;color:#D8552E;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:14px;font-weight:700;padding:14px 36px;border-radius:50px;border:2px solid #D8552E;">
-                      Ver la carta del restaurante
+                      ${t.menuButton}
                     </a>
                     <p style="margin:12px 0 0;font-size:12px;color:#999;">
-                      Consulta el menú antes de llegar y llega listo para pedir.
+                      ${t.menuNote}
                     </p>
                   </td>
                 </tr>
                 ` : ''}
 
-                <!-- Payment Link button — solo si se proporciona -->
                 ${payment_link ? `
                 <tr>
                   <td style="padding:20px 48px 0;">
                     <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0;border-radius:10px;border-left:3px solid #D8552E;">
                       <tr>
                         <td style="padding:16px 20px;">
-                          <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#D8552E;">⏳ Reserva pendiente de confirmación</p>
+                          <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#D8552E;">${t.pendingTitle}</p>
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            Para <strong>garantizar tu mesa</strong>, completa el pago del depósito de <strong>${(deposit_amount/100).toFixed(0)}€</strong> antes de <strong>2 horas</strong>.
-                            Si no se recibe el pago, la reserva se cancelará automáticamente.
+                            ${t.pendingBody(depositAmt)}
                           </p>
                         </td>
                       </tr>
@@ -312,34 +380,46 @@ function buildHtml(opts: {
                   <td style="padding:20px 48px 0;" align="center">
                     <a href="${payment_link}"
                        style="display:inline-block;background:#D8552E;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:700;padding:14px 36px;border-radius:50px;">
-                      Confirmar mesa — Pagar ${(deposit_amount/100).toFixed(0)}€
+                      ${t.payButton(depositAmt)}
                     </a>
                   </td>
                 </tr>
                 ` : ''}
 
-                <!-- CTA button -->
                 <tr>
-                  <td style="padding:32px 48px 40px;" align="center">
+                  <td style="padding:32px 48px 0;" align="center">
                     <a href="https://app.unamesa.co"
                        style="display:inline-block;background:#FF5733;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:700;padding:14px 36px;border-radius:50px;letter-spacing:0.2px;">
-                      Ver mi reserva
+                      ${t.viewBooking}
                     </a>
                   </td>
                 </tr>
+
+                ${cancel_url ? `
+                <tr>
+                  <td style="padding:16px 48px 40px;" align="center">
+                    <a href="${cancel_url}"
+                       style="display:inline-block;color:#999;text-decoration:underline;font-family:'Manrope',Arial,sans-serif;font-size:13px;font-weight:500;">
+                      ${t.cancelButton}
+                    </a>
+                    <p style="margin:8px 0 0;font-size:11px;color:#BBB;">
+                      ${t.cancelNote}
+                    </p>
+                  </td>
+                </tr>
+                ` : `<tr><td style="padding:0 0 40px;">&nbsp;</td></tr>`}
 
               </table>
             </td>
           </tr>
 
-          <!-- Footer -->
           <tr>
             <td align="center" style="padding:28px 0 0;">
               <p style="margin:0;font-size:12px;color:#AAA;font-weight:500;">
-                Una Mesa · La mesa que siempre te espera
+                ${t.footerTag}
               </p>
               <p style="margin:6px 0 0;font-size:11px;color:#CCC;">
-                Has recibido este email porque realizaste una reserva en Una Mesa.
+                ${t.footerReceived}
               </p>
             </td>
           </tr>
@@ -353,19 +433,12 @@ function buildHtml(opts: {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, lang: langRaw } = await req.json()
+    const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
+    const t = ET[lang]
 
     if (!to || !restaurant_name) {
       return new Response(JSON.stringify({ error: 'to and restaurant_name are required' }), {
@@ -376,15 +449,14 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
 
-    // noshow_url present → restaurant notification email
     const isRestaurant = !!noshow_url
     const html = isRestaurant
-      ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url })
-      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url })
+      ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
+      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, lang })
 
     const subject = isRestaurant
-      ? `Nueva reserva: ${customer_name} · ${date} ${time}`
-      : `¡Tu mesa en ${restaurant_name} está confirmada!`
+      ? t.subjectRestaurant(customer_name, date, time)
+      : t.subjectCustomer(restaurant_name)
 
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -393,8 +465,8 @@ Deno.serve(async (req) => {
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        from:    'reservas@unamesa.co',
-        to:      [to],
+        from: 'Una Mesa <no-reply@unamesa.co>',
+        to:   [to],
         subject,
         html,
       }),
@@ -403,28 +475,8 @@ Deno.serve(async (req) => {
     const resendJson = await resendRes.json().catch(() => ({}))
 
     if (!resendRes.ok) {
-      // Fall back to Resend's sandbox sender if domain not verified
-      if (resendRes.status === 403 || resendRes.status === 422) {
-        const retryRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type':  'application/json',
-          },
-          body: JSON.stringify({
-            from:    'reservas@unamesa.co',
-            to:      [to],
-            subject,
-            html,
-          }),
-        })
-        const retryJson = await retryRes.json().catch(() => ({}))
-        if (!retryRes.ok) throw new Error(retryJson.message || 'Resend error')
-        return new Response(JSON.stringify({ id: retryJson.id, from: 'onboarding@resend.dev' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      throw new Error(resendJson.message || 'Resend error')
+      console.error('Resend error:', resendRes.status, JSON.stringify(resendJson))
+      throw new Error(`Resend ${resendRes.status}: ${resendJson.message || JSON.stringify(resendJson)}`)
     }
 
     return new Response(JSON.stringify({ id: resendJson.id }), {

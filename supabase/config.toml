@@ -458,7 +458,11 @@ entrypoint = "./functions/invite-restaurant/index.ts"
 [functions.mark-noshow]
 enabled = true
 verify_jwt = false
-entrypoint = "./functions/mark-noshow/index.ts"
+
+[functions.cancel-reservation-guest]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/cancel-reservation-guest/index.ts"
 
 [functions.auto-capture]
 enabled = true
