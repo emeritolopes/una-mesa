@@ -1,38 +1,38 @@
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
 /* ════ UNA MESA · cancel-reservation-guest ════
-   GET ?token=<uuid>&lang=<es|en> — cancela una reserva de invitado (sin
+   GET ?token=<uuid>&lang=<es|en> &mdash; cancela una reserva de invitado (sin
    cuenta) usando un token de un solo uso, generado al confirmar la reserva
-   e incluido en el propio email de confirmación. Mismo patrón que
+   e incluido en el propio email de confirmaci&oacute;n. Mismo patr&oacute;n que
    mark-noshow: sin login, un solo uso, expira.
 
-   Misma política de 24h que cancel-reservation (el flujo autenticado):
-   más de 24h de antelación → depósito liberado; menos de 24h → el depósito
+   Misma pol&iacute;tica de 24h que cancel-reservation (el flujo autenticado):
+   m&aacute;s de 24h de antelaci&oacute;n → dep&oacute;sito liberado; menos de 24h → el dep&oacute;sito
    se pierde, igual que un no-show.
 
    AVISO conocido, compartido con mark-noshow: al ser un link de un solo
-   clic (GET) que ejecuta la acción de inmediato, un escáner de seguridad de
-   correo corporativo que pre-visita el link podría disparar la cancelación
-   sin que el humano haya hecho clic. No resuelto aquí — mismo riesgo que ya
-   existía en mark-noshow antes de esta función.
+   clic (GET) que ejecuta la acci&oacute;n de inmediato, un esc&aacute;ner de seguridad de
+   correo corporativo que pre-visita el link podr&iacute;a disparar la cancelaci&oacute;n
+   sin que el humano haya hecho clic. No resuelto aqu&iacute; &mdash; mismo riesgo que ya
+   exist&iacute;a en mark-noshow antes de esta funci&oacute;n.
 */
 
 const ET = {
   es: {
     lang: 'es',
-    invalidTitle: 'Enlace inválido', invalidMissing: 'Falta el token.', invalidNotExist: 'Este enlace no existe.',
-    usedTitle: 'Ya utilizado', usedBody: 'Este enlace ya se usó. Si fue un error, contacta con el restaurante.',
-    expiredTitle: 'Enlace caducado', expiredBody: 'Este enlace ha expirado — probablemente porque la reserva ya pasó.',
+    invalidTitle: 'Enlace inv&aacute;lido', invalidMissing: 'Falta el token.', invalidNotExist: 'Este enlace no existe.',
+    usedTitle: 'Ya utilizado', usedBody: 'Este enlace ya se us&oacute;. Si fue un error, contacta con el restaurante.',
+    expiredTitle: 'Enlace caducado', expiredBody: 'Este enlace ha expirado &mdash; probablemente porque la reserva ya pas&oacute;.',
     alreadyCancelledTitle: 'Ya cancelada', alreadyCancelledBody: 'Esta reserva ya estaba cancelada.',
     doneTitle: 'Reserva cancelada',
-    doneRefunded: 'Tu reserva se canceló. El depósito se reembolsará en 5-10 días hábiles.',
-    doneForfeited: 'Tu reserva se canceló. Como fue con menos de 24 horas de antelación, el depósito no es reembolsable.',
+    doneRefunded: 'Tu reserva se cancel&oacute;. El dep&oacute;sito se reembolsar&aacute; en 5-10 d&iacute;as h&aacute;biles.',
+    doneForfeited: 'Tu reserva se cancel&oacute;. Como fue con menos de 24 horas de antelaci&oacute;n, el dep&oacute;sito no es reembolsable.',
   },
   en: {
     lang: 'en',
     invalidTitle: 'Invalid link', invalidMissing: 'Token is missing.', invalidNotExist: "This link doesn't exist.",
     usedTitle: 'Already used', usedBody: 'This link was already used. If this was a mistake, contact the restaurant.',
-    expiredTitle: 'Link expired', expiredBody: 'This link has expired — likely because the booking time has already passed.',
+    expiredTitle: 'Link expired', expiredBody: 'This link has expired &mdash; likely because the booking time has already passed.',
     alreadyCancelledTitle: 'Already cancelled', alreadyCancelledBody: 'This booking was already cancelled.',
     doneTitle: 'Booking cancelled',
     doneRefunded: 'Your booking has been cancelled. The deposit will be refunded within 5-10 business days.',
@@ -45,7 +45,7 @@ const html = (title: string, body: string, ok: boolean, lang: string) => `<!DOCT
 <title>${title}</title></head>
 <body style="font-family:sans-serif;background:#FAF6F0;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
 <div style="background:#fff;border-radius:14px;padding:40px;max-width:420px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07)">
-<div style="font-size:40px;margin-bottom:12px">${ok ? '✅' : '⚠️'}</div>
+<div style="font-size:40px;margin-bottom:12px">${ok ? '&#9989;' : '&#9888;'}</div>
 <h1 style="font-size:20px;color:#1a130d;margin:0 0 10px">${title}</h1>
 <p style="font-size:14px;color:#777;line-height:1.6;margin:0">${body}</p>
 </div></body></html>`
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
-  // 1. Token válido, no usado, no expirado
+  // 1. Token v&aacute;lido, no usado, no expirado
   const tRes = await fetch(`${supabaseUrl}/rest/v1/cancel_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
   const tokens = await tRes.json()
   const tk = tokens[0]
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     return new Response(html(t.alreadyCancelledTitle, t.alreadyCancelledBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 409 })
   }
 
-  // 3. Ventana de 24h — misma política que el flujo autenticado
+  // 3. Ventana de 24h &mdash; misma pol&iacute;tica que el flujo autenticado
   const tz = reservation.venues?.timezone || 'Europe/Madrid'
   const reservationDateTime = new Date(
     new Date(`${reservation.date}T${reservation.time}`).toLocaleString('en-US', { timeZone: tz })
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
   const hoursUntil = (reservationDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
   const withinPenaltyWindow = hoursUntil < 24
 
-  // 4. Resolver el depósito — mismo lock atómico que cancel-reservation / auto-capture / mark-noshow
+  // 4. Resolver el dep&oacute;sito &mdash; mismo lock at&oacute;mico que cancel-reservation / auto-capture / mark-noshow
   let depositStatus: string | null = reservation.deposit_status
 
   if (reservation.payment_intent_id) {
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     method: 'PATCH', headers: h, body: JSON.stringify({ used_at: new Date().toISOString() }),
   })
 
-  // 7. Registrar la cancelación
+  // 7. Registrar la cancelaci&oacute;n
   await fetch(`${supabaseUrl}/rest/v1/cancellations`, {
     method: 'POST', headers: h,
     body: JSON.stringify({
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     }),
   })
 
-  // 8. Email de cancelación — non-fatal
+  // 8. Email de cancelaci&oacute;n &mdash; non-fatal
   if (reservation.customer_email) {
     try {
       await fetch(`${supabaseUrl}/functions/v1/send-cancellation-email`, {
