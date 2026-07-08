@@ -1,4 +1,10 @@
-import Stripe from 'https://esm.sh/stripe@14?target=deno'
+// DEPRECATED — esta función no verificaba en absoluto quién llamaba: cualquiera
+// con la anon key podía reembolsar/cancelar el depósito de cualquier persona
+// mandando solo un payment_intent_id. Tampoco actualizaba nunca la base de
+// datos tras reembolsar. Reemplazada por cancel-reservation, que verifica
+// dueño, aplica la política de 24h, y deja Stripe y la reserva consistentes.
+// Se deja este stub en vez de borrar el archivo para que cualquier caller
+// viejo reciba un error claro, no un 404 mudo.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,67 +13,9 @@ const corsHeaders = {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
-
-  try {
-    const { payment_intent_id } = await req.json()
-
-    if (!payment_intent_id) {
-      return new Response(JSON.stringify({ error: 'payment_intent_id is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
-      apiVersion: '2024-06-20',
-    })
-
-    // Cancel releases the authorization hold without charging the card.
-    // If the intent was already captured, create a refund instead.
-    let status: string
-    let payment_intent_id_out: string
-
-    const pi = await stripe.paymentIntents.retrieve(payment_intent_id)
-
-    if (pi.status === 'requires_capture') {
-      const cancelled = await stripe.paymentIntents.cancel(payment_intent_id)
-      status             = cancelled.status
-      payment_intent_id_out = cancelled.id
-    } else if (pi.status === 'succeeded') {
-      const refund = await stripe.refunds.create({ payment_intent: payment_intent_id })
-      status             = refund.status ?? 'succeeded'
-      payment_intent_id_out = payment_intent_id
-    } else {
-      return new Response(
-        JSON.stringify({
-          error:                `Cannot refund a PaymentIntent with status '${pi.status}'`,
-          payment_intent_status: pi.status,
-          payment_intent_id:     pi.id,
-          last_payment_error:    pi.last_payment_error?.message ?? null,
-        }),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    return new Response(
-      JSON.stringify({ payment_intent_id: payment_intent_id_out, status }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+  return new Response(
+    JSON.stringify({ error: 'deprecated — use cancel-reservation instead' }),
+    { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  )
 })

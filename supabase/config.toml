@@ -468,3 +468,22 @@ entrypoint = "./functions/auto-capture/index.ts"
 [functions.delete-account]
 enabled = true
 verify_jwt = true
+
+[functions.stripe-webhook]
+enabled = true
+verify_jwt = false
+
+[functions.cancel-reservation]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/cancel-reservation/index.ts"
+
+[functions.update-reservation]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/update-reservation/index.ts"
+
+[functions.stripe-refund]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/stripe-refund/index.ts"

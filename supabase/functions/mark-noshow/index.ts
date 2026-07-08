@@ -1,12 +1,35 @@
 // supabase/functions/mark-noshow/index.ts
-// GET ?token=<uuid> — marca la reserva como no_show y cancela el PaymentIntent...
-// NO: en no-show el depósito SE CAPTURA (es la penalización). Cancela solo la mesa.
+// GET ?token=<uuid>&lang=<es|en> — marca la reserva como no_show y captura el PaymentIntent...
+// El depósito SE CAPTURA (es la penalización). Cancela solo la mesa.
 // Un solo uso, expira, sin login.
 
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
-const html = (title: string, body: string, ok: boolean) => `<!DOCTYPE html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+const ET = {
+  es: {
+    lang: 'es',
+    invalidTitle: 'Enlace inválido', invalidMissing: 'Falta el token.', invalidNotExist: 'Este enlace no existe.',
+    usedTitle: 'Ya utilizado', usedBody: 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.',
+    expiredTitle: 'Enlace caducado', expiredBody: 'Este enlace ha expirado.',
+    unprocessableTitle: 'No procesable', unprocessableBody: 'El depósito de esta reserva ya fue procesado (capturado o cancelado antes).',
+    doneTitle: 'No-show registrado',
+    doneOk: 'La reserva se marcó como no-show y el depósito ha sido cobrado.',
+    doneFailed: 'La reserva se marcó como no-show. El cobro del depósito falló y queda pendiente de revisión.',
+  },
+  en: {
+    lang: 'en',
+    invalidTitle: 'Invalid link', invalidMissing: 'Token is missing.', invalidNotExist: "This link doesn't exist.",
+    usedTitle: 'Already used', usedBody: 'This link was already used. If this was a mistake, contact Una Mesa.',
+    expiredTitle: 'Link expired', expiredBody: 'This link has expired.',
+    unprocessableTitle: 'Cannot process', unprocessableBody: "This booking's deposit was already processed (captured or cancelled earlier).",
+    doneTitle: 'No-show recorded',
+    doneOk: "The booking was marked as a no-show and the deposit has been charged.",
+    doneFailed: 'The booking was marked as a no-show. Charging the deposit failed and needs manual review.',
+  },
+}
+
+const html = (title: string, body: string, ok: boolean, lang: string) => `<!DOCTYPE html>
+<html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title></head>
 <body style="font-family:sans-serif;background:#FAF6F0;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
 <div style="background:#fff;border-radius:14px;padding:40px;max-width:420px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07)">
@@ -18,7 +41,10 @@ const html = (title: string, body: string, ok: boolean) => `<!DOCTYPE html>
 Deno.serve(async (req) => {
   const url = new URL(req.url)
   const token = url.searchParams.get('token')
-  if (!token) return new Response(html('Enlace inválido', 'Falta el token.', false), { headers: { 'Content-Type': 'text/html' }, status: 400 })
+  const lang: 'es' | 'en' = url.searchParams.get('lang') === 'en' ? 'en' : 'es'
+  const t = ET[lang]
+
+  if (!token) return new Response(html(t.invalidTitle, t.invalidMissing, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 400 })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -27,22 +53,22 @@ Deno.serve(async (req) => {
   // 1. Token válido, no usado, no expirado
   const tRes = await fetch(`${supabaseUrl}/rest/v1/noshow_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
   const tokens = await tRes.json()
-  const t = tokens[0]
-  if (!t) return new Response(html('Enlace inválido', 'Este enlace no existe.', false), { headers: { 'Content-Type': 'text/html' }, status: 404 })
-  if (t.used_at) return new Response(html('Ya utilizado', 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.', false), { headers: { 'Content-Type': 'text/html' }, status: 409 })
-  if (new Date(t.expires_at) < new Date()) return new Response(html('Enlace caducado', 'Este enlace ha expirado.', false), { headers: { 'Content-Type': 'text/html' }, status: 410 })
+  const tk = tokens[0]
+  if (!tk) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 404 })
+  if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 409 })
+  if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 410 })
 
   // 2. Lock atómico: solo procede si deposit_status era 'pending'
   const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
-    method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: t.reservation_id }),
+    method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: tk.reservation_id }),
   })
   const locked = await lockRes.json()
   if (!locked || locked.length === 0) {
-    return new Response(html('No procesable', 'El depósito de esta reserva ya fue procesado (capturado o cancelado antes).', false), { headers: { 'Content-Type': 'text/html' }, status: 409 })
+    return new Response(html(t.unprocessableTitle, t.unprocessableBody, false, t.lang), { headers: { 'Content-Type': 'text/html' }, status: 409 })
   }
 
   // 3. Capturar depósito (penalización por no-show) y marcar reserva
-  const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${t.reservation_id}&select=id,payment_intent_id`, { headers: h })
+  const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,payment_intent_id`, { headers: h })
   const reservation = (await rRes.json())[0]
 
   let captureOk = false
@@ -54,7 +80,7 @@ Deno.serve(async (req) => {
     } catch (_) { /* si Stripe falla, deposit_status queda en 'capturing' para revisión manual */ }
   }
 
-  await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${t.reservation_id}`, {
+  await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}`, {
     method: 'PATCH', headers: h,
     body: JSON.stringify({ status: 'no_show', deposit_status: captureOk ? 'captured' : 'capture_failed' }),
   })
@@ -63,9 +89,7 @@ Deno.serve(async (req) => {
   })
 
   return new Response(
-    html('No-show registrado', captureOk
-      ? 'La reserva se marcó como no-show y el depósito ha sido cobrado.'
-      : 'La reserva se marcó como no-show. El cobro del depósito falló y queda pendiente de revisión.', true),
+    html(t.doneTitle, captureOk ? t.doneOk : t.doneFailed, true, t.lang),
     { headers: { 'Content-Type': 'text/html' } }
   )
 })
