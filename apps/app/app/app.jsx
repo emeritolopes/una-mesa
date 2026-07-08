@@ -64,6 +64,9 @@ function App() {
   const [reserveGate, setReserveGate] = useState(false);
   const [claimOpen, setClaimOpen] = useState(false);
   const [resetPwOpen, setResetPwOpen] = useState(false);
+  const [cancelToken, setCancelToken] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('cancel_token'); } catch (_) { return null; }
+  });
   const [spoons, setSpoons] = useState(0);
   const [toast, setToast] = useState('');
   const [geo, setGeo] = useState({ status:'idle', label:'', ref:{x:50,y:50} });
@@ -270,6 +273,15 @@ function App() {
       onClose:()=>setClaimOpen(false), onCreate:claimCreate }) : null,
     authOpen ? React.createElement(window.AuthModal, { onClose:()=>setAuthOpen(null), onAuth, geoLabel: geo.label===AP_T.currentLocationSentinel ? AP_T.countryFallback : geo.label, initialMode:authOpen }) : null,
     resetPwOpen ? React.createElement(window.ResetPasswordScreen, { onDone:()=>{ setResetPwOpen(false); go('home'); } }) : null,
+    cancelToken ? React.createElement(window.CancelBookingScreen, { token:cancelToken, onDone:()=>{
+      setCancelToken(null);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('cancel_token');
+        window.history.replaceState({}, '', url.toString());
+      } catch (_) {}
+      go('home');
+    } }) : null,
     React.createElement(window.Toast, { msg:toast })
   );
 }

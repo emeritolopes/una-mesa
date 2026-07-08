@@ -186,7 +186,10 @@ Deno.serve(async (req) => {
             method: 'POST', headers: sbHeaders, body: JSON.stringify({ p_reservation_id: reservation.id }),
           })
           const cancelToken = await cancelTokenRes.json()
-          if (cancelToken) cancelUrl = `${supabaseUrl}/functions/v1/cancel-reservation-guest?token=${cancelToken}&lang=${lang}`
+          if (cancelToken) {
+            const appOrigin = lang === 'en' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'
+            cancelUrl = `${appOrigin}/?cancel_token=${cancelToken}&lang=${lang}`
+          }
         } catch (e) { console.warn('[stripe-webhook] cancel-token:', e instanceof Error ? e.message : e) }
 
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
