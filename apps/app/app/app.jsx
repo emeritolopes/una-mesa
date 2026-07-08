@@ -107,14 +107,14 @@ function App() {
   useEffect(() => {
     if (!window.UMAuth) return;
     const sub = window.UMAuth.onAuthStateChange((event, appUser) => {
-      if (event === 'SIGNED_OUT') {
-        setUser(null);
-      } else if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY') {
         // El usuario volvió de un link de "olvidé mi contraseña" — Supabase ya
         // le dio una sesión temporal solo para este propósito; mostramos el
         // formulario para que elija una nueva, en vez de tratarlo como login normal.
         setResetPwOpen(true);
-      } else if (appUser) {
+        return;
+      }
+      if (appUser) {
         setUser(appUser);
         // Tras un login real (OAuth u otro), llevar a la pantalla de perfil.
         // No dependemos de que el redirect de OAuth conserve ningún hash propio —
@@ -122,6 +122,13 @@ function App() {
         if (event === 'SIGNED_IN') {
           setRoute({ view:'profile', rid:null, query:'', presetTime:null });
         }
+      } else {
+        // No hay sesión real de Supabase — ni en SIGNED_OUT explícito, ni en
+        // INITIAL_SESSION al cargar la página si el token ya expiró o nunca
+        // existió. Nunca dejamos un `user` optimista de localStorage sin
+        // corregir: eso fue justo lo que produjo una reserva real a nombre
+        // de una sesión fantasma ("Comensal") en vez del usuario logueado.
+        setUser(null);
       }
     });
     return () => sub && sub.unsubscribe();
