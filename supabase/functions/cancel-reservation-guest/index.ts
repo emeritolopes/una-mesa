@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
   const lang: 'es' | 'en' = url.searchParams.get('lang') === 'en' ? 'en' : 'es'
   const t = ET[lang]
 
-  if (!token) return new Response(html(t.invalidTitle, t.invalidMissing, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 400 })
+  if (!token) return new Response(html(t.invalidTitle, t.invalidMissing, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 400 })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -67,9 +67,9 @@ Deno.serve(async (req) => {
   const tRes = await fetch(`${supabaseUrl}/rest/v1/cancel_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
   const tokens = await tRes.json()
   const tk = tokens[0]
-  if (!tk) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 404 })
-  if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 409 })
-  if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 410 })
+  if (!tk) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 404 })
+  if (tk.used_at) return new Response(html(t.usedTitle, t.usedBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 409 })
+  if (new Date(tk.expires_at) < new Date()) return new Response(html(t.expiredTitle, t.expiredBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 410 })
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
@@ -77,9 +77,9 @@ Deno.serve(async (req) => {
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
-  if (!reservation) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 404 })
+  if (!reservation) return new Response(html(t.invalidTitle, t.invalidNotExist, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 404 })
   if (reservation.status === 'cancelled') {
-    return new Response(html(t.alreadyCancelledTitle, t.alreadyCancelledBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 409 })
+    return new Response(html(t.alreadyCancelledTitle, t.alreadyCancelledBody, false, t.lang), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, status: 409 })
   }
 
   // 3. Ventana de 24h — misma política que el flujo autenticado
@@ -164,6 +164,6 @@ Deno.serve(async (req) => {
 
   return new Response(
     html(t.doneTitle, depositStatus === 'refunded' ? t.doneRefunded : t.doneForfeited, true, t.lang),
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
   )
 })
