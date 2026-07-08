@@ -19,7 +19,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, restaurant_id, user_id, reservation_id, party } = await req.json()
+    const {
+      amount, restaurant_id, user_id, reservation_id, party,
+      date, time, customer_name, customer_phone, customer_email, lang,
+    } = await req.json()
 
     if (!reservation_id) {
       return new Response(JSON.stringify({ error: 'reservation_id required' }), {
@@ -37,6 +40,13 @@ Deno.serve(async (req) => {
 
     if (!party || party < 1) {
       return new Response(JSON.stringify({ error: 'party required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!date || !time) {
+      return new Response(JSON.stringify({ error: 'date and time required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -81,8 +91,15 @@ Deno.serve(async (req) => {
       capture_method: 'manual',
       metadata: {
         restaurant_id,
-        user_id:       user_id ?? '',
+        user_id:        user_id ?? '',
         reservation_id,
+        party:           String(party),
+        date,
+        time,
+        customer_name:   customer_name ?? '',
+        customer_phone:  customer_phone ?? '',
+        customer_email:  customer_email ?? '',
+        lang:            lang === 'en' ? 'en' : 'es',
       },
     })
 
