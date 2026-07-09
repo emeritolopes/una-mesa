@@ -480,7 +480,11 @@ verify_jwt = false
 [functions.cancel-reservation]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/cancel-reservation/index.ts"
+
+[functions.mark-completed]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/mark-completed/index.ts"
 
 [functions.update-reservation]
 enabled = true
