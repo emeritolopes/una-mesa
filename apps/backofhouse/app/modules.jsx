@@ -581,7 +581,7 @@ function Reservas() {
           })}</div>}
         </div>
 
-        <div className="overflow-y-auto p-4 flex flex-col gap-4">
+        <div className="overflow-y-auto min-h-0 p-4 flex flex-col gap-4">
           <div className="bg-white border border-black/7 rounded-xl p-4">
             <div className="font-['Syne'] text-sm font-bold text-gray-900 mb-3">Resumen del día</div>
             {[
@@ -701,10 +701,11 @@ function Reservas() {
                             <div className="text-[10px] text-gray-400">{r.pax} pax{r.notes ? ' · '+r.notes : ''}</div>
                           </div>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                            r.status==='confirmed' ? 'bg-green-100 text-green-700'
+                            r.status==='completed' ? 'bg-green-100 text-green-700'
                             : r.status==='no_show' ? 'bg-red-100 text-red-600'
+                            : r.status==='cancelled' ? 'bg-gray-100 text-gray-400'
                             : 'bg-gray-100 text-gray-500'}`}>
-                            {r.status==='confirmed'?'Asistió':r.status==='no_show'?'No show':'Sin conf.'}
+                            {r.status==='completed'?'Asistió':r.status==='no_show'?'No show':r.status==='cancelled'?'Cancelada':'Sin conf.'}
                           </span>
                         </div>
                       ))}
