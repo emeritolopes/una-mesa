@@ -544,7 +544,7 @@ function Reservas() {
         <button onClick={() => scrollStrip(1)} className="w-8 h-8 rounded-lg border border-black/10 text-gray-500 hover:bg-gray-50 hover:text-brand transition flex items-center justify-center flex-shrink-0"><i className="ti ti-chevron-right" /></button>
       </div>
 
-      <div className="flex-1 overflow-hidden grid grid-cols-[1fr_320px]">
+      <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-[1fr_320px]">
         <div className="overflow-hidden border-r border-black/7 flex flex-col">
           {viewMode === 'timeline' && (
             <TimelineView reservations={reservations} tables={tables} />
