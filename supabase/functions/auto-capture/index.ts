@@ -7,9 +7,7 @@ import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
 Deno.serve(async (req) => {
   // Solo service role puede invocar esto — el JWT anon no basta.
-  // .trim() en los dos lados: un espacio o salto de línea de más al pegar
-  // la clave en Vault (le pasó a este mismo proyecto hoy) no debería romper
-  // una comparación que en el fondo solo quiere decir "es la misma clave".
+  // .trim() por si acaso al pegar la clave en Vault se cuela un espacio.
   const auth = (req.headers.get('Authorization') ?? '').trim()
   const serviceKey = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '').trim()
   if (auth !== `Bearer ${serviceKey}`) {
