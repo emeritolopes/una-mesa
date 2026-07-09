@@ -1,17 +1,23 @@
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
 /* ════ UNA MESA · mark-completed ════
-   El restaurante marca una reserva como "el comensal sí llegó" —
-   distingue una visita real de un no-show que nadie marcó a mano, algo que
-   hasta ahora no existía: sin esto, las dos situaciones eran indistinguibles
-   en la base de datos (ambas se quedaban en 'confirmed' hasta que
-   auto-capture cobraba el depósito por el simple paso del tiempo).
+   El restaurante marca una reserva como "el comensal sí llegó" (completed)
+   o "no se presentó" (no_show) — desde su propio panel, con su sesión real,
+   en vez de una actualización directa a la tabla sin pasar por Stripe.
 
-   El depósito se captura igual que en un no-show — en los dos casos el
-   dinero pasa de "retenido" a "cobrado", la diferencia es solo el `status`
-   que queda registrado. El restaurante aplica el descuento en su propio
-   sistema de caja al cobrar la cuenta final; esta función no decide eso,
-   solo mueve el dinero retenido a cobrado y dice por qué.
+   Generalizada para los dos casos porque la acción de Stripe es idéntica:
+   capturar el depósito. Solo cambia la etiqueta que queda registrada. Antes
+   de esto, backofhouse tenía sus propios botones que hacían un
+   `reservations.update({status:...})` directo desde el cliente — cambiaban
+   la etiqueta pero nunca tocaban Stripe, y como reservations_due_capture
+   excluye status='no_show' (asume que ya se capturó), esas reservas se
+   quedaban con el depósito retenido para siempre, sin que auto-capture las
+   recogiera nunca.
+
+   En los dos casos el dinero pasa de "retenido" a "cobrado" — la diferencia
+   es solo el `status` que queda registrado. El restaurante aplica el
+   descuento en su propio sistema de caja al cobrar la cuenta final; esta
+   función no decide eso, solo mueve el dinero retenido a cobrado y dice por qué.
 
    Requiere autenticación real: solo el restaurante dueño del venue de esta
    reserva puede marcarla — mismo patrón de verificación que
@@ -42,8 +48,9 @@ Deno.serve(async (req) => {
     const caller = await callerRes.json()
     if (!caller?.id) return new Response(JSON.stringify({ error: 'invalid session' }), { status: 401, headers: corsHeaders })
 
-    const { reservation_id } = await req.json()
+    const { reservation_id, status: requestedStatus } = await req.json()
     if (!reservation_id) return new Response(JSON.stringify({ error: 'reservation_id required' }), { status: 400, headers: corsHeaders })
+    const targetStatus = requestedStatus === 'no_show' ? 'no_show' : 'completed'
 
     // 2 · Traer la reserva
     const resRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*`, { headers: h })
@@ -85,10 +92,10 @@ Deno.serve(async (req) => {
     // 5 · Actualizar la reserva
     await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}`, {
       method: 'PATCH', headers: h,
-      body: JSON.stringify({ status: 'completed', deposit_status: depositStatus }),
+      body: JSON.stringify({ status: targetStatus, deposit_status: depositStatus }),
     })
 
-    return new Response(JSON.stringify({ success: true, deposit_status: depositStatus }), {
+    return new Response(JSON.stringify({ success: true, status: targetStatus, deposit_status: depositStatus }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {

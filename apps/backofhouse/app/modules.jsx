@@ -303,8 +303,8 @@ function Reservas() {
     }
   }, [customerProfile]);
 
-  const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar', no_show: 'No show' };
-  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-gray-100 text-gray-600 border-gray-300', no_show: 'bg-red-100 text-red-700 border-red-200' };
+  const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar', no_show: 'No show', completed: 'Completada', cancelled: 'Cancelada' };
+  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-gray-100 text-gray-600 border-gray-300', no_show: 'bg-red-100 text-red-700 border-red-200', completed: 'bg-blue-100 text-blue-700 border-blue-300', cancelled: 'bg-gray-100 text-gray-500 border-gray-300' };
 
   const sel = new Date(selectedDate + 'T12:00:00');
   // Strip shows today + future days of the selected month only
@@ -401,19 +401,53 @@ function Reservas() {
       }
     }
   };
+  const authHeader = async () => {
+    const { data } = await window.sb.auth.getSession();
+    return 'Bearer ' + (data?.session?.access_token || '');
+  };
   const del = async (id) => {
-    if (window.sb) {
-      try {
-        const { error } = await window.sb.from('reservations').update({ status: 'cancelled' }).eq('id', id);
-        if (error) console.warn('[BOH] cancel reservation:', error.message);
-      } catch(e) {
-        console.warn('[BOH] cancel reservation:', e.message);
+    try {
+      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/cancel-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': await authHeader() },
+        body: JSON.stringify({ reservation_id: id }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast(json.error || 'No se pudo cancelar la reserva');
+        return;
       }
+    } catch (e) {
+      toast('No se pudo cancelar la reserva');
+      return;
     }
     setList(arr => arr.filter(r => r.id !== id));
     setSelectedRes(null);
     setConfirmDel(null);
-    toast('Reserva eliminada');
+    toast('Reserva cancelada');
+  };
+  /* completed / no_show — captura el depósito de verdad vía Stripe, no un
+     simple cambio de etiqueta. Antes, los botones de esta pantalla hacían
+     un update directo a la tabla que nunca tocaba Stripe — el depósito se
+     quedaba retenido para siempre porque auto-capture excluye status
+     no_show/completed asumiendo que ya se procesaron. */
+  const markStatus = async (id, status) => {
+    try {
+      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': await authHeader() },
+        body: JSON.stringify({ reservation_id: id, status }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast(json.error || 'No se pudo actualizar la reserva');
+        return;
+      }
+      patch(id, { status: json.status, deposit_status: json.deposit_status });
+      toast(status === 'no_show' ? 'Marcada como no show — depósito cobrado' : 'Marcada como completada — depósito cobrado');
+    } catch (e) {
+      toast('No se pudo actualizar la reserva');
+    }
   };
 
   return (
@@ -732,8 +766,11 @@ function Reservas() {
                             <button onClick={() => { patch(selectedRes.id, { status: 'unconfirmed' }); setShowStatusMenu(false); toast('Marcada sin confirmar'); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span> Sin confirmar
                             </button>
-                            <button onClick={() => { patch(selectedRes.id, { status: 'no_show' }); setShowStatusMenu(false); toast('Marcada como no show'); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-black/5">
+                            <button onClick={() => { markStatus(selectedRes.id, 'no_show'); setShowStatusMenu(false); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-black/5">
                               <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span> No show
+                            </button>
+                            <button onClick={() => { markStatus(selectedRes.id, 'completed'); setShowStatusMenu(false); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-black/5">
+                              <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></span> Completada
                             </button>
                           </div>
                         )}
