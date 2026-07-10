@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
         })
         const token = await tokenRes.json()
         if (token) {
-          const noshowUrl = `${supabaseUrl}/functions/v1/mark-noshow?token=${token}&lang=${lang}`
+          const noshowUrl = `https://www.unamesa-backofhouse.com/?noshow_token=${token}`
           await fetch(`${supabaseUrl}/functions/v1/send-email`, {
             method: 'POST',
             headers: sbHeaders,

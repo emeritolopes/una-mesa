@@ -111,7 +111,95 @@ const SCREENS = {
   ajustes: () => <Ajustes />,
 };
 
+/* ── pantalla de confirmación de no-show — vive dentro de backofhouse
+   porque las funciones Edge de Supabase no pueden servir HTML renderizable
+   en el dominio compartido *.supabase.co. Se comprueba ANTES del login:
+   un encargado puede hacer clic en el link del email sin tener sesión
+   iniciada en ese momento. ── */
+function NoShowConfirmScreen({ token }) {
+  const [state, setState] = useState('loading'); // loading | confirm | success | error
+  const [code, setCode] = useState(null);
+  const [details, setDetails] = useState(null);
+
+  useEffect(() => {
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-noshow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, execute: false }),
+    })
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok) { setDetails(json); setState('confirm'); }
+        else { setCode(json.code); setState('error'); }
+      })
+      .catch(() => { setCode('error'); setState('error'); });
+  }, [token]);
+
+  const confirm = () => {
+    setState('loading');
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-noshow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, execute: true }),
+    })
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok) setState('success');
+        else { setCode(json.code); setState('error'); }
+      })
+      .catch(() => { setCode('error'); setState('error'); });
+  };
+
+  const errorMsg = () => ({
+    used: 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.',
+    expired: 'Este enlace ha expirado.',
+    unprocessable: 'El depósito de esta reserva ya fue procesado antes.',
+    invalid: 'Este enlace no es válido.',
+  }[code] || 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.');
+
+  return (
+    <div style={{ fontFamily: 'sans-serif', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: 40, maxWidth: 420, width: '100%', textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,.07)' }}>
+        {state === 'loading' && <p style={{ fontSize: 14, color: '#777' }}>Cargando…</p>}
+
+        {state === 'confirm' && details && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>¿Confirmar no-show?</h1>
+            <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>{details.customer_name} · {details.date} · {(details.time || '').slice(0, 5)} · {details.pax} pax</p>
+            <p style={{ fontSize: 14, color: '#777', lineHeight: 1.6, marginBottom: 24 }}>
+              Al confirmar, el depósito se cobrará de forma <strong>irreversible</strong>. Úsalo solo si el cliente no se presentó.
+            </p>
+            <button onClick={confirm} style={{ width: '100%', background: '#D8552E', color: '#fff', border: 'none', padding: 14, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+              Sí, marcar como no-show y cobrar depósito
+            </button>
+          </>
+        )}
+
+        {state === 'success' && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>No-show registrado</h1>
+            <p style={{ fontSize: 14, color: '#777' }}>La reserva se marcó como no-show y el depósito ha sido cobrado.</p>
+          </>
+        )}
+
+        {state === 'error' && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>No se pudo procesar</h1>
+            <p style={{ fontSize: 14, color: '#777' }}>{errorMsg()}</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [noshowToken] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('noshow_token'); } catch (e) { return null; }
+  });
   const [user, setUser] = useState(() => { try { return JSON.parse(localStorage.getItem('unamesa.user')); } catch { return null; } });
   const [view, setView] = useState(() => localStorage.getItem('unamesa.view') || 'panel');
 
@@ -133,6 +221,7 @@ function App() {
   const login = (u) => { setUser(u); localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
   const logout = () => { window.sb?.auth?.signOut(); setUser(null); localStorage.removeItem('unamesa.user'); };
 
+  if (noshowToken) return <><NoShowConfirmScreen token={noshowToken} /><ToastHost /></>;
   if (!user) return <><Login onLogin={login} /><ToastHost /></>;
 
   return (
