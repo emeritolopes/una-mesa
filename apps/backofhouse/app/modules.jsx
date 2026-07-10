@@ -451,7 +451,7 @@ function Reservas() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       <ClashAlert info={clashInfo} onClose={() => setClashInfo(null)} />
       {confirmDel && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
@@ -544,7 +544,7 @@ function Reservas() {
         <button onClick={() => scrollStrip(1)} className="w-8 h-8 rounded-lg border border-black/10 text-gray-500 hover:bg-gray-50 hover:text-brand transition flex items-center justify-center flex-shrink-0"><i className="ti ti-chevron-right" /></button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-[1fr_320px]">
         <div className="overflow-hidden border-r border-black/7 flex flex-col">
           {viewMode === 'timeline' && (
             <TimelineView reservations={reservations} tables={tables} />
@@ -581,7 +581,7 @@ function Reservas() {
           })}</div>}
         </div>
 
-        <div className="overflow-y-auto min-h-0 p-4 flex flex-col gap-4">
+        <div className="p-4 flex flex-col gap-4">
           <div className="bg-white border border-black/7 rounded-xl p-4">
             <div className="font-['Syne'] text-sm font-bold text-gray-900 mb-3">Resumen del día</div>
             {[
