@@ -484,7 +484,11 @@ verify_jwt = true
 [functions.mark-completed]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/mark-completed/index.ts"
+
+[functions.stripe-connect-onboard]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/stripe-connect-onboard/index.ts"
 
 [functions.update-reservation]
 enabled = true
