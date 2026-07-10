@@ -59,8 +59,22 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: `signature verification failed: ${err instanceof Error ? err.message : err}` }), { status: 400, headers: corsHeaders })
   }
 
-  // Solo nos importa este evento; cualquier otro se reconoce con 200 para que
-  // Stripe no lo siga reintentando, pero no hacemos nada con él.
+  // account.updated — Stripe Connect: el restaurante terminó (o cambió) su
+  // verificación. Actualizamos si ya puede recibir cobros de verdad.
+  if (event.type === 'account.updated') {
+    const account = event.data.object as Stripe.Account
+    try {
+      await fetch(`${supabaseUrl}/rest/v1/venues?stripe_connect_account_id=eq.${account.id}`, {
+        method: 'PATCH', headers: sbHeaders,
+        body: JSON.stringify({ stripe_charges_enabled: !!account.charges_enabled }),
+      })
+    } catch (e) { console.warn('[stripe-webhook] account.updated:', e instanceof Error ? e.message : e) }
+    return new Response(JSON.stringify({ received: true }), { headers: corsHeaders })
+  }
+
+  // Solo nos importa este evento (aparte del de arriba); cualquier otro se
+  // reconoce con 200 para que Stripe no lo siga reintentando, pero no
+  // hacemos nada con él.
   if (event.type !== 'payment_intent.amount_capturable_updated') {
     return new Response(JSON.stringify({ received: true, ignored: event.type }), { headers: corsHeaders })
   }
