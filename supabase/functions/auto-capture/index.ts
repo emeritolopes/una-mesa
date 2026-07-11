@@ -18,12 +18,20 @@ Deno.serve(async (req) => {
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
-  const dueRes = await fetch(`${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id&limit=50`, { headers: h })
+  const dueRes = await fetch(`${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id,stripe_connect_account_id&limit=50`, { headers: h })
   const due = await dueRes.json()
 
   const results: Array<{ id: string; result: string }> = []
 
   for (const r of due) {
+    if (!r.stripe_connect_account_id) {
+      // Reserva de un restaurante sin cuenta Connect (no debería pasar tras
+      // la migración a direct charges, pero lo salteamos en vez de romper
+      // el lote entero si aparece un caso viejo).
+      results.push({ id: r.id, result: 'skipped_no_connect_account' })
+      continue
+    }
+
     // Lock atómico — si mark-noshow (u otra corrida del cron) llegó primero, esto devuelve vacío y saltamos
     const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
       method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: r.id }),
@@ -32,7 +40,7 @@ Deno.serve(async (req) => {
     if (!locked || locked.length === 0) { results.push({ id: r.id, result: 'skipped_locked' }); continue }
 
     try {
-      await stripe.paymentIntents.capture(r.payment_intent_id)
+      await stripe.paymentIntents.capture(r.payment_intent_id, {}, { stripeAccount: r.stripe_connect_account_id })
       await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${r.id}`, {
         method: 'PATCH', headers: h,
         body: JSON.stringify({ status: 'no_show', deposit_status: 'captured' }),

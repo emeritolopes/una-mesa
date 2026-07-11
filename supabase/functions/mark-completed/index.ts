@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     const targetStatus = requestedStatus === 'no_show' ? 'no_show' : 'completed'
 
     // 2 · Traer la reserva
-    const resRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*`, { headers: h })
+    const resRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(stripe_connect_account_id)`, { headers: h })
     const reservation = (await resRes.json())?.[0]
     if (!reservation) return new Response(JSON.stringify({ error: 'reservation not found' }), { status: 404, headers: corsHeaders })
 
@@ -71,14 +71,15 @@ Deno.serve(async (req) => {
 
     // 4 · Capturar el depósito — mismo lock atómico que mark-noshow / auto-capture / cancel-reservation
     let depositStatus: string | null = reservation.deposit_status
-    if (reservation.payment_intent_id) {
+    const stripeAccount = reservation.venues?.stripe_connect_account_id
+    if (reservation.payment_intent_id && stripeAccount) {
       const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
         method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: reservation_id }),
       })
       const locked = await lockRes.json()
       if (locked) {
         try {
-          await stripe.paymentIntents.capture(reservation.payment_intent_id)
+          await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
           depositStatus = 'captured'
         } catch (err) {
           depositStatus = 'capture_failed'

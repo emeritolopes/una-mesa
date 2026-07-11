@@ -167,7 +167,14 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     const mount = () => {
       if (!cardNumberRef.current || !cardExpiryRef.current || !cardCvcRef.current || mounted) return;
       const isDark   = document.documentElement.getAttribute('data-theme') === 'noche';
-      const stripe   = window.Stripe(STRIPE_PK);
+      // Direct charge: Stripe.js tiene que saber la cuenta conectada del
+      // restaurante desde la inicialización — no basta con pasarla después,
+      // al confirmar el pago. Sin esto, el Elements quedaría scoped a la
+      // cuenta de Una Mesa, no a la del restaurante, y confirmCardPayment
+      // fallaría o cobraría en el lugar equivocado.
+      const stripe   = r.stripeConnectAccountId
+        ? window.Stripe(STRIPE_PK, { stripeAccount: r.stripeConnectAccountId })
+        : window.Stripe(STRIPE_PK);
       const elements = stripe.elements();
       const stripeStyle = {
         style: {
@@ -282,7 +289,10 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || BK_T.payInitError);
+      if (!res.ok) {
+        console.warn('[UNA MESA] stripe-payment:', json.error);
+        throw new Error(BK_T.payInitError);
+      }
 
       const { client_secret, payment_intent_id } = json;
 

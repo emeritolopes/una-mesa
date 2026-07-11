@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,stripe_connect_account_id)`,
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
@@ -69,8 +69,9 @@ Deno.serve(async (req) => {
 
   // 4. Resolver el depósito — mismo lock atómico que cancel-reservation / auto-capture / mark-noshow
   let depositStatus: string | null = reservation.deposit_status
+  const stripeAccount = reservation.venues?.stripe_connect_account_id
 
-  if (reservation.payment_intent_id) {
+  if (reservation.payment_intent_id && stripeAccount) {
     const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
       method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: tk.reservation_id }),
     })
@@ -79,14 +80,14 @@ Deno.serve(async (req) => {
     if (locked) {
       try {
         if (withinPenaltyWindow) {
-          await stripe.paymentIntents.capture(reservation.payment_intent_id)
+          await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
           depositStatus = 'captured'
         } else {
-          const pi = await stripe.paymentIntents.retrieve(reservation.payment_intent_id)
+          const pi = await stripe.paymentIntents.retrieve(reservation.payment_intent_id, { stripeAccount })
           if (pi.status === 'requires_capture') {
-            await stripe.paymentIntents.cancel(reservation.payment_intent_id)
+            await stripe.paymentIntents.cancel(reservation.payment_intent_id, { stripeAccount })
           } else if (pi.status === 'succeeded') {
-            await stripe.refunds.create({ payment_intent: reservation.payment_intent_id })
+            await stripe.refunds.create({ payment_intent: reservation.payment_intent_id }, { stripeAccount })
           }
           depositStatus = 'refunded'
         }
