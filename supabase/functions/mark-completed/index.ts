@@ -71,6 +71,8 @@ Deno.serve(async (req) => {
 
     // 4 · Capturar el depósito — mismo lock atómico que mark-noshow / auto-capture / cancel-reservation
     let depositStatus: string | null = reservation.deposit_status
+    let finalStatus = targetStatus
+    let wonLock = false
     const stripeAccount = reservation.venues?.stripe_connect_account_id
     if (reservation.payment_intent_id && stripeAccount) {
       const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
@@ -78,6 +80,7 @@ Deno.serve(async (req) => {
       })
       const locked = await lockRes.json()
       if (locked) {
+        wonLock = true
         try {
           await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
           depositStatus = 'captured'
@@ -85,18 +88,30 @@ Deno.serve(async (req) => {
           depositStatus = 'capture_failed'
           console.warn('[mark-completed] Stripe:', err instanceof Error ? err.message : err)
         }
+      } else {
+        // Perdimos el candado — otro proceso ya está resolviendo (o resolvió)
+        // este depósito. Nunca escribir a ciegas con los datos viejos que
+        // traíamos — volvemos a consultar la verdad actual.
+        const freshRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=status,deposit_status`, { headers: h })
+        const fresh = (await freshRes.json())?.[0]
+        if (fresh) {
+          finalStatus = fresh.status
+          depositStatus = fresh.deposit_status
+        }
       }
-      // Si no se pudo tomar el lock, algo más ya lo estaba procesando —
-      // igual marcamos la reserva como completada, no tocamos deposit_status.
     }
 
-    // 5 · Actualizar la reserva
+    // 5 · Actualizar la reserva — con el status/deposit_status que de verdad corresponde
     await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}`, {
       method: 'PATCH', headers: h,
-      body: JSON.stringify({ status: targetStatus, deposit_status: depositStatus }),
+      body: JSON.stringify({ status: finalStatus, deposit_status: depositStatus }),
     })
 
-    return new Response(JSON.stringify({ success: true, status: targetStatus, deposit_status: depositStatus }), {
+    if (!wonLock && finalStatus !== targetStatus) {
+      return new Response(JSON.stringify({ error: `already resolved as ${finalStatus}` }), { status: 409, headers: corsHeaders })
+    }
+
+    return new Response(JSON.stringify({ success: true, status: finalStatus, deposit_status: depositStatus }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
