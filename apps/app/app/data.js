@@ -306,6 +306,8 @@
       deposit_amount: parseInt(v.deposit_amount, 10) || 1000,           // céntimos, tal cual Supabase (1000 = 10€)
       deposit:        (parseInt(v.deposit_amount, 10) || 1000) / 100,   // euros, solo para mostrar
       currency:       (v.currency || 'eur').toLowerCase(),              // moneda real del restaurante, no del mercado del comensal
+      stripeConnectAccountId: v.stripe_connect_account_id || null,      // necesario para inicializar Stripe.js con la cuenta correcta (direct charge)
+      stripeChargesEnabled:   !!v.stripe_charges_enabled,
       photo_url: v.photo_url || v.image_url || v.photo || null,
     };
   }

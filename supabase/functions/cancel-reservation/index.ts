@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
     // 2 · Traer la reserva + el restaurante (zona horaria real, no asumida)
     const resRes = await fetch(
-      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email)`,
+      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email,stripe_connect_account_id)`,
       { headers: h }
     )
     const reservations = await resRes.json()
@@ -105,8 +105,9 @@ Deno.serve(async (req) => {
     // 5 · Resolver el depósito en Stripe — con el mismo lock atómico que usan
     //    auto-capture y mark-noshow, para no chocar con ellos si ya estaban procesándolo
     let depositStatus: string | null = reservation.deposit_status
+    const stripeAccount = reservation.venues?.stripe_connect_account_id
 
-    if (reservation.payment_intent_id) {
+    if (reservation.payment_intent_id && stripeAccount) {
       const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
         method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: reservation_id }),
       })
@@ -116,14 +117,14 @@ Deno.serve(async (req) => {
         try {
           if (withinPenaltyWindow) {
             // Cancelación tardía — el depósito se pierde, igual que un no-show
-            await stripe.paymentIntents.capture(reservation.payment_intent_id)
+            await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
             depositStatus = 'captured'
           } else {
-            const pi = await stripe.paymentIntents.retrieve(reservation.payment_intent_id)
+            const pi = await stripe.paymentIntents.retrieve(reservation.payment_intent_id, { stripeAccount })
             if (pi.status === 'requires_capture') {
-              await stripe.paymentIntents.cancel(reservation.payment_intent_id)
+              await stripe.paymentIntents.cancel(reservation.payment_intent_id, { stripeAccount })
             } else if (pi.status === 'succeeded') {
-              await stripe.refunds.create({ payment_intent: reservation.payment_intent_id })
+              await stripe.refunds.create({ payment_intent: reservation.payment_intent_id }, { stripeAccount })
             }
             depositStatus = 'refunded'
           }

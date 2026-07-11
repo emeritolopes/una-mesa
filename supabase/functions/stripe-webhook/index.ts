@@ -2,27 +2,19 @@ import Stripe from 'https://esm.sh/stripe@14?target=deno'
 
 /* ════ UNA MESA · stripe-webhook ════
    Stripe llama a esta función directamente — nunca el navegador del comensal.
-   Verifica la firma criptográfica del evento (imposible de falsificar sin el
-   secreto de firma de tu cuenta de Stripe) y, solo entonces, crea la reserva,
-   el perfil del cliente, el token de no-show, y manda los dos emails.
+   Verifica la firma criptográfica del evento y, solo entonces, crea la
+   reserva, el perfil del cliente, el token de no-show, y manda los emails.
 
-   Antes de este cambio, todo esto lo hacía el propio navegador después de
-   confirmar la tarjeta — es decir, el cliente le decía a la base de datos
-   "ya pagué, aquí está mi payment_intent_id" sin que nadie lo verificara
-   contra Stripe. Un usuario autenticado podía fabricar ese ID y crear una
-   reserva 'confirmed' sin pagar nada. Aquí, el ID viene directo de Stripe,
-   verificado por firma — no hay nada que fabricar.
+   Con Stripe Connect (direct charges), los eventos de pago YA NO llegan como
+   eventos de "tu cuenta" — llegan como eventos de "cuentas conectadas", con
+   su propio registro de webhook y su propio secreto de firma en Stripe. Este
+   endpoint recibe AMBOS tipos (tu cuenta, para account.updated en algunos
+   casos legacy; y cuentas conectadas, para todo lo de pagos) — probamos la
+   firma contra los dos secretos posibles, ya que Stripe no nos dice de
+   antemano cuál usar.
 
-   Evento que escuchamos: payment_intent.amount_capturable_updated — es el
-   que Stripe dispara cuando una autorización con capture_method:'manual'
-   se completa con éxito (la tarjeta quedó retenida, no cobrada todavía).
-   Es el mismo momento en que antes el cliente creaba la reserva.
-
-   NOTA: reemplaza una versión anterior de esta función que esperaba
-   checkout.session.completed (flujo de Stripe Checkout) — esta app nunca
-   usó Checkout, crea el PaymentIntent directo y confirma con Stripe.js, así
-   que esa versión nunca pudo recibir un evento real. Al reconfigurar el
-   webhook en el dashboard de Stripe, hay que cambiar el evento suscrito.
+   Evento principal: payment_intent.amount_capturable_updated — se dispara
+   cuando una autorización con capture_method:'manual' se completa con éxito.
 */
 
 const corsHeaders = {
@@ -40,7 +32,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
+  const platformSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
+  const connectSecret = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET') ?? ''
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const sbHeaders = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
@@ -49,15 +42,26 @@ Deno.serve(async (req) => {
   try {
     const signature = req.headers.get('stripe-signature')
     const body = await req.text()
-    if (!signature || !webhookSecret) {
-      return new Response(JSON.stringify({ error: 'missing signature or webhook secret' }), { status: 400, headers: corsHeaders })
+    if (!signature) {
+      return new Response(JSON.stringify({ error: 'missing signature' }), { status: 400, headers: corsHeaders })
     }
-    // constructEventAsync: la verificación de firma en Deno necesita la versión async
-    // (el crypto de Deno no expone las APIs síncronas que usa el SDK de Node).
-    event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
+    // Probamos contra los dos secretos posibles — este endpoint recibe dos
+    // registros de webhook distintos en Stripe (tu cuenta + cuentas
+    // conectadas), cada uno firma con su propio secreto, y no hay forma de
+    // saber cuál aplica antes de intentar verificar.
+    try {
+      event = await stripe.webhooks.constructEventAsync(body, signature, platformSecret)
+    } catch (_) {
+      event = await stripe.webhooks.constructEventAsync(body, signature, connectSecret)
+    }
   } catch (err) {
     return new Response(JSON.stringify({ error: `signature verification failed: ${err instanceof Error ? err.message : err}` }), { status: 400, headers: corsHeaders })
   }
+
+  // event.account está presente cuando el evento viene de una cuenta
+  // conectada (todo lo de pagos con direct charges, y el propio
+  // account.updated del restaurante).
+  const eventAccount = (event as unknown as { account?: string }).account || null
 
   // account.updated — Stripe Connect: el restaurante terminó (o cambió) su
   // verificación. Actualizamos si ya puede recibir cobros de verdad.
@@ -103,6 +107,19 @@ Deno.serve(async (req) => {
     const customerPhone = meta.customer_phone || null
     const customerEmail = meta.customer_email || null
 
+    // Restaurante real — antes de crear nada, cruzamos que la cuenta
+    // conectada que mandó el evento sea de verdad la de este restaurante.
+    // El metadata ya viene firmado por Stripe (no se puede fabricar), pero
+    // este cruce es una capa extra barata contra cualquier desalineación.
+    const venueRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venueId}&select=name,email,deposit_amount,menu_url,stripe_connect_account_id`, { headers: sbHeaders })
+    const venues = await venueRes.json()
+    const venue = venues?.[0]
+
+    if (eventAccount && venue?.stripe_connect_account_id && eventAccount !== venue.stripe_connect_account_id) {
+      console.error('[stripe-webhook] event.account no coincide con el venue esperado:', eventAccount, 'vs', venue.stripe_connect_account_id)
+      return new Response(JSON.stringify({ received: true, error: 'account mismatch' }), { headers: corsHeaders })
+    }
+
     // 1 · Crear la reserva — server-side, con datos verificados por Stripe, no por el cliente.
     const insertRes = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
       method: 'POST',
@@ -146,10 +163,6 @@ Deno.serve(async (req) => {
       } catch (e) { console.warn('[stripe-webhook] upsert-customer:', e instanceof Error ? e.message : e) }
     }
 
-    // 3 · Restaurante real — para el nombre, el email de aviso, y el token de no-show.
-    const venueRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venueId}&select=name,email,deposit_amount,menu_url`, { headers: sbHeaders })
-    const venues = await venueRes.json()
-    const venue = venues?.[0]
     const restaurantName = venue?.name || t.restaurantFallback
     const depositAmount = venue?.deposit_amount || 1000
     const menuUrl = venue?.menu_url || null
@@ -158,7 +171,7 @@ Deno.serve(async (req) => {
       timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long',
     })
 
-    // 4 · Token de no-show + email al restaurante — non-fatal.
+    // 3 · Token de no-show + email al restaurante — non-fatal.
     if (venue?.email) {
       try {
         const tokenRes = await fetch(`${supabaseUrl}/rest/v1/rpc/generate_noshow_token`, {
@@ -188,10 +201,7 @@ Deno.serve(async (req) => {
       } catch (e) { console.warn('[stripe-webhook] noshow/restaurant-email:', e instanceof Error ? e.message : e) }
     }
 
-    // 5 · Email de confirmación al comensal — non-fatal.
-    //     Incluye un link de cancelación de un solo uso, generado ahora — el
-    //     invitado nunca tiene cuenta, este token es la única forma de que
-    //     pueda demostrar que la reserva es suya más adelante.
+    // 4 · Email de confirmación al comensal — non-fatal.
     if (customerEmail) {
       try {
         let cancelUrl: string | null = null
@@ -228,8 +238,6 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ received: true, reservation_id: reservation.id }), { headers: corsHeaders })
   } catch (err) {
     console.error('[stripe-webhook] error:', err instanceof Error ? err.message : err)
-    // Devolvemos 200 para que Stripe no reintente indefinidamente algo que
-    // probablemente va a volver a fallar igual; el error queda en los logs.
     return new Response(JSON.stringify({ received: true, error: 'internal error, see logs' }), { headers: corsHeaders })
   }
 })
