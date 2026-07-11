@@ -69,7 +69,9 @@ Deno.serve(async (req) => {
 
   // 4. Resolver el depósito — mismo lock atómico que cancel-reservation / auto-capture / mark-noshow
   let depositStatus: string | null = reservation.deposit_status
+  let finalStatus = 'cancelled'
   const stripeAccount = reservation.venues?.stripe_connect_account_id
+  let wonLock = false
 
   if (reservation.payment_intent_id && stripeAccount) {
     const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
@@ -78,6 +80,7 @@ Deno.serve(async (req) => {
     const locked = await lockRes.json()
 
     if (locked) {
+      wonLock = true
       try {
         if (withinPenaltyWindow) {
           await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
@@ -95,13 +98,26 @@ Deno.serve(async (req) => {
         depositStatus = 'capture_failed'
         console.warn('[cancel-reservation-guest] Stripe:', err instanceof Error ? err.message : err)
       }
+    } else {
+      // Perdimos el candado — otro proceso (auto-capture, mark-noshow) ya
+      // está resolviendo este depósito ahora mismo, o lo resolvió justo
+      // antes. NUNCA escribir a ciegas con los datos viejos que traíamos —
+      // volvemos a consultar la verdad actual y la reflejamos tal cual,
+      // en vez de fingir una cancelación que no ocurrió de verdad.
+      const freshRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=status,deposit_status`, { headers: h })
+      const fresh = (await freshRes.json())?.[0]
+      if (fresh) {
+        finalStatus = fresh.status
+        depositStatus = fresh.deposit_status
+      }
     }
   }
 
-  // 5. Actualizar la reserva
+  // 5. Actualizar la reserva — con el status/deposit_status que de verdad
+  //    corresponde, no una suposición.
   await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}`, {
     method: 'PATCH', headers: h,
-    body: JSON.stringify({ status: 'cancelled', deposit_status: depositStatus }),
+    body: JSON.stringify({ status: finalStatus, deposit_status: depositStatus }),
   })
 
   // 6. Marcar el token como usado
@@ -139,6 +155,16 @@ Deno.serve(async (req) => {
         }),
       })
     } catch (e) { console.warn('[cancel-reservation-guest] email:', e instanceof Error ? e.message : e) }
+  }
+
+  if (!wonLock && finalStatus !== 'cancelled') {
+    // Otro proceso ya resolvió esta reserva de otra forma (no-show,
+    // completada) antes de que ganáramos el candado — no mentir diciendo
+    // que se canceló.
+    return new Response(
+      JSON.stringify({ ok: false, code: 'already_resolved', resolved_status: finalStatus }),
+      { headers: jsonHeaders, status: 409 }
+    )
   }
 
   return new Response(

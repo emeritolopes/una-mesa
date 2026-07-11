@@ -105,6 +105,8 @@ Deno.serve(async (req) => {
     // 5 · Resolver el depósito en Stripe — con el mismo lock atómico que usan
     //    auto-capture y mark-noshow, para no chocar con ellos si ya estaban procesándolo
     let depositStatus: string | null = reservation.deposit_status
+    let finalStatus = 'cancelled'
+    let wonLock = false
     const stripeAccount = reservation.venues?.stripe_connect_account_id
 
     if (reservation.payment_intent_id && stripeAccount) {
@@ -114,6 +116,7 @@ Deno.serve(async (req) => {
       const locked = await lockRes.json()
 
       if (locked) {
+        wonLock = true
         try {
           if (withinPenaltyWindow) {
             // Cancelación tardía — el depósito se pierde, igual que un no-show
@@ -132,17 +135,32 @@ Deno.serve(async (req) => {
           depositStatus = 'capture_failed'
           console.warn('[cancel-reservation] Stripe:', err instanceof Error ? err.message : err)
         }
+      } else {
+        // Perdimos el candado — otro proceso ya está resolviendo (o resolvió)
+        // este depósito. Nunca escribir a ciegas con los datos viejos que
+        // traíamos — volvemos a consultar la verdad actual.
+        const freshRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=status,deposit_status`, { headers: h })
+        const fresh = (await freshRes.json())?.[0]
+        if (fresh) {
+          finalStatus = fresh.status
+          depositStatus = fresh.deposit_status
+        }
       }
-      // Si no se pudo tomar el lock, algo más (auto-capture/mark-noshow) ya lo estaba
-      // procesando — dejamos su deposit_status tal cual quede, solo cancelamos la mesa.
     }
 
-    // 6 · Actualizar la reserva — siempre, sea cual sea el resultado de Stripe
+    // 6 · Actualizar la reserva — con el status/deposit_status que de verdad corresponde
     await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}`, {
       method: 'PATCH',
       headers: { ...h, Prefer: 'return=minimal' },
-      body: JSON.stringify({ status: 'cancelled', deposit_status: depositStatus }),
+      body: JSON.stringify({ status: finalStatus, deposit_status: depositStatus }),
     })
+
+    if (!wonLock && finalStatus !== 'cancelled') {
+      // Otro proceso ya resolvió esta reserva de otra forma (no-show,
+      // completada) antes de que ganáramos el candado — no registrar una
+      // cancelación que no ocurrió, ni mandar el email de cancelación.
+      return new Response(JSON.stringify({ error: `already resolved as ${finalStatus}` }), { status: 409, headers: corsHeaders })
+    }
 
     // 7 · Registrar la cancelación — server-side, no confiar en el cliente para esto
     await fetch(`${supabaseUrl}/rest/v1/cancellations`, {
