@@ -439,12 +439,13 @@ function CancelBookingScreen({ token, onDone }){
 /* ── pantalla de autoservicio para que un restaurante complete su
    verificación de Stripe Connect con el link que Emerito le mandó por
    email — sin login, sin depender de que Emerito corra nada a mano. ── */
-function StripeConnectScreen({ token, onDone }){
-  const [state, setState] = useState('loading'); // loading | redirecting | error
+function StripeConnectScreen({ token, justDone, onDone }){
+  const [state, setState] = useState(justDone ? 'done' : 'loading'); // loading | redirecting | done | error
   const [code, setCode] = useState(null);
   const [restaurantName, setRestaurantName] = useState(null);
 
   useEffect(() => {
+    if (justDone) return; // ya terminaste el formulario — no volver a pedir un link nuevo
     if (!token) { setState('error'); setCode('invalid'); return; }
     fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/stripe-connect-self-onboard', {
       method: 'POST',
@@ -464,7 +465,7 @@ function StripeConnectScreen({ token, onDone }){
         }
       })
       .catch(() => { setState('error'); setCode('error'); });
-  }, [token]);
+  }, [token, justDone]);
 
   const errorMsg = () => {
     switch (code) {
@@ -480,10 +481,14 @@ function StripeConnectScreen({ token, onDone }){
       React.createElement('h2', null,
         state === 'loading' ? 'Cargando…'
         : state === 'redirecting' ? `Llevándote a Stripe para ${restaurantName || 'tu restaurante'}…`
+        : state === 'done' ? '¡Gracias! Estamos verificando tus datos.'
         : errorMsg()
-      )
+      ),
+      state === 'done' ? React.createElement('p', { style:{ fontSize:14, color:'#777', marginTop:8 } },
+        'Puede tardar unos minutos. Si necesitas completar algo más, te avisaremos por email.'
+      ) : null
     ),
-    state === 'error' ? React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:onDone }, 'Volver al inicio') : null
+    state === 'error' || state === 'done' ? React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:onDone }, 'Volver al inicio') : null
   );
 }
 
