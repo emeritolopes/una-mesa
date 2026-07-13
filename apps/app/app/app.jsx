@@ -67,7 +67,7 @@ function App() {
   const [cancelToken, setCancelToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('cancel_token'); } catch (_) { return null; }
   });
-  const [connectToken] = useState(() => {
+  const [connectToken, setConnectToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('connect_token'); } catch (_) { return null; }
   });
   const [connectJustDone] = useState(() => {
@@ -289,6 +289,7 @@ function App() {
       go('home');
     } }) : null,
     connectToken ? React.createElement(window.StripeConnectScreen, { token:connectToken, justDone:connectJustDone, onDone:()=>{
+      setConnectToken(null);
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete('connect_token');
