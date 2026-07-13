@@ -70,6 +70,9 @@ function App() {
   const [connectToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('connect_token'); } catch (_) { return null; }
   });
+  const [connectJustDone] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('done') === '1'; } catch (_) { return false; }
+  });
   const [spoons, setSpoons] = useState(0);
   const [toast, setToast] = useState('');
   const [geo, setGeo] = useState({ status:'idle', label:'', ref:{x:50,y:50} });
@@ -285,7 +288,7 @@ function App() {
       } catch (_) {}
       go('home');
     } }) : null,
-    connectToken ? React.createElement(window.StripeConnectScreen, { token:connectToken, onDone:()=>{
+    connectToken ? React.createElement(window.StripeConnectScreen, { token:connectToken, justDone:connectJustDone, onDone:()=>{
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete('connect_token');
