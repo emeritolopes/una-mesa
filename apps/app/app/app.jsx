@@ -67,6 +67,9 @@ function App() {
   const [cancelToken, setCancelToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('cancel_token'); } catch (_) { return null; }
   });
+  const [connectToken] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('connect_token'); } catch (_) { return null; }
+  });
   const [spoons, setSpoons] = useState(0);
   const [toast, setToast] = useState('');
   const [geo, setGeo] = useState({ status:'idle', label:'', ref:{x:50,y:50} });
@@ -278,6 +281,14 @@ function App() {
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete('cancel_token');
+        window.history.replaceState({}, '', url.toString());
+      } catch (_) {}
+      go('home');
+    } }) : null,
+    connectToken ? React.createElement(window.StripeConnectScreen, { token:connectToken, onDone:()=>{
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('connect_token');
         window.history.replaceState({}, '', url.toString());
       } catch (_) {}
       go('home');

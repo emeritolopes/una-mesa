@@ -44,9 +44,26 @@ Deno.serve(async (req) => {
     if (!venue_id) return new Response(JSON.stringify({ error: 'venue_id required' }), { status: 400, headers: corsHeaders })
 
     // 2 · Traer el restaurante
-    const vRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=id,name,email,city,stripe_connect_account_id`, { headers: h })
+    const vRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=id,name,email,city,stripe_connect_account_id,stripe_connect_invite_token,stripe_charges_enabled`, { headers: h })
     const venue = (await vRes.json())?.[0]
     if (!venue) return new Response(JSON.stringify({ error: 'venue not found' }), { status: 404, headers: corsHeaders })
+
+    // 2b · Token de invitación persistente — el restaurante lo usa las veces
+    //    que necesite hasta terminar, sin que el admin tenga que volver a
+    //    generar nada. 30 días de validez; se corta solo si ya está activo
+    //    (ver stripe-connect-self-onboard).
+    let inviteToken = venue.stripe_connect_invite_token
+    if (!inviteToken) {
+      inviteToken = crypto.randomUUID()
+      await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}`, {
+        method: 'PATCH', headers: h,
+        body: JSON.stringify({
+          stripe_connect_invite_token: inviteToken,
+          stripe_connect_invite_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      })
+    }
+    const selfServiceUrl = `https://app.unamesa.co/?connect_token=${inviteToken}`
 
     // 3 · Crear la cuenta Express si no existe todavía
     //    NOTA: país derivado de la ciudad de forma simple (Madrid→ES,
@@ -80,7 +97,7 @@ Deno.serve(async (req) => {
       type: 'account_onboarding',
     })
 
-    return new Response(JSON.stringify({ success: true, onboarding_url: accountLink.url, account_id: accountId }), {
+    return new Response(JSON.stringify({ success: true, onboarding_url: accountLink.url, account_id: accountId, self_service_url: selfServiceUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
