@@ -330,7 +330,11 @@
       // como "undefined behavior"). Fallback a un cliente nuevo solo si por algún motivo
       // auth.js no llegó a inicializarse todavía.
       const sb = (window.UMAuth && window.UMAuth.sb) || window.supabase.createClient(SUPA_URL, SUPA_KEY);
-      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity);
+      // stripe_charges_enabled: no mostramos restaurantes que todavía no
+      // completaron el onboarding de Stripe Connect — mejor que no aparezcan
+      // en absoluto a que el comensal llegue hasta el pago y ahí se entere
+      // de que no se puede reservar.
+      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity).eq('stripe_charges_enabled', true);
       if (error) throw error;
       if (!rows || !rows.length) return null;
       return rows.map(mapVenue);
