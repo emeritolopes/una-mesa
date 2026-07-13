@@ -436,4 +436,55 @@ function CancelBookingScreen({ token, onDone }){
   );
 }
 
-Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen, CancelBookingScreen });
+/* ── pantalla de autoservicio para que un restaurante complete su
+   verificación de Stripe Connect con el link que Emerito le mandó por
+   email — sin login, sin depender de que Emerito corra nada a mano. ── */
+function StripeConnectScreen({ token, onDone }){
+  const [state, setState] = useState('loading'); // loading | redirecting | error
+  const [code, setCode] = useState(null);
+  const [restaurantName, setRestaurantName] = useState(null);
+
+  useEffect(() => {
+    if (!token) { setState('error'); setCode('invalid'); return; }
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/stripe-connect-self-onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    })
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok && json.onboarding_url) {
+          setRestaurantName(json.restaurant_name);
+          setState('redirecting');
+          window.location.href = json.onboarding_url;
+        } else {
+          setState('error');
+          setCode(json.code || 'error');
+          setRestaurantName(json.restaurant_name || null);
+        }
+      })
+      .catch(() => { setState('error'); setCode('error'); });
+  }, [token]);
+
+  const errorMsg = () => {
+    switch (code) {
+      case 'expired': return 'Este enlace ha expirado — contacta con Una Mesa para uno nuevo.';
+      case 'already_connected': return `${restaurantName || 'Este restaurante'} ya completó su verificación de pagos.`;
+      case 'invalid': return 'Este enlace no es válido.';
+      default: return 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.';
+    }
+  };
+
+  return React.createElement(Modal, { onClose: onDone, max:420 },
+    React.createElement('div', { className:'rb-head' },
+      React.createElement('h2', null,
+        state === 'loading' ? 'Cargando…'
+        : state === 'redirecting' ? `Llevándote a Stripe para ${restaurantName || 'tu restaurante'}…`
+        : errorMsg()
+      )
+    ),
+    state === 'error' ? React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:onDone }, 'Volver al inicio') : null
+  );
+}
+
+Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen, CancelBookingScreen, StripeConnectScreen });

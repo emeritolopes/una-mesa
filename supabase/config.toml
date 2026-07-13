@@ -488,7 +488,11 @@ verify_jwt = true
 [functions.stripe-connect-onboard]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/stripe-connect-onboard/index.ts"
+
+[functions.stripe-connect-self-onboard]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/stripe-connect-self-onboard/index.ts"
 
 [functions.update-reservation]
 enabled = true
