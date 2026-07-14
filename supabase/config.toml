@@ -493,13 +493,3 @@ verify_jwt = true
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/stripe-connect-self-onboard/index.ts"
-
-[functions.update-reservation]
-enabled = true
-verify_jwt = true
-entrypoint = "./functions/update-reservation/index.ts"
-
-[functions.stripe-refund]
-enabled = true
-verify_jwt = true
-entrypoint = "./functions/stripe-refund/index.ts"
