@@ -8,6 +8,11 @@ function Carta() {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null); // item object being edited, or 'new', or null
 
+  useEffect(() => { window.MenuStockSync?.loadMenuStock(); }, []);
+  useEffect(() => {
+    if (cats.length && !cats.some(c => c.id === activeCat)) setActiveCat(cats[0].id);
+  }, [cats]);
+
   const blank = { id: null, category_id: activeCat, name: '', description: '', price: '', vat_rate: 10, tag: null, available: true, sold: 0, allergens: [], subcategory: '' };
 
   const countFor = (cid) => items.filter(i => i.category_id === cid).length;
@@ -19,7 +24,7 @@ function Carta() {
     { key: 'cocteleria',label: 'Coctelería',     icon: 'ti-glass-full' },
     { key: 'calientes', label: 'Calientes',      icon: 'ti-coffee' },
   ];
-  const isBebidas = activeCat === 'c4';
+  const isBebidas = (cats.find(c => c.id === activeCat)?.name || '').toLowerCase() === 'bebidas';
   const filtered = items.filter(i => i.category_id === activeCat && (!search || i.name.toLowerCase().includes(search.toLowerCase())));
 
   // group bebidas by subcategory
@@ -30,29 +35,48 @@ function Carta() {
   const otrosItems = filtered.filter(i => !i.subcategory && isBebidas);
   if (otrosItems.length) bebidasGroups.push({ key: 'otros', label: 'Otros', icon: 'ti-dots', items: otrosItems });
 
-  const toggleAvail = (id) => setItems(arr => arr.map(i => i.id === id ? { ...i, available: !i.available } : i));
+  const toggleAvail = async (id) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    const updated = { ...item, available: !item.available };
+    const res = await window.MenuStockSync?.saveMenuItem(updated);
+    if (!res || !res.ok) { toast('No se pudo guardar: ' + (res?.error || 'error desconocido')); return; }
+    setItems(arr => arr.map(i => i.id === id ? updated : i));
+  };
 
-  const addCategory = () => {
-    const n = (cats.length + 1);
-    const id = 'c' + Date.now();
-    setCats(arr => [...arr, { id, name: 'Categoría ' + n, sort_order: arr.length + 1 }]);
-    setActiveCat(id);
+  const addCategory = async () => {
+    const cat = { id: crypto.randomUUID(), name: 'Categoría ' + (cats.length + 1), sort_order: cats.length + 1 };
+    const res = await window.MenuStockSync?.saveMenuCategory(cat);
+    if (!res || !res.ok) { toast('No se pudo crear la categoría: ' + (res?.error || 'error desconocido')); return; }
+    setCats(arr => [...arr, cat]);
+    setActiveCat(cat.id);
     toast('Categoría añadida');
   };
 
-  const save = (form) => {
+  const save = async (form) => {
     if (!form.name.trim() || !form.price) { toast('Completa nombre y precio'); return; }
     const clean = { ...form, price: Number(form.price) };
-    if (form.id) {
-      setItems(arr => arr.map(i => i.id === form.id ? clean : i));
-      toast('Plato actualizado');
-    } else {
-      setItems(arr => [...arr, { ...clean, id: 'm' + Date.now() }]);
+    const isNew = !form.id;
+    const withId = isNew ? { ...clean, id: crypto.randomUUID() } : clean;
+    const res = await window.MenuStockSync?.saveMenuItem(withId);
+    if (!res || !res.ok) { toast('No se pudo guardar el plato: ' + (res?.error || 'error desconocido')); return; }
+    if (isNew) {
+      setItems(arr => [...arr, withId]);
       toast('Plato añadido a la carta');
+    } else {
+      setItems(arr => arr.map(i => i.id === form.id ? withId : i));
+      toast('Plato actualizado');
     }
     setEditing(null);
   };
-  const remove = (id) => { setItems(arr => arr.filter(i => i.id !== id)); setEditing(null); toast('Plato eliminado'); };
+
+  const remove = async (id) => {
+    const res = await window.MenuStockSync?.deleteMenuItem(id);
+    if (!res || !res.ok) { toast('No se pudo eliminar: ' + (res?.error || 'error desconocido')); return; }
+    setItems(arr => arr.filter(i => i.id !== id));
+    setEditing(null);
+    toast('Plato eliminado');
+  };
 
   const totalAvail = items.filter(i => i.available).length;
   const avgPrice = items.reduce((s, i) => s + i.price, 0) / items.length;
