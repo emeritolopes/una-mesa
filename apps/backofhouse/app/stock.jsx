@@ -62,13 +62,55 @@ function Stocktake() {
   const [editItem, setEditItem] = useState(null);
   const [query, setQuery] = useState('');
 
-  const adjust = (id, delta) => setStock(arr => arr.map(s => s.id === id ? { ...s, qty: Math.max(0, Math.round((s.qty + delta) * 10) / 10) } : s));
-  const setQty = (id, v) => setStock(arr => arr.map(s => s.id === id ? { ...s, qty: Math.max(0, Number(v) || 0) } : s));
+  useEffect(() => { window.MenuStockSync?.loadMenuStock(); }, []);
+
+  const adjust = async (id, delta) => {
+    const item = stock.find(s => s.id === id);
+    if (!item) return;
+    const updated = { ...item, qty: Math.max(0, Math.round((item.qty + delta) * 10) / 10) };
+    const res = await window.MenuStockSync?.saveStockItem(updated);
+    if (!res || !res.ok) { toast('No se pudo guardar: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => arr.map(s => s.id === id ? updated : s));
+  };
+  const setQty = async (id, v) => {
+    const item = stock.find(s => s.id === id);
+    if (!item) return;
+    const updated = { ...item, qty: Math.max(0, Number(v) || 0) };
+    const res = await window.MenuStockSync?.saveStockItem(updated);
+    if (!res || !res.ok) { toast('No se pudo guardar: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => arr.map(s => s.id === id ? updated : s));
+  };
   const [confirmDel, setConfirmDel] = useState(null);
-  const doRemove = (id) => { setStock(arr => arr.filter(s => s.id !== id)); setConfirmDel(null); toast('Artículo eliminado'); };
-  const addItem = (it) => { setStock(arr => [...arr, it]); setShowAdd(false); toast(it.name + ' añadido'); };
-  const saveEdit = (it) => { setStock(arr => arr.map(s => s.id === it.id ? it : s)); setEditItem(null); toast(it.name + ' actualizado'); };
-  const restock = (id) => setStock(arr => arr.map(s => s.id === id ? { ...s, qty: s.par } : s));
+  const doRemove = async (id) => {
+    const res = await window.MenuStockSync?.deleteStockItem(id);
+    if (!res || !res.ok) { toast('No se pudo eliminar: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => arr.filter(s => s.id !== id));
+    setConfirmDel(null);
+    toast('Artículo eliminado');
+  };
+  const addItem = async (it) => {
+    const withId = { ...it, id: crypto.randomUUID() };
+    const res = await window.MenuStockSync?.saveStockItem(withId);
+    if (!res || !res.ok) { toast('No se pudo añadir: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => [...arr, withId]);
+    setShowAdd(false);
+    toast(it.name + ' añadido');
+  };
+  const saveEdit = async (it) => {
+    const res = await window.MenuStockSync?.saveStockItem(it);
+    if (!res || !res.ok) { toast('No se pudo guardar: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => arr.map(s => s.id === it.id ? it : s));
+    setEditItem(null);
+    toast(it.name + ' actualizado');
+  };
+  const restock = async (id) => {
+    const item = stock.find(s => s.id === id);
+    if (!item) return;
+    const updated = { ...item, qty: item.par };
+    const res = await window.MenuStockSync?.saveStockItem(updated);
+    if (!res || !res.ok) { toast('No se pudo guardar: ' + (res?.error || 'error desconocido')); return; }
+    setStock(arr => arr.map(s => s.id === id ? updated : s));
+  };
 
   const visible = stock.filter(s => (cat === 'all' || s.category === cat) && (!query || s.name.toLowerCase().includes(query.toLowerCase())));
   const lowItems = stock.filter(s => s.qty < s.par);

@@ -200,7 +200,13 @@ function App() {
   const [noshowToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('noshow_token'); } catch (e) { return null; }
   });
-  const [user, setUser] = useState(() => { try { return JSON.parse(localStorage.getItem('unamesa.user')); } catch { return null; } });
+  const [user, setUser] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('unamesa.user'));
+      window.currentVenueId = u?.venue_id || null; // Carta/Stocktake se invocan sin props — lo necesitan global
+      return u;
+    } catch { return null; }
+  });
   const [view, setView] = useState(() => localStorage.getItem('unamesa.view') || 'panel');
 
   const go = useCallback((v) => { setView(v); localStorage.setItem('unamesa.view', v); }, []);
@@ -218,8 +224,8 @@ function App() {
     window.addEventListener('storage', handler);
     return () => window.removeEventListener('storage', handler);
   }, []);
-  const login = (u) => { setUser(u); localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
-  const logout = () => { window.sb?.auth?.signOut(); setUser(null); localStorage.removeItem('unamesa.user'); };
+  const login = (u) => { setUser(u); window.currentVenueId = u?.venue_id || null; localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
+  const logout = () => { window.sb?.auth?.signOut(); setUser(null); window.currentVenueId = null; localStorage.removeItem('unamesa.user'); };
 
   if (noshowToken) return <><NoShowConfirmScreen token={noshowToken} /><ToastHost /></>;
   if (!user) return <><Login onLogin={login} /><ToastHost /></>;
