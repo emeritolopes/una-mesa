@@ -103,11 +103,34 @@ Deno.serve(async (req) => {
       }),
     })
 
+    const selfServiceUrl = `https://app.unamesa.co/?connect_token=${inviteToken}`
+
+    // 4 · Mandar el email de invitación al restaurante — antes había que
+    //    copiar este link a mano y mandarlo por email; ahora sale solo.
+    //    No-fatal: si el email falla, el restaurante creado sigue siendo
+    //    válido y el link se puede reenviar más tarde igual.
+    let emailSent = false
+    if (email) {
+      try {
+        const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: 'POST', headers: h,
+          body: JSON.stringify({
+            to: email,
+            restaurant_name: name,
+            stripe_invite_url: selfServiceUrl,
+            lang: isLondon ? 'en' : 'es',
+          }),
+        })
+        emailSent = emailRes.ok
+      } catch (e) { console.warn('[create-venue] send-email:', e instanceof Error ? e.message : e) }
+    }
+
     return new Response(JSON.stringify({
       success: true,
       venue_id: venue.id,
       currency, timezone,
-      self_service_url: `https://app.unamesa.co/?connect_token=${inviteToken}`,
+      self_service_url: selfServiceUrl,
+      email_sent: emailSent,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'
