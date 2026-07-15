@@ -504,4 +504,8 @@ verify_jwt = true
 [functions.upload-venue-photo]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/upload-venue-photo/index.ts"
+
+[functions.health-check]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/health-check/index.ts"
