@@ -501,7 +501,7 @@ function AdminCreateVenueScreen({ onDone }){
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     name:'', address:'', city:'Madrid', phone:'', email:'',
-    cuisine:'', neighborhood:'', description:'', photo_url:'',
+    cuisine:'', neighborhood:'', description:'', photo_urls:[],
     deposit:'10.00', capacity:'50',
     lunch_start:'13:00', lunch_end:'16:00', dinner_start:'20:00', dinner_end:'23:00',
   });
@@ -514,36 +514,55 @@ function AdminCreateVenueScreen({ onDone }){
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  const handlePhotoFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadOneFile = async (file, token) => {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/upload-venue-photo', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_base64: base64, content_type: file.type }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo subir la foto');
+    return json.url;
+  };
+
+  const handlePhotoFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     setPhotoError('');
+
+    const remaining = 10 - form.photo_urls.length;
+    if (remaining <= 0) { setPhotoError('Ya tienes 10 fotos — quita alguna antes de subir más.'); return; }
+    const toUpload = files.slice(0, remaining);
+    if (files.length > remaining) setPhotoError(`Solo se subieron ${remaining} — el máximo es 10 fotos.`);
+
     setPhotoUploading(true);
     try {
       const { data } = await window.UMAuth.sb.auth.getSession();
       const token = data?.session?.access_token;
       if (!token) { setPhotoError('No hay sesión iniciada.'); setPhotoUploading(false); return; }
 
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/upload-venue-photo', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file_base64: base64, content_type: file.type }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) { setPhotoError(json.error || 'No se pudo subir la foto'); setPhotoUploading(false); return; }
-      setForm(f => ({ ...f, photo_url: json.url }));
-    } catch (err) {
-      setPhotoError(err.message || String(err));
+      for (const file of toUpload) {
+        try {
+          const url = await uploadOneFile(file, token);
+          setForm(f => ({ ...f, photo_urls: [...f.photo_urls, url] }));
+        } catch (err) {
+          setPhotoError(err.message || String(err));
+        }
+      }
     } finally {
       setPhotoUploading(false);
+      e.target.value = ''; // permite volver a elegir el mismo archivo si hace falta
     }
+  };
+
+  const removePhoto = (idx) => {
+    setForm(f => ({ ...f, photo_urls: f.photo_urls.filter((_, i) => i !== idx) }));
   };
 
   const startEdit = async () => {
@@ -551,7 +570,7 @@ function AdminCreateVenueScreen({ onDone }){
     if (venueList === null) {
       try {
         const sb = window.UMAuth.sb;
-        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity,photo_url,times').order('name');
+        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity,photo_urls,times').order('name');
         setVenueList(data || []);
       } catch (e) { setVenueList([]); }
     }
@@ -575,7 +594,7 @@ function AdminCreateVenueScreen({ onDone }){
       name: v.name || '', address: v.address || '', city: v.city || 'Madrid',
       phone: v.phone || '', email: v.email || '', cuisine: v.cuisine || '',
       neighborhood: v.neighborhood || '', description: v.description || '',
-      photo_url: v.photo_url || '',
+      photo_urls: v.photo_urls || [],
       deposit: ((v.deposit_amount ?? 1000) / 100).toFixed(2),
       capacity: String(v.capacity ?? 50),
       lunch_start: lunch.start, lunch_end: lunch.end,
@@ -600,7 +619,7 @@ function AdminCreateVenueScreen({ onDone }){
         name: form.name, address: form.address, city: form.city,
         phone: form.phone, email: form.email, cuisine: form.cuisine,
         neighborhood: form.neighborhood, description: form.description,
-        photo_url: form.photo_url,
+        photo_urls: form.photo_urls,
         deposit_amount: Math.round(Number(form.deposit) * 100) || 1000,
         capacity: Number(form.capacity) || 50,
         lunch_start: form.lunch_start, lunch_end: form.lunch_end,
@@ -676,9 +695,17 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('input', { style:inputStyle, value:form.neighborhood, onChange:set('neighborhood') }),
       React.createElement('label', { style:labelStyle }, 'Descripción'),
       React.createElement('input', { style:inputStyle, value:form.description, onChange:set('description') }),
-      React.createElement('label', { style:labelStyle }, 'Foto del restaurante'),
-      form.photo_url ? React.createElement('img', { src:form.photo_url, style:{width:'100%', height:120, objectFit:'cover', borderRadius:8, marginBottom:8} }) : null,
-      React.createElement('input', { type:'file', accept:'image/jpeg,image/png,image/webp', style:{...inputStyle, padding:8}, onChange:handlePhotoFile, disabled:photoUploading }),
+      React.createElement('label', { style:labelStyle }, `Fotos del restaurante (${form.photo_urls.length}/10)`),
+      form.photo_urls.length ? React.createElement('div', { style:{display:'flex', flexWrap:'wrap', gap:8, marginBottom:8} },
+        form.photo_urls.map((url, idx) => React.createElement('div', { key:idx, style:{position:'relative', width:80, height:80} },
+          React.createElement('img', { src:url, style:{width:'100%', height:'100%', objectFit:'cover', borderRadius:8} }),
+          React.createElement('button', {
+            onClick:()=>removePhoto(idx), type:'button',
+            style:{position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:11, background:'#c0392b', color:'#fff', border:'none', cursor:'pointer', fontSize:12, lineHeight:'22px', padding:0},
+          }, '✕')
+        ))
+      ) : null,
+      React.createElement('input', { type:'file', accept:'image/jpeg,image/png,image/webp', multiple:true, style:{...inputStyle, padding:8}, onChange:handlePhotoFiles, disabled:photoUploading || form.photo_urls.length >= 10 }),
       photoUploading ? React.createElement('p', { style:{fontSize:12, color:'#888', marginBottom:12} }, 'Subiendo…') : null,
       photoError ? React.createElement('p', { style:{fontSize:12, color:'#c0392b', marginBottom:12} }, photoError) : null,
       React.createElement('label', { style:labelStyle }, 'Horario de comida'),

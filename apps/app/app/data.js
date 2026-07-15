@@ -309,6 +309,7 @@
       stripeConnectAccountId: v.stripe_connect_account_id || null,      // necesario para inicializar Stripe.js con la cuenta correcta (direct charge)
       stripeChargesEnabled:   !!v.stripe_charges_enabled,
       photo_url: v.photo_url || v.image_url || v.photo || null,
+      photo_urls: Array.isArray(v.photo_urls) ? v.photo_urls : [],
     };
   }
 
