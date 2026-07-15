@@ -496,4 +496,8 @@ verify_jwt = false
 [functions.create-venue]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/create-venue/index.ts"
+
+[functions.update-venue]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/update-venue/index.ts"

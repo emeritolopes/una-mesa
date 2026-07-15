@@ -496,6 +496,9 @@ function StripeConnectScreen({ token, justDone, onDone }){
    SQL a mano que hacíamos por cada restaurante nuevo. Usa la sesión activa
    directamente, sin pedir ningún JWT copiado a mano. ── */
 function AdminCreateVenueScreen({ onDone }){
+  const [mode, setMode] = useState('picker'); // picker | create | edit
+  const [venueList, setVenueList] = useState(null); // null = not loaded yet
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     name:'', address:'', city:'Madrid', phone:'', email:'',
     cuisine:'', neighborhood:'', description:'',
@@ -508,6 +511,28 @@ function AdminCreateVenueScreen({ onDone }){
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const startEdit = async () => {
+    setMode('edit');
+    if (venueList === null) {
+      try {
+        const sb = window.UMAuth.sb;
+        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity').order('name');
+        setVenueList(data || []);
+      } catch (e) { setVenueList([]); }
+    }
+  };
+
+  const pickVenue = (v) => {
+    setEditingId(v.id);
+    setForm({
+      name: v.name || '', address: v.address || '', city: v.city || 'Madrid',
+      phone: v.phone || '', email: v.email || '', cuisine: v.cuisine || '',
+      neighborhood: v.neighborhood || '', description: v.description || '',
+      deposit: ((v.deposit_amount ?? 1000) / 100).toFixed(2),
+      capacity: String(v.capacity ?? 50),
+    });
+  };
+
   const submit = async () => {
     if (!form.name.trim()) { setErrorMsg('Falta el nombre'); setState('error'); return; }
     setState('loading');
@@ -516,16 +541,23 @@ function AdminCreateVenueScreen({ onDone }){
       const token = data?.session?.access_token;
       if (!token) { setErrorMsg('No hay sesión iniciada — inicia sesión con tu cuenta de admin primero.'); setState('error'); return; }
 
-      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/create-venue', {
+      const isEdit = mode === 'edit' && editingId;
+      const url = isEdit
+        ? 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/update-venue'
+        : 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/create-venue';
+      const payload = {
+        ...(isEdit ? { venue_id: editingId } : {}),
+        name: form.name, address: form.address, city: form.city,
+        phone: form.phone, email: form.email, cuisine: form.cuisine,
+        neighborhood: form.neighborhood, description: form.description,
+        deposit_amount: Math.round(Number(form.deposit) * 100) || 1000,
+        capacity: Number(form.capacity) || 50,
+      };
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name, address: form.address, city: form.city,
-          phone: form.phone, email: form.email, cuisine: form.cuisine,
-          neighborhood: form.neighborhood, description: form.description,
-          deposit_amount: Math.round(Number(form.deposit) * 100) || 1000,
-          capacity: Number(form.capacity) || 50,
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json.success) { setErrorMsg(json.error || 'Error desconocido'); setState('error'); return; }
@@ -545,13 +577,33 @@ function AdminCreateVenueScreen({ onDone }){
 
   const inputStyle = { width:'100%', padding:'10px 12px', borderRadius:8, border:'1px solid #ddd', fontSize:14, marginBottom:12 };
   const labelStyle = { fontSize:12, color:'#888', marginBottom:4, display:'block' };
+  const showForm = state === 'form' && (mode === 'create' || (mode === 'edit' && editingId));
 
   return React.createElement(Modal, { onClose: onDone, max:480 },
     React.createElement('div', { className:'rb-head' },
-      React.createElement('h2', null, state === 'done' ? '¡Restaurante creado!' : 'Nuevo restaurante')
+      React.createElement('h2', null,
+        state === 'done' ? (mode === 'edit' ? '¡Restaurante actualizado!' : '¡Restaurante creado!')
+        : mode === 'picker' ? 'Restaurantes'
+        : mode === 'edit' && !editingId ? 'Elige un restaurante'
+        : mode === 'edit' ? `Editando: ${form.name}` : 'Nuevo restaurante'
+      )
     ),
 
-    state === 'form' && React.createElement('div', null,
+    mode === 'picker' && React.createElement('div', null,
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setMode('create'), style:{marginBottom:10} }, 'Crear restaurante nuevo'),
+      React.createElement('button', { className:'btn btn-block btn-lg', onClick:startEdit, style:{background:'#f3f3f3'} }, 'Editar restaurante existente')
+    ),
+
+    mode === 'edit' && !editingId && React.createElement('div', null,
+      venueList === null && React.createElement('p', { style:{color:'#777'} }, 'Cargando…'),
+      venueList && venueList.length === 0 && React.createElement('p', { style:{color:'#777'} }, 'No hay restaurantes todavía.'),
+      venueList && venueList.map(v => React.createElement('button', {
+        key:v.id, onClick:()=>pickVenue(v),
+        style:{ width:'100%', textAlign:'left', padding:'12px 14px', borderRadius:8, border:'1px solid #eee', background:'#fff', marginBottom:8, cursor:'pointer' },
+      }, `${v.name} — ${v.city}`))
+    ),
+
+    showForm && React.createElement('div', null,
       React.createElement('label', { style:labelStyle }, 'Nombre'),
       React.createElement('input', { style:inputStyle, value:form.name, onChange:set('name') }),
       React.createElement('label', { style:labelStyle }, 'Ciudad'),
@@ -575,7 +627,7 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('input', { style:inputStyle, type:'number', step:'0.01', value:form.deposit, onChange:set('deposit') }),
       React.createElement('label', { style:labelStyle }, 'Capacidad'),
       React.createElement('input', { style:inputStyle, type:'number', value:form.capacity, onChange:set('capacity') }),
-      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:submit }, 'Crear restaurante')
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:submit }, mode === 'edit' ? 'Guardar cambios' : 'Crear restaurante')
     ),
 
     state === 'loading' && React.createElement('p', null, 'Creando…'),
@@ -585,7 +637,12 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setState('form') }, 'Volver a intentar')
     ),
 
-    state === 'done' && result && React.createElement('div', null,
+    state === 'done' && result && mode === 'edit' && React.createElement('div', null,
+      React.createElement('p', { style:{ fontSize:14, color:'#2e7d32', marginBottom:16 } }, `✅ ${result.venue?.name || 'Restaurante'} actualizado correctamente.`),
+      React.createElement('button', { className:'btn btn-block btn-lg', onClick:onDone, style:{background:'#f3f3f3'} }, 'Cerrar')
+    ),
+
+    state === 'done' && result && mode !== 'edit' && React.createElement('div', null,
       React.createElement('p', { style:{ fontSize:14, color:'#777', marginBottom:16 } },
         `Moneda: ${result.currency.toUpperCase()} · Zona horaria: ${result.timezone}`
       ),
