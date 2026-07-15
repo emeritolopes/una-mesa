@@ -18,7 +18,7 @@ const ET = {
     autorizado: 'autorizado',
     noshowWarningTitle: '⚠️ Si el cliente no se presenta',
     noshowWarningBody: (dep: string) => `Usa el botón de abajo <strong>solo si el cliente no apareció</strong>. Al pulsarlo, el depósito de <strong>${dep}€ se cobrará automáticamente</strong>. La acción es irreversible.`,
-    noshowButton: (dep: string) => `Marcar como no-show · Cobrar ${dep}€`,
+    noshowButton: () => `Marcar reserva como completada o no-show`,
     noshowValidity: 'Enlace válido 24 h desde la hora de la reserva. Solo un uso.',
     footerTag: 'Una Mesa · La mesa que siempre te espera',
     subjectRestaurant: (name: string, date: string, time: string) => `Nueva reserva: ${name} · ${date} ${time}`,
@@ -52,7 +52,7 @@ const ET = {
     autorizado: 'authorised',
     noshowWarningTitle: '⚠️ If the customer does not show up',
     noshowWarningBody: (dep: string) => `Use the button below <strong>only if the customer didn't show up</strong>. Clicking it will <strong>automatically charge the £${dep} deposit</strong>. This action is irreversible.`,
-    noshowButton: (dep: string) => `Mark as no-show · Charge £${dep}`,
+    noshowButton: () => `Mark booking as completed or no-show`,
     noshowValidity: 'Link valid for 24h from the booking time. Single use only.',
     footerTag: 'Una Mesa · The table that always awaits you',
     subjectRestaurant: (name: string, date: string, time: string) => `New booking: ${name} · ${date} ${time}`,
@@ -198,7 +198,7 @@ function buildRestaurantHtml(opts: {
                   <td style="padding:20px 48px 40px;" align="center">
                     <a href="${noshow_url}"
                        style="display:inline-block;background:#D8552E;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:800;padding:16px 40px;border-radius:50px;letter-spacing:0.2px;">
-                      ${t.noshowButton(depositEur)}
+                      ${t.noshowButton()}
                     </a>
                     <p style="margin:12px 0 0;font-size:11px;color:#AAA;">
                       ${t.noshowValidity}
