@@ -104,13 +104,23 @@ function App() {
   /* scroll to top on view change */
   useEffect(()=>{ window.scrollTo(0,0); }, [route.view, route.rid]);
 
-  /* load real restaurants from Supabase; keep mock data as fallback */
+  const [noRealRestaurants, setNoRealRestaurants] = useState(false);
+
+  /* load real restaurants from Supabase; keep mock data as fallback ONLY on
+     a genuine fetch failure (null) — never when the query worked and
+     simply found zero real restaurants for this city (empty array), since
+     that case needs an honest "coming soon" state, not fictional data. */
   useEffect(() => {
     if (!window.loadRestaurants) return;
     window.loadRestaurants().then(rows => {
-      if (rows && rows.length) {
+      if (rows === null) return; // fallo técnico real — se queda el catálogo de respaldo
+      if (rows.length) {
         window.UM_DATA = rows;
         setRestaurants(rows);
+      } else {
+        window.UM_DATA = [];
+        setRestaurants([]);
+        setNoRealRestaurants(true);
       }
     });
   }, []);
@@ -250,7 +260,7 @@ function App() {
 
   let screen;
   if (route.view==='home')
-    screen = React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation });
+    screen = React.createElement(window.HomeScreen, { go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation, noRealRestaurants });
   else if (route.view==='concierge')
     screen = React.createElement(window.ConciergeScreen, { initialQuery:route.query, openRest, favs, toggleFav, startBook, go, user });
   else if (route.view==='results')
