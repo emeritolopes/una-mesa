@@ -500,4 +500,8 @@ verify_jwt = true
 [functions.update-venue]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/update-venue/index.ts"
+
+[functions.upload-venue-photo]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/upload-venue-photo/index.ts"
