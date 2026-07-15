@@ -492,4 +492,8 @@ verify_jwt = true
 [functions.stripe-connect-self-onboard]
 enabled = true
 verify_jwt = false
-entrypoint = "./functions/stripe-connect-self-onboard/index.ts"
+
+[functions.create-venue]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/create-venue/index.ts"
