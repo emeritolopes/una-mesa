@@ -30,7 +30,6 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
 
   /* Map — init cuando coords están disponibles */
   React.useEffect(() => {
-    console.log('[MAP EFFECT]', coords);
     if (!coords || !mapContainerRef.current || !window.L) return;
     if (leafletMapRef.current) { leafletMapRef.current.remove(); leafletMapRef.current = null; }
     delete mapContainerRef.current._leaflet_id;
