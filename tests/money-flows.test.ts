@@ -56,7 +56,11 @@ async function getStaffToken(): Promise<string> {
 async function createTestReservation(opts: { hoursFromNow: number; depositCents?: number }) {
   const deposit = opts.depositCents ?? 1000
   const pi = await stripe.paymentIntents.create(
-    { amount: deposit, currency: 'eur', capture_method: 'manual', payment_method: 'pm_card_visa', confirm: true },
+    {
+      amount: deposit, currency: 'eur', capture_method: 'manual',
+      payment_method: 'pm_card_visa', confirm: true,
+      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+    },
     { stripeAccount: TEST_STRIPE_ACCOUNT_ID }
   )
   const when = new Date(Date.now() + opts.hoursFromNow * 3600_000)
@@ -168,10 +172,13 @@ Deno.test('cancelar una reserva ya resuelta no la sobreescribe (arreglo de la co
 Deno.test('find_stuck_reservations detecta un depósito atascado en capturing', async () => {
   const { reservation } = await createTestReservation({ hoursFromNow: 5 })
   try {
-    // Forzamos el estado atascado directamente, con updated_at en el pasado.
-    await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${reservation.id}`, {
-      method: 'PATCH', headers: h,
-      body: JSON.stringify({ deposit_status: 'capturing', updated_at: new Date(Date.now() - 15 * 60_000).toISOString() }),
+    // Simula "hace 15 minutos" de verdad, rodeando el trigger de updated_at
+    // de forma segura (ver 024_test_helper_force_stuck.sql) — el trigger
+    // normal sobreescribiría cualquier updated_at que la prueba intentara
+    // poner a mano, ya que eso es exactamente lo que debe evitar en producción.
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/test_force_stuck_reservation`, {
+      method: 'POST', headers: h,
+      body: JSON.stringify({ p_reservation_id: reservation.id, p_minutes_ago: 15 }),
     })
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/find_stuck_reservations`, { method: 'POST', headers: h, body: '{}' })
