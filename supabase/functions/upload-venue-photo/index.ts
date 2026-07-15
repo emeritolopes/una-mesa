@@ -58,11 +58,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'file too large — max 8MB' }), { status: 413, headers: corsHeaders })
     }
 
+    // La API de Storage exige el JWT legacy real (empieza con "eyJ"), no el
+    // "secret key" nuevo de 48 caracteres que sí acepta /rest/v1/ (PostgREST) —
+    // con ese, Storage responde "Invalid Compact JWS". Por eso este secreto
+    // es distinto al SUPABASE_SERVICE_ROLE_KEY que usan las demás funciones.
+    const storageJwt = Deno.env.get('STORAGE_SERVICE_ROLE_JWT') ?? serviceKey
     const path = `${crypto.randomUUID()}.${ext}`
     const uploadRes = await fetch(`${supabaseUrl}/storage/v1/object/venue-photos/${path}`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${serviceKey}`,
+        Authorization: `Bearer ${storageJwt}`,
         'Content-Type': content_type,
         'x-upsert': 'false',
       },
