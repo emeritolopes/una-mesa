@@ -501,8 +501,9 @@ function AdminCreateVenueScreen({ onDone }){
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     name:'', address:'', city:'Madrid', phone:'', email:'',
-    cuisine:'', neighborhood:'', description:'',
+    cuisine:'', neighborhood:'', description:'', photo_url:'',
     deposit:'10.00', capacity:'50',
+    lunch_start:'13:00', lunch_end:'16:00', dinner_start:'20:00', dinner_end:'23:00',
   });
   const [state, setState] = useState('form'); // form | loading | done | error
   const [errorMsg, setErrorMsg] = useState('');
@@ -516,20 +517,35 @@ function AdminCreateVenueScreen({ onDone }){
     if (venueList === null) {
       try {
         const sb = window.UMAuth.sb;
-        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity').order('name');
+        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity,photo_url,times').order('name');
         setVenueList(data || []);
       } catch (e) { setVenueList([]); }
     }
   };
 
+  const slotsToRange = (slots) => {
+    if (!slots || !slots.length) return null;
+    const start = slots[0][0];
+    const [lh, lm] = slots[slots.length - 1][0].split(':').map(Number);
+    let endM = lm + 30, endH = lh;
+    if (endM >= 60) { endH++; endM -= 60; }
+    const end = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+    return { start, end };
+  };
+
   const pickVenue = (v) => {
     setEditingId(v.id);
+    const lunch = slotsToRange(v.times?.lunch) || { start:'13:00', end:'16:00' };
+    const dinner = slotsToRange(v.times?.dinner) || { start:'20:00', end:'23:00' };
     setForm({
       name: v.name || '', address: v.address || '', city: v.city || 'Madrid',
       phone: v.phone || '', email: v.email || '', cuisine: v.cuisine || '',
       neighborhood: v.neighborhood || '', description: v.description || '',
+      photo_url: v.photo_url || '',
       deposit: ((v.deposit_amount ?? 1000) / 100).toFixed(2),
       capacity: String(v.capacity ?? 50),
+      lunch_start: lunch.start, lunch_end: lunch.end,
+      dinner_start: dinner.start, dinner_end: dinner.end,
     });
   };
 
@@ -550,8 +566,11 @@ function AdminCreateVenueScreen({ onDone }){
         name: form.name, address: form.address, city: form.city,
         phone: form.phone, email: form.email, cuisine: form.cuisine,
         neighborhood: form.neighborhood, description: form.description,
+        photo_url: form.photo_url,
         deposit_amount: Math.round(Number(form.deposit) * 100) || 1000,
         capacity: Number(form.capacity) || 50,
+        lunch_start: form.lunch_start, lunch_end: form.lunch_end,
+        dinner_start: form.dinner_start, dinner_end: form.dinner_end,
       };
 
       const res = await fetch(url, {
@@ -623,6 +642,18 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('input', { style:inputStyle, value:form.neighborhood, onChange:set('neighborhood') }),
       React.createElement('label', { style:labelStyle }, 'Descripción'),
       React.createElement('input', { style:inputStyle, value:form.description, onChange:set('description') }),
+      React.createElement('label', { style:labelStyle }, 'URL de la foto'),
+      React.createElement('input', { style:inputStyle, value:form.photo_url, onChange:set('photo_url'), placeholder:'https://...' }),
+      React.createElement('label', { style:labelStyle }, 'Horario de comida'),
+      React.createElement('div', { style:{display:'flex', gap:8, marginBottom:12} },
+        React.createElement('input', { style:{...inputStyle, marginBottom:0}, type:'time', value:form.lunch_start, onChange:set('lunch_start') }),
+        React.createElement('input', { style:{...inputStyle, marginBottom:0}, type:'time', value:form.lunch_end, onChange:set('lunch_end') })
+      ),
+      React.createElement('label', { style:labelStyle }, 'Horario de cena'),
+      React.createElement('div', { style:{display:'flex', gap:8, marginBottom:12} },
+        React.createElement('input', { style:{...inputStyle, marginBottom:0}, type:'time', value:form.dinner_start, onChange:set('dinner_start') }),
+        React.createElement('input', { style:{...inputStyle, marginBottom:0}, type:'time', value:form.dinner_end, onChange:set('dinner_end') })
+      ),
       React.createElement('label', { style:labelStyle }, `Depósito (${form.city === 'London' ? '£' : '€'} por comensal)`),
       React.createElement('input', { style:inputStyle, type:'number', step:'0.01', value:form.deposit, onChange:set('deposit') }),
       React.createElement('label', { style:labelStyle }, 'Capacidad'),

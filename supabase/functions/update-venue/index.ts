@@ -21,7 +21,20 @@ const corsHeaders = {
 const EDITABLE_FIELDS = [
   'name', 'address', 'city', 'phone', 'email', 'cuisine', 'neighborhood',
   'description', 'deposit_amount', 'capacity', 'platform_fee_cents', 'grace_period_minutes',
+  'photo_url',
 ] as const
+
+function generateSlots(from: string, to: string) {
+  const slots: [string, string][] = []
+  let [h, m] = from.split(':').map(Number)
+  const [th, tm] = to.split(':').map(Number)
+  while (h * 60 + m < th * 60 + tm) {
+    slots.push([`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`, ''])
+    m += 30
+    if (m >= 60) { h++; m -= 60 }
+  }
+  return slots
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
@@ -53,6 +66,15 @@ Deno.serve(async (req) => {
     const patch: Record<string, unknown> = {}
     for (const field of EDITABLE_FIELDS) {
       if (body[field] !== undefined) patch[field] = body[field]
+    }
+    // Horarios — se mandan como lunch_start/lunch_end/dinner_start/dinner_end
+    // en vez del objeto times directo, para que el formulario de admin sea
+    // simple (cuatro campos de hora, no JSON a mano).
+    if (body.lunch_start || body.lunch_end || body.dinner_start || body.dinner_end) {
+      patch.times = {
+        lunch: generateSlots(body.lunch_start || '13:00', body.lunch_end || '16:00'),
+        dinner: generateSlots(body.dinner_start || '20:00', body.dinner_end || '23:00'),
+      }
     }
     if (Object.keys(patch).length === 0) {
       return new Response(JSON.stringify({ error: 'no editable fields provided' }), { status: 400, headers: corsHeaders })

@@ -55,11 +55,15 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { name, address, city, phone, email, cuisine, neighborhood, description } = body
+    const { name, address, city, phone, email, cuisine, neighborhood, description, photo_url } = body
     const price_range = body.price_range ?? 2
     const deposit_amount = body.deposit_amount ?? 1000
     const capacity = body.capacity ?? 50
     const platform_fee_cents = body.platform_fee_cents ?? 100
+    const lunchStart = body.lunch_start || '13:00'
+    const lunchEnd = body.lunch_end || '16:00'
+    const dinnerStart = body.dinner_start || '20:00'
+    const dinnerEnd = body.dinner_end || '23:00'
 
     if (!name || !city) {
       return new Response(JSON.stringify({ error: 'name and city are required' }), { status: 400, headers: corsHeaders })
@@ -71,8 +75,8 @@ Deno.serve(async (req) => {
     const currency = isLondon ? 'gbp' : 'eur'
     const timezone = isLondon ? 'Europe/London' : 'Europe/Madrid'
     const times = {
-      lunch: generateSlots('13:00', '16:00'),
-      dinner: generateSlots('20:00', '23:00'),
+      lunch: generateSlots(lunchStart, lunchEnd),
+      dinner: generateSlots(dinnerStart, dinnerEnd),
     }
 
     // 2 · Crear el restaurante
@@ -80,7 +84,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { ...h, Prefer: 'return=representation' },
       body: JSON.stringify({
-        name, address, city, phone, email, cuisine, neighborhood, description,
+        name, address, city, phone, email, cuisine, neighborhood, description, photo_url,
         price_range, deposit_amount, capacity, platform_fee_cents,
         currency, timezone, times,
       }),
