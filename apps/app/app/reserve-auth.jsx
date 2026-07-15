@@ -492,4 +492,109 @@ function StripeConnectScreen({ token, justDone, onDone }){
   );
 }
 
-Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen, CancelBookingScreen, StripeConnectScreen });
+/* ── pantalla de alta de restaurantes para admin — reemplaza el INSERT de
+   SQL a mano que hacíamos por cada restaurante nuevo. Usa la sesión activa
+   directamente, sin pedir ningún JWT copiado a mano. ── */
+function AdminCreateVenueScreen({ onDone }){
+  const [form, setForm] = useState({
+    name:'', address:'', city:'Madrid', phone:'', email:'',
+    cuisine:'', neighborhood:'', description:'',
+    deposit:'10.00', capacity:'50',
+  });
+  const [state, setState] = useState('form'); // form | loading | done | error
+  const [errorMsg, setErrorMsg] = useState('');
+  const [result, setResult] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async () => {
+    if (!form.name.trim()) { setErrorMsg('Falta el nombre'); setState('error'); return; }
+    setState('loading');
+    try {
+      const { data } = await window.UMAuth.sb.auth.getSession();
+      const token = data?.session?.access_token;
+      if (!token) { setErrorMsg('No hay sesión iniciada — inicia sesión con tu cuenta de admin primero.'); setState('error'); return; }
+
+      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/create-venue', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name, address: form.address, city: form.city,
+          phone: form.phone, email: form.email, cuisine: form.cuisine,
+          neighborhood: form.neighborhood, description: form.description,
+          deposit_amount: Math.round(Number(form.deposit) * 100) || 1000,
+          capacity: Number(form.capacity) || 50,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) { setErrorMsg(json.error || 'Error desconocido'); setState('error'); return; }
+      setResult(json);
+      setState('done');
+    } catch (e) {
+      setErrorMsg(e.message || String(e));
+      setState('error');
+    }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard?.writeText(result.self_service_url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const inputStyle = { width:'100%', padding:'10px 12px', borderRadius:8, border:'1px solid #ddd', fontSize:14, marginBottom:12 };
+  const labelStyle = { fontSize:12, color:'#888', marginBottom:4, display:'block' };
+
+  return React.createElement(Modal, { onClose: onDone, max:480 },
+    React.createElement('div', { className:'rb-head' },
+      React.createElement('h2', null, state === 'done' ? '¡Restaurante creado!' : 'Nuevo restaurante')
+    ),
+
+    state === 'form' && React.createElement('div', null,
+      React.createElement('label', { style:labelStyle }, 'Nombre'),
+      React.createElement('input', { style:inputStyle, value:form.name, onChange:set('name') }),
+      React.createElement('label', { style:labelStyle }, 'Ciudad'),
+      React.createElement('select', { style:inputStyle, value:form.city, onChange:set('city') },
+        React.createElement('option', { value:'Madrid' }, 'Madrid'),
+        React.createElement('option', { value:'London' }, 'London')
+      ),
+      React.createElement('label', { style:labelStyle }, 'Dirección'),
+      React.createElement('input', { style:inputStyle, value:form.address, onChange:set('address') }),
+      React.createElement('label', { style:labelStyle }, 'Teléfono'),
+      React.createElement('input', { style:inputStyle, value:form.phone, onChange:set('phone') }),
+      React.createElement('label', { style:labelStyle }, 'Email'),
+      React.createElement('input', { style:inputStyle, value:form.email, onChange:set('email') }),
+      React.createElement('label', { style:labelStyle }, 'Cocina (ej. Mediterránea)'),
+      React.createElement('input', { style:inputStyle, value:form.cuisine, onChange:set('cuisine') }),
+      React.createElement('label', { style:labelStyle }, 'Barrio'),
+      React.createElement('input', { style:inputStyle, value:form.neighborhood, onChange:set('neighborhood') }),
+      React.createElement('label', { style:labelStyle }, 'Descripción'),
+      React.createElement('input', { style:inputStyle, value:form.description, onChange:set('description') }),
+      React.createElement('label', { style:labelStyle }, `Depósito (${form.city === 'London' ? '£' : '€'} por comensal)`),
+      React.createElement('input', { style:inputStyle, type:'number', step:'0.01', value:form.deposit, onChange:set('deposit') }),
+      React.createElement('label', { style:labelStyle }, 'Capacidad'),
+      React.createElement('input', { style:inputStyle, type:'number', value:form.capacity, onChange:set('capacity') }),
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:submit }, 'Crear restaurante')
+    ),
+
+    state === 'loading' && React.createElement('p', null, 'Creando…'),
+
+    state === 'error' && React.createElement('div', null,
+      React.createElement('p', { style:{ color:'#c0392b', marginBottom:16 } }, errorMsg),
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setState('form') }, 'Volver a intentar')
+    ),
+
+    state === 'done' && result && React.createElement('div', null,
+      React.createElement('p', { style:{ fontSize:14, color:'#777', marginBottom:16 } },
+        `Moneda: ${result.currency.toUpperCase()} · Zona horaria: ${result.timezone}`
+      ),
+      React.createElement('label', { style:labelStyle }, 'Link para el restaurante (conectar pagos)'),
+      React.createElement('input', { style:{...inputStyle, fontSize:12}, readOnly:true, value:result.self_service_url, onClick:(e)=>e.target.select() }),
+      React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:copyLink, style:{marginBottom:10} }, copied ? '¡Copiado!' : 'Copiar link'),
+      React.createElement('button', { className:'btn btn-block btn-lg', onClick:onDone, style:{background:'#f3f3f3'} }, 'Cerrar')
+    )
+  );
+}
+
+Object.assign(window, { ReserveAuthModal, ClaimSpoonsModal, ResetPasswordScreen, CancelBookingScreen, StripeConnectScreen, AdminCreateVenueScreen });

@@ -73,6 +73,9 @@ function App() {
   const [connectJustDone] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('done') === '1'; } catch (_) { return false; }
   });
+  const [adminVenues, setAdminVenues] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('admin') === 'venues'; } catch (_) { return false; }
+  });
   const [spoons, setSpoons] = useState(0);
   const [toast, setToast] = useState('');
   const [geo, setGeo] = useState({ status:'idle', label:'', ref:{x:50,y:50} });
@@ -293,6 +296,15 @@ function App() {
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete('connect_token');
+        window.history.replaceState({}, '', url.toString());
+      } catch (_) {}
+      go('home');
+    } }) : null,
+    adminVenues ? React.createElement(window.AdminCreateVenueScreen, { onDone:()=>{
+      setAdminVenues(false);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('admin');
         window.history.replaceState({}, '', url.toString());
       } catch (_) {}
       go('home');
