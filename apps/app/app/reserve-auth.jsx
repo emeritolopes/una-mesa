@@ -589,6 +589,9 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('p', { style:{ fontSize:14, color:'#777', marginBottom:16 } },
         `Moneda: ${result.currency.toUpperCase()} · Zona horaria: ${result.timezone}`
       ),
+      result.email_sent
+        ? React.createElement('p', { style:{ fontSize:14, color:'#2e7d32', marginBottom:16 } }, '✅ Email de invitación enviado al restaurante.')
+        : React.createElement('p', { style:{ fontSize:14, color:'#c0392b', marginBottom:16 } }, '⚠️ No se pudo enviar el email — copia el link y mándalo tú a mano.'),
       React.createElement('label', { style:labelStyle }, 'Link para el restaurante (conectar pagos)'),
       React.createElement('input', { style:{...inputStyle, fontSize:12}, readOnly:true, value:result.self_service_url, onClick:(e)=>e.target.select() }),
       React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:copyLink, style:{marginBottom:10} }, copied ? '¡Copiado!' : 'Copiar link'),

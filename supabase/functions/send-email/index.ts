@@ -22,6 +22,11 @@ const ET = {
     noshowValidity: 'Enlace válido 24 h desde la hora de la reserva. Solo un uso.',
     footerTag: 'Una Mesa · La mesa que siempre te espera',
     subjectRestaurant: (name: string, date: string, time: string) => `Nueva reserva: ${name} · ${date} ${time}`,
+    subjectStripeInvite: (r: string) => `${r} — conecta tu cuenta de cobro en Una Mesa`,
+    stripeInviteHeading: (r: string) => `¡Bienvenido a Una Mesa, ${r}!`,
+    stripeInviteBody: 'Para empezar a recibir reservas y sus depósitos, conecta tu cuenta bancaria — el proceso lo gestiona Stripe directamente, es rápido y seguro.',
+    stripeInviteButton: 'Conectar mi cuenta de cobro',
+    stripeInviteFooter: 'El dinero de cada depósito llega directo a tu cuenta — Una Mesa nunca lo retiene.',
 
     customerTitle: (r: string) => `Tu reserva en ${r}`,
     confirmEyebrow: 'Confirmación de reserva',
@@ -56,6 +61,11 @@ const ET = {
     noshowValidity: 'Link valid for 24h from the booking time. Single use only.',
     footerTag: 'Una Mesa · The table that always awaits you',
     subjectRestaurant: (name: string, date: string, time: string) => `New booking: ${name} · ${date} ${time}`,
+    subjectStripeInvite: (r: string) => `${r} — connect your payout account on Una Mesa`,
+    stripeInviteHeading: (r: string) => `Welcome to Una Mesa, ${r}!`,
+    stripeInviteBody: "To start receiving bookings and their deposits, connect your bank account — Stripe handles the process directly, it's quick and secure.",
+    stripeInviteButton: 'Connect my payout account',
+    stripeInviteFooter: 'Each deposit goes straight to your account — Una Mesa never holds it.',
 
     customerTitle: (r: string) => `Your booking at ${r}`,
     confirmEyebrow: 'Booking confirmation',
@@ -432,11 +442,66 @@ function buildHtml(opts: {
 </html>`
 }
 
+function buildStripeInviteHtml(opts: {
+  restaurant_name: string
+  self_service_url: string
+  lang: 'es' | 'en'
+}): string {
+  const { restaurant_name, self_service_url, lang } = opts
+  const t = ET[lang] || ET.es
+  return `<!DOCTYPE html>
+<html lang="${t.htmlLang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${t.subjectStripeInvite(restaurant_name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4F0;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+          <tr>
+            <td align="center" style="padding:0 0 28px 0;">
+              <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="background:#D8552E;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:36px 40px;">
+                  <p style="margin:0 0 16px 0;font-size:20px;font-weight:800;color:#1a130d;">${t.stripeInviteHeading(restaurant_name)}</p>
+                  <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#555;">${t.stripeInviteBody}</p>
+                  <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:10px;background:#D8552E;">
+                    <a href="${self_service_url}" style="display:block;padding:14px 28px;color:#fff;text-decoration:none;font-size:14px;font-weight:700;">${t.stripeInviteButton}</a>
+                  </td></tr></table>
+                  <p style="margin:28px 0 0 0;font-size:12px;color:#999;">${t.stripeInviteFooter}</p>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 0 0 0;">
+              <p style="margin:0;font-size:12px;color:#999;">${t.footerTag}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -449,12 +514,17 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
 
-    const isRestaurant = !!noshow_url
-    const html = isRestaurant
+    const isStripeInvite = !!stripe_invite_url
+    const isRestaurant = !isStripeInvite && !!noshow_url
+    const html = isStripeInvite
+      ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
+      : isRestaurant
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
       : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, lang })
 
-    const subject = isRestaurant
+    const subject = isStripeInvite
+      ? t.subjectStripeInvite(restaurant_name)
+      : isRestaurant
       ? t.subjectRestaurant(customer_name, date, time)
       : t.subjectCustomer(restaurant_name)
 
