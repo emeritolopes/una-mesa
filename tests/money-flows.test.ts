@@ -56,7 +56,11 @@ async function getStaffToken(): Promise<string> {
 async function createTestReservation(opts: { hoursFromNow: number; depositCents?: number }) {
   const deposit = opts.depositCents ?? 1000
   const pi = await stripe.paymentIntents.create(
-    { amount: deposit, currency: 'eur', capture_method: 'manual', payment_method: 'pm_card_visa', confirm: true },
+    {
+      amount: deposit, currency: 'eur', capture_method: 'manual',
+      payment_method: 'pm_card_visa', confirm: true,
+      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+    },
     { stripeAccount: TEST_STRIPE_ACCOUNT_ID }
   )
   const when = new Date(Date.now() + opts.hoursFromNow * 3600_000)
