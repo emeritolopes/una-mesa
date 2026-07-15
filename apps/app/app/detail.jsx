@@ -61,7 +61,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
 
       /* ── Gallery: 2fr | 1fr 1fr bento grid ── */
       React.createElement('div', { className:'gallery' },
-        React.createElement(Photo,{ cz:r.cz, glyph:r.glyph,          slotId:'um-'+r.id+'-g0', className:'g-main' }),
+        React.createElement(Photo,{ cz:r.cz, glyph:r.glyph,          slotId:'um-'+r.id+'-g0', className:'g-main', photoUrl:r.photo_url }),
         React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from},  glyph:r.glyph, slotId:'um-'+r.id+'-g1' }),
         React.createElement(Photo,{ cz:r.cz,                          glyph:'wine',  slotId:'um-'+r.id+'-g2' }),
         React.createElement(Photo,{ cz:{from:r.cz.to,to:r.cz.from},  glyph:'pot',   slotId:'um-'+r.id+'-g3' }),

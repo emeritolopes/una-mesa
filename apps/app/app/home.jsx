@@ -70,10 +70,12 @@ function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img })
   const firstTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])]
     .filter(([time]) => { const [h,m] = time.split(':').map(Number); return (h*60+m) > currentMinutes+30; })
     .slice(0,3);
+  const resolvedImg = r.photo_url || img;
+  const isAbsoluteImg = resolvedImg && /^https?:\/\//.test(resolvedImg);
   return React.createElement('div', { className:'rcard', onClick:()=>onOpen(r.id) },
     React.createElement('div', { className:'rc-photo' },
-      img
-        ? React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' } })
+      resolvedImg
+        ? React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:"url('"+(isAbsoluteImg ? resolvedImg : './'+resolvedImg)+"')", backgroundSize:'cover', backgroundPosition:'center' } })
         : React.createElement(Photo, { cz:r.cz, glyph:r.glyph, slotId:'rphoto-'+r.id }),
       showMatch ? React.createElement('span', { className:'rc-match' },
         React.createElement(Icon,{name:'sparkle',fill:'currentColor'}), r.match+'%') : null,
@@ -107,8 +109,10 @@ function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img })
 
 /* bento card — sección Selección de la semana */
 function BentoCard({ r, big, onOpen, img }) {
-  const bgStyle = img
-    ? { backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' }
+  const resolvedImg = r.photo_url || img;
+  const isAbsoluteImg = resolvedImg && /^https?:\/\//.test(resolvedImg);
+  const bgStyle = resolvedImg
+    ? { backgroundImage:"url('"+(isAbsoluteImg ? resolvedImg : './'+resolvedImg)+"')", backgroundSize:'cover', backgroundPosition:'center' }
     : { background:'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')' };
   return React.createElement('div', {
     className: 'stitch-bento-card'+(big?'':' small'),
@@ -128,8 +132,10 @@ function BentoCard({ r, big, onOpen, img }) {
 
 /* nearby card — sección Disponible hoy (bento pequeño con título visible) */
 function NearbyCard({ r, dist, onOpen, img }) {
-  const bgStyle = img
-    ? { backgroundImage:"url('./"+img+"')", backgroundSize:'cover', backgroundPosition:'center' }
+  const resolvedImg = r.photo_url || img;
+  const isAbsolute = resolvedImg && /^https?:\/\//.test(resolvedImg);
+  const bgStyle = resolvedImg
+    ? { backgroundImage:"url('"+(isAbsolute ? resolvedImg : './'+resolvedImg)+"')", backgroundSize:'cover', backgroundPosition:'center' }
     : { background:'linear-gradient(150deg,'+r.cz.from+','+r.cz.to+')' };
   return React.createElement('div', { className:'nearby-card', onClick:()=>onOpen(r.id) },
     React.createElement('div', { className:'nb-bg', style:bgStyle }),
