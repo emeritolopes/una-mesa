@@ -126,6 +126,7 @@ function App() {
   }, []);
 
   /* sync auth state with Supabase session (handles page reload + sign-in/out) */
+  const wasSignedInRef = useRef(false);
   useEffect(() => {
     if (!window.UMAuth) return;
     const sub = window.UMAuth.onAuthStateChange((event, appUser) => {
@@ -138,12 +139,16 @@ function App() {
       }
       if (appUser) {
         setUser(appUser);
-        // Tras un login real (OAuth u otro), llevar a la pantalla de perfil.
-        // No dependemos de que el redirect de OAuth conserve ningún hash propio —
-        // navegamos aquí, en JS, una vez que la sesión ya está confirmada.
-        if (event === 'SIGNED_IN') {
+        // Supabase dispara 'SIGNED_IN' no solo en un login real, sino también
+        // al volver a la pestaña y revalidar en segundo plano la MISMA sesión
+        // — sin este chequeo, cambiar de pestaña y volver te mandaba de vuelta
+        // al perfil sin importar dónde estuvieras (por ejemplo, viendo la
+        // ficha de un restaurante). Solo navegamos si de verdad no había
+        // sesión antes de este evento — un login genuino, no una revalidación.
+        if (event === 'SIGNED_IN' && !wasSignedInRef.current) {
           setRoute({ view:'profile', rid:null, query:'', presetTime:null });
         }
+        wasSignedInRef.current = true;
       } else {
         // No hay sesión real de Supabase — ni en SIGNED_OUT explícito, ni en
         // INITIAL_SESSION al cargar la página si el token ya expiró o nunca
@@ -151,6 +156,7 @@ function App() {
         // corregir: eso fue justo lo que produjo una reserva real a nombre
         // de una sesión fantasma ("Comensal") en vez del usuario logueado.
         setUser(null);
+        wasSignedInRef.current = false;
       }
     });
     return () => sub && sub.unsubscribe();
