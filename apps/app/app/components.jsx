@@ -53,10 +53,15 @@ function Icon({ name, className, style, fill }) {
 }
 
 /* ── Photo placeholder (gradient + glyph) ── */
-function Photo({ cz, glyph, slotId, className, style }) {
+function Photo({ cz, glyph, slotId, className, style, photoUrl }) {
   // safeCz v2 - null guard
   const safeCz = cz || { from: '#2D2420', to: '#4A3728' };
   const grad = `linear-gradient(150deg, ${safeCz.from}, ${safeCz.to})`;
+  if (photoUrl) {
+    return React.createElement('div', { className:'photo '+(className||''), style:{ background:grad, ...style, position:'relative', overflow:'hidden' } },
+      React.createElement('img', { src:photoUrl, alt:'', style:{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' } })
+    );
+  }
   return React.createElement('div', { className:'photo '+(className||''), style:{ background:grad, ...style } },
     React.createElement('div',{className:'ph-grain'}),
     React.createElement('div',{className:'ph-art'}, React.createElement(Icon,{name:glyph||'spoon'})),

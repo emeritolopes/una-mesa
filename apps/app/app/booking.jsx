@@ -357,7 +357,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
 
   /* ════ Restaurant summary row ════ */
   const RestRow = React.createElement('div', { className:'bk-rest' },
-    React.createElement(Photo,{cz:r.cz,glyph:r.glyph}),
+    React.createElement(Photo,{cz:r.cz,glyph:r.glyph,photoUrl:r.photo_url}),
     React.createElement('div',null,
       React.createElement('div',{className:'bn'},r.name),
       React.createElement('div',{className:'bm'},r.cuisine+' · '+r.area)));
