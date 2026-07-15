@@ -1,103 +1,16 @@
-/* ════ UNA MESA · pruebas automatizadas del núcleo de dinero ════
-   Corre contra el proyecto real de Supabase, en modo test de Stripe —
-   no hay entorno de staging separado. Cada prueba crea su propia
-   reserva real, la ejecuta, confirma el resultado, y limpia después.
-
-   Requiere estas variables de entorno (nunca escritas aquí):
-     SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
-     STRIPE_SECRET_KEY, TEST_VENUE_ID, TEST_STRIPE_ACCOUNT_ID,
-     TEST_STAFF_EMAIL, TEST_STAFF_PASSWORD
-
-   TEST_VENUE_ID / TEST_STRIPE_ACCOUNT_ID deben ser un restaurante real
-   con Stripe Connect ya activo (por ejemplo, El Bodegón Central).
-   TEST_STAFF_EMAIL/PASSWORD deben ser una cuenta real vinculada a ese
-   mismo restaurante en restaurant_users (por ejemplo, testA) — algunas
-   de estas funciones exigen el JWT de un empleado real, no basta la
-   service_role key, porque verifican dueño de verdad.
+/* ════ UNA MESA · pruebas automatizadas del núcleo de dinero (staff) ════
+   Corre contra el proyecto real de Supabase, en modo test de Stripe.
+   Ver tests/helpers.ts para las variables de entorno necesarias.
 
    Correr con:
-     deno test --allow-net --allow-env tests/money-flows.test.ts
+     deno test --allow-net --allow-env --no-config tests/money-flows.test.ts
 */
 
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts'
-import Stripe from 'https://esm.sh/stripe@14?target=deno'
-
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
-const TEST_VENUE_ID = Deno.env.get('TEST_VENUE_ID')!
-const TEST_STRIPE_ACCOUNT_ID = Deno.env.get('TEST_STRIPE_ACCOUNT_ID')!
-const TEST_STAFF_EMAIL = Deno.env.get('TEST_STAFF_EMAIL')!
-const TEST_STAFF_PASSWORD = Deno.env.get('TEST_STAFF_PASSWORD')!
-
-const h = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' }
-const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' })
-
-// ── Login real de staff — cancel-reservation/mark-completed verifican
-//    dueño de verdad contra restaurant_users, la service_role key no basta ──
-let staffToken: string | null = null
-async function getStaffToken(): Promise<string> {
-  if (staffToken) return staffToken
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: TEST_STAFF_EMAIL, password: TEST_STAFF_PASSWORD }),
-  })
-  const json = await res.json()
-  const token: string | undefined = json.access_token
-  if (!token) throw new Error('No se pudo iniciar sesión de staff de prueba: ' + JSON.stringify(json))
-  staffToken = token
-  return token
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-async function createTestReservation(opts: { hoursFromNow: number; depositCents?: number }) {
-  const deposit = opts.depositCents ?? 1000
-  const pi = await stripe.paymentIntents.create(
-    {
-      amount: deposit, currency: 'eur', capture_method: 'manual',
-      payment_method: 'pm_card_visa', confirm: true,
-      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
-    },
-    { stripeAccount: TEST_STRIPE_ACCOUNT_ID }
-  )
-  const when = new Date(Date.now() + opts.hoursFromNow * 3600_000)
-  const date = when.toISOString().slice(0, 10)
-  const time = when.toISOString().slice(11, 16) + ':00'
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations`, {
-    method: 'POST', headers: { ...h, Prefer: 'return=representation' },
-    body: JSON.stringify({
-      venue_id: TEST_VENUE_ID, customer_name: 'TEST_AUTOMATED', pax: 2,
-      date, time, status: 'confirmed', deposit_status: 'pending', payment_intent_id: pi.id,
-    }),
-  })
-  const [reservation] = await res.json()
-  return { reservation, paymentIntentId: pi.id }
-}
-
-async function getReservation(id: string) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}&select=*`, { headers: h })
-  const [r] = await res.json()
-  return r
-}
-
-async function deleteReservation(id: string) {
-  await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}`, { method: 'DELETE', headers: h })
-}
-
-async function callFunction(name: string, body: unknown, authToken?: string) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
-    method: 'POST',
-    headers: { apikey: ANON_KEY, Authorization: `Bearer ${authToken ?? SERVICE_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  return { status: res.status, json: await res.json() }
-}
-
-// ── Pruebas ──────────────────────────────────────────────────────────
+import {
+  stripe, TEST_STRIPE_ACCOUNT_ID,
+  createTestReservation, getReservation, deleteReservation, callFunction, rpc, getStaffToken,
+} from './helpers.ts'
 
 Deno.test('cancelar con menos de 24h captura el depósito (penalización)', async () => {
   const { reservation, paymentIntentId } = await createTestReservation({ hoursFromNow: 5 })
@@ -153,16 +66,14 @@ Deno.test('mark-completed captura el depósito y marca completed', async () => {
 Deno.test('cancelar una reserva ya resuelta no la sobreescribe (arreglo de la condición de carrera)', async () => {
   const { reservation } = await createTestReservation({ hoursFromNow: -1 })
   try {
-    // La resolvemos primero como completada — simula que otro proceso ganó la carrera.
     const first = await callFunction('mark-completed', { reservation_id: reservation.id, status: 'completed' }, await getStaffToken())
     assertEquals(first.json.success, true)
 
-    // Intentar cancelarla después NO debe tener éxito, ni sobreescribir con datos viejos.
     const second = await callFunction('cancel-reservation', { reservation_id: reservation.id }, await getStaffToken())
     assertEquals(second.status, 409)
 
     const finalState = await getReservation(reservation.id)
-    assertEquals(finalState.status, 'completed') // debe seguir como quedó, no 'cancelled'
+    assertEquals(finalState.status, 'completed')
     assertEquals(finalState.deposit_status, 'captured')
   } finally {
     await deleteReservation(reservation.id)
@@ -172,17 +83,8 @@ Deno.test('cancelar una reserva ya resuelta no la sobreescribe (arreglo de la co
 Deno.test('find_stuck_reservations detecta un depósito atascado en capturing', async () => {
   const { reservation } = await createTestReservation({ hoursFromNow: 5 })
   try {
-    // Simula "hace 15 minutos" de verdad, rodeando el trigger de updated_at
-    // de forma segura (ver 024_test_helper_force_stuck.sql) — el trigger
-    // normal sobreescribiría cualquier updated_at que la prueba intentara
-    // poner a mano, ya que eso es exactamente lo que debe evitar en producción.
-    await fetch(`${SUPABASE_URL}/rest/v1/rpc/test_force_stuck_reservation`, {
-      method: 'POST', headers: h,
-      body: JSON.stringify({ p_reservation_id: reservation.id, p_minutes_ago: 15 }),
-    })
-
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/find_stuck_reservations`, { method: 'POST', headers: h, body: '{}' })
-    const issues = await res.json()
+    await rpc('test_force_stuck_reservation', { p_reservation_id: reservation.id, p_minutes_ago: 15 })
+    const issues = await rpc('find_stuck_reservations')
     const found = issues.find((i: { reservation_id: string }) => i.reservation_id === reservation.id)
     assertEquals(found?.issue, 'stuck_capturing')
   } finally {
