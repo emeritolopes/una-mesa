@@ -120,6 +120,7 @@ function NoShowConfirmScreen({ token }) {
   const [state, setState] = useState('loading'); // loading | confirm | success | error
   const [code, setCode] = useState(null);
   const [details, setDetails] = useState(null);
+  const [outcome, setOutcome] = useState(null); // el que se acaba de confirmar, para el mensaje de éxito
 
   useEffect(() => {
     fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-noshow', {
@@ -130,32 +131,38 @@ function NoShowConfirmScreen({ token }) {
       .then(r => r.json())
       .then(json => {
         if (json.ok) { setDetails(json); setState('confirm'); }
-        else { setCode(json.code); setState('error'); }
+        else { setCode(json.code); setDetails(json); setState('error'); }
       })
       .catch(() => { setCode('error'); setState('error'); });
   }, [token]);
 
-  const confirm = () => {
+  const confirm = (chosenOutcome) => {
     setState('loading');
     fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-noshow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, execute: true }),
+      body: JSON.stringify({ token, execute: true, outcome: chosenOutcome }),
     })
       .then(r => r.json())
       .then(json => {
-        if (json.ok) setState('success');
-        else { setCode(json.code); setState('error'); }
+        if (json.ok) { setOutcome(chosenOutcome); setState('success'); }
+        else { setCode(json.code); setDetails(json); setState('error'); }
       })
       .catch(() => { setCode('error'); setState('error'); });
   };
 
-  const errorMsg = () => ({
-    used: 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.',
-    expired: 'Este enlace ha expirado.',
-    unprocessable: 'El depósito de esta reserva ya fue procesado antes.',
-    invalid: 'Este enlace no es válido.',
-  }[code] || 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.');
+  const errorMsg = () => {
+    if (code === 'already_resolved') {
+      const labels = { cancelled: 'cancelada', completed: 'completada', no_show: 'no-show' };
+      return `Esta reserva ya se resolvió como "${labels[details?.resolved_status] || details?.resolved_status}" antes de que usaras este enlace.`;
+    }
+    return ({
+      used: 'Este enlace ya se usó. Si fue un error, contacta con Una Mesa.',
+      expired: 'Este enlace ha expirado.',
+      unprocessable: 'El depósito de esta reserva ya fue procesado antes.',
+      invalid: 'Este enlace no es válido.',
+    }[code] || 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.');
+  };
 
   return (
     <div style={{ fontFamily: 'sans-serif', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -164,14 +171,17 @@ function NoShowConfirmScreen({ token }) {
 
         {state === 'confirm' && details && (
           <>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-            <h1 style={{ fontSize: 20, marginBottom: 8 }}>¿Confirmar no-show?</h1>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>¿Qué pasó con esta reserva?</h1>
             <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>{details.customer_name} · {details.date} · {(details.time || '').slice(0, 5)} · {details.pax} pax</p>
-            <p style={{ fontSize: 14, color: '#777', lineHeight: 1.6, marginBottom: 24 }}>
-              Al confirmar, el depósito se cobrará de forma <strong>irreversible</strong>. Úsalo solo si el cliente no se presentó.
+            <p style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>
+              El depósito se cobra en los dos casos — solo cambia cómo queda registrada la reserva.
             </p>
-            <button onClick={confirm} style={{ width: '100%', background: '#D8552E', color: '#fff', border: 'none', padding: 14, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-              Sí, marcar como no-show y cobrar depósito
+            <button onClick={() => confirm('completed')} style={{ width: '100%', background: '#2e7d32', color: '#fff', border: 'none', padding: 14, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 10 }}>
+              El cliente asistió
+            </button>
+            <button onClick={() => confirm('no_show')} style={{ width: '100%', background: '#D8552E', color: '#fff', border: 'none', padding: 14, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+              El cliente no se presentó
             </button>
           </>
         )}
@@ -179,8 +189,12 @@ function NoShowConfirmScreen({ token }) {
         {state === 'success' && (
           <>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
-            <h1 style={{ fontSize: 20, marginBottom: 8 }}>No-show registrado</h1>
-            <p style={{ fontSize: 14, color: '#777' }}>La reserva se marcó como no-show y el depósito ha sido cobrado.</p>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>{outcome === 'completed' ? 'Reserva completada' : 'No-show registrado'}</h1>
+            <p style={{ fontSize: 14, color: '#777' }}>
+              {outcome === 'completed'
+                ? 'La reserva se marcó como completada y el depósito ha sido cobrado.'
+                : 'La reserva se marcó como no-show y el depósito ha sido cobrado.'}
+            </p>
           </>
         )}
 
