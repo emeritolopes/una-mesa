@@ -336,8 +336,14 @@
       // de que no se puede reservar.
       const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity).eq('stripe_charges_enabled', true);
       if (error) throw error;
-      if (!rows || !rows.length) return null;
-      return rows.map(mapVenue);
+      // Antes, "sin filas" y "la consulta falló" devolvían lo mismo (null),
+      // y el llamador no podía distinguir un fallo técnico real de que
+      // simplemente no hay restaurantes todavía en esta ciudad — mostraba
+      // el catálogo ficticio en los dos casos por igual, sin ningún aviso.
+      // Ahora: sin filas mapea a un array vacío de verdad (nunca null),
+      // para que el llamador sepa que la consulta SÍ funcionó y muestre un
+      // estado honesto de "aún no hay restaurantes aquí", no datos falsos.
+      return (rows || []).map(mapVenue);
     } catch (e) {
       console.warn('[UNA MESA] loadRestaurants:', e.message || e);
       return null;

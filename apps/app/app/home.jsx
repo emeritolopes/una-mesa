@@ -13,6 +13,8 @@ const UM_LANG = umMarket();
 const UM_T = {
   es: {
     save: 'Guardar', noSlotsToday: 'Sin horarios hoy',
+    noRestaurantsYetTitle: 'Aún no hay restaurantes en tu zona',
+    noRestaurantsYetBody: 'Estamos incorporando restaurantes en esta ciudad. Vuelve pronto.',
     heroEyebrowIn: 'Reserva en ', heroEyebrowNear: 'Reserva cerca de ti',
     heroA: 'La mesa que ', heroB: 'te espera',
     searchPh: 'Restaurante, cocina, zona…', search: 'Buscar',
@@ -36,6 +38,8 @@ const UM_T = {
   },
   en: {
     save: 'Save', noSlotsToday: 'No slots today',
+    noRestaurantsYetTitle: 'No restaurants here yet',
+    noRestaurantsYetBody: "We're onboarding restaurants in this city. Check back soon.",
     heroEyebrowIn: 'Book in ', heroEyebrowNear: 'Book near you',
     heroA: 'The table that ', heroB: 'awaits you',
     searchPh: 'Restaurant, cuisine, area…', search: 'Search',
@@ -139,7 +143,7 @@ function NearbyCard({ r, dist, onOpen, img }) {
 }
 
 /* ════ HomeScreen ════ */
-function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation }) {
+function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation, noRealRestaurants }) {
   const [q, setQ] = useState('');
   const [ai, setAi] = useState('');
   const [addr, setAddr] = useState('');
@@ -289,6 +293,11 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
           : null
       )
     ),
+
+    noRealRestaurants ? React.createElement('section', { style:{ padding:'60px 24px', textAlign:'center' } },
+      React.createElement('h2', { style:{ fontFamily:'Playfair Display', fontSize:24, marginBottom:8 } }, UM_T.noRestaurantsYetTitle),
+      React.createElement('p', { style:{ color:'var(--muted)', fontSize:15 } }, UM_T.noRestaurantsYetBody)
+    ) : null,
 
     /* ═══════════════════════════════════════
        2. SELECCIÓN DE LA SEMANA  —  bento grid 2 + 1
