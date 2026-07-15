@@ -21,6 +21,14 @@ async function callPublic(name: string, body: unknown) {
   return { status: res.status, json: await res.json() }
 }
 
+// cancel-reservation-guest, a diferencia de mark-noshow, lee el token de
+// la URL (GET ?token=...), no de un body — misma convención que usa
+// CancelBookingScreen en producción (reserve-auth.jsx).
+async function callCancelGuest(token: string) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/cancel-reservation-guest?token=${encodeURIComponent(token)}`)
+  return { status: res.status, json: await res.json() }
+}
+
 // ── mark-noshow ──────────────────────────────────────────────────────
 
 Deno.test('mark-noshow: validar el token no ejecuta nada todavía', async () => {
@@ -122,7 +130,7 @@ Deno.test('cancel-reservation-guest: cancelar con menos de 24h captura el depós
   const { reservation, paymentIntentId } = await createTestReservation({ hoursFromNow: 5, customerEmail: 'test@example.com' })
   try {
     const token = await rpc('generate_cancel_token', { p_reservation_id: reservation.id })
-    const { json } = await callPublic('cancel-reservation-guest', { token })
+    const { json } = await callCancelGuest(token)
     assertEquals(json.ok, true)
     assertEquals(json.refunded, false)
 
@@ -141,7 +149,7 @@ Deno.test('cancel-reservation-guest: cancelar con más de 24h reembolsa', async 
   const { reservation, paymentIntentId } = await createTestReservation({ hoursFromNow: 48, customerEmail: 'test@example.com' })
   try {
     const token = await rpc('generate_cancel_token', { p_reservation_id: reservation.id })
-    const { json } = await callPublic('cancel-reservation-guest', { token })
+    const { json } = await callCancelGuest(token)
     assertEquals(json.ok, true)
     assertEquals(json.refunded, true)
 
@@ -167,7 +175,7 @@ Deno.test('cancel-reservation-guest: una reserva ya resuelta por el restaurante 
     const resolved = await callPublic('mark-noshow', { token: noshowToken, execute: true, outcome: 'no_show' })
     assertEquals(resolved.json.ok, true)
 
-    const { json, status } = await callPublic('cancel-reservation-guest', { token })
+    const { json, status } = await callCancelGuest(token)
     assertNotEquals(status, 200)
     assertEquals(json.ok, false)
 
