@@ -89,7 +89,7 @@ const PR_T = {
     cancelBtn: 'Cancel',
     cancelModalTitle: 'Cancel this booking?',
     cancelGenericErr: 'Could not cancel the booking. Please try again.',
-    cancelModalBody: 'The deposit will be refunded within 5-10 business days.',
+    cancelModalBody: 'If you cancel more than 24h in advance, the deposit is refunded within 5-10 business days. With less than 24h\'s notice, the deposit is not refunded.',
     goBack: 'Go back', yesCancel: 'Yes, cancel',
     hello: name => 'Hi, '+name+'!',
     loyaltyProgram: 'Mesa Programme', pts: ' pts',
