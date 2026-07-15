@@ -55,7 +55,9 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { name, address, city, phone, email, cuisine, neighborhood, description, photo_url } = body
+    const { name, address, city, phone, email, cuisine, neighborhood, description } = body
+    const photo_urls: string[] = Array.isArray(body.photo_urls) ? body.photo_urls.slice(0, 10) : (body.photo_url ? [body.photo_url] : [])
+    const photo_url = photo_urls[0] || null
     const price_range = body.price_range ?? 2
     const deposit_amount = body.deposit_amount ?? 1000
     const capacity = body.capacity ?? 50
@@ -84,7 +86,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { ...h, Prefer: 'return=representation' },
       body: JSON.stringify({
-        name, address, city, phone, email, cuisine, neighborhood, description, photo_url,
+        name, address, city, phone, email, cuisine, neighborhood, description, photo_url, photo_urls,
         price_range, deposit_amount, capacity, platform_fee_cents,
         currency, timezone, times,
       }),

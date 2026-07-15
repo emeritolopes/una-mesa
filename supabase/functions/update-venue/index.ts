@@ -76,6 +76,13 @@ Deno.serve(async (req) => {
         dinner: generateSlots(body.dinner_start || '20:00', body.dinner_end || '23:00'),
       }
     }
+    // Fotos — hasta 10, la primera es la portada (photo_url), para que todo
+    // lo que ya lee photo_url directamente siga funcionando sin tocarlo.
+    if (Array.isArray(body.photo_urls)) {
+      const photo_urls = body.photo_urls.slice(0, 10)
+      patch.photo_urls = photo_urls
+      patch.photo_url = photo_urls[0] || null
+    }
     if (Object.keys(patch).length === 0) {
       return new Response(JSON.stringify({ error: 'no editable fields provided' }), { status: 400, headers: corsHeaders })
     }
