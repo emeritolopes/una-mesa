@@ -76,5 +76,7 @@ export async function callFunction(name: string, body: unknown, authToken?: stri
 
 export async function rpc(name: string, args: unknown = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, { method: 'POST', headers: h, body: JSON.stringify(args) })
-  return res.json()
+  const text = await res.text()
+  if (!text) return null // funciones que devuelven void (ej. test_force_stuck_reservation)
+  return JSON.parse(text)
 }
