@@ -17,15 +17,23 @@ export const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' }
 let staffToken: string | null = null
 export async function getStaffToken(): Promise<string> {
   if (staffToken) return staffToken
+  staffToken = await loginAs(TEST_STAFF_EMAIL, TEST_STAFF_PASSWORD)
+  return staffToken
+}
+
+const tokenCache = new Map<string, string>()
+export async function loginAs(email: string, password: string): Promise<string> {
+  const cached = tokenCache.get(email)
+  if (cached) return cached
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: TEST_STAFF_EMAIL, password: TEST_STAFF_PASSWORD }),
+    body: JSON.stringify({ email, password }),
   })
   const json = await res.json()
   const token: string | undefined = json.access_token
-  if (!token) throw new Error('No se pudo iniciar sesión de staff de prueba: ' + JSON.stringify(json))
-  staffToken = token
+  if (!token) throw new Error(`No se pudo iniciar sesión como ${email}: ` + JSON.stringify(json))
+  tokenCache.set(email, token)
   return token
 }
 
