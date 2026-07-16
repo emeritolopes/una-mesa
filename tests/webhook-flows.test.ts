@@ -43,7 +43,7 @@ async function sendWebhookEvent(pi: Stripe.PaymentIntent) {
     api_version: '2024-06-20',
   }
   const payload = JSON.stringify(event)
-  const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: CONNECT_WEBHOOK_SECRET })
+  const signature = await stripe.webhooks.generateTestHeaderStringAsync({ payload, secret: CONNECT_WEBHOOK_SECRET })
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/stripe-webhook`, {
     method: 'POST',
