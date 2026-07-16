@@ -332,11 +332,12 @@
       // como "undefined behavior"). Fallback a un cliente nuevo solo si por algún motivo
       // auth.js no llegó a inicializarse todavía.
       const sb = (window.UMAuth && window.UMAuth.sb) || window.supabase.createClient(SUPA_URL, SUPA_KEY);
-      // stripe_charges_enabled: no mostramos restaurantes que todavía no
-      // completaron el onboarding de Stripe Connect — mejor que no aparezcan
-      // en absoluto a que el comensal llegue hasta el pago y ahí se entere
-      // de que no se puede reservar.
-      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity).eq('stripe_charges_enabled', true);
+      // Ya no filtramos por stripe_charges_enabled aquí — se decidió mostrar
+      // todos los restaurantes, incluso sin Stripe completado, para que
+      // sirvan como muestra a restaurantes potenciales ("mira, aparecerías
+      // aquí"). La reserva en sí se bloquea aparte (ver stripeChargesEnabled
+      // en detail.jsx/booking.jsx), no el listado.
+      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity);
       if (error) throw error;
       // Antes, "sin filas" y "la consulta falló" devolvían lo mismo (null),
       // y el llamador no podía distinguir un fallo técnico real de que
