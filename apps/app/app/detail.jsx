@@ -49,6 +49,14 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
   const [tab, setTab] = useState('menu');
+
+  // Registro de visita — un conteo simple, sin datos personales, para
+  // poder mostrarle a un restaurante potencial cuánta gente ve su ficha.
+  useEffect(() => {
+    if (!r || !window.UMAuth) return;
+    window.UMAuth.sb.from('venue_page_views').insert({ venue_id: r.id }).then(() => {});
+  }, [rid]);
+
   if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},DT_T.notFound);
   const fav = favs.includes(r.id);
   const allTimes = [...(r.times.lunch||[]), ...(r.times.dinner||[])];

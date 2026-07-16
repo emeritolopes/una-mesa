@@ -511,6 +511,7 @@ function AdminCreateVenueScreen({ onDone }){
   const [copied, setCopied] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
+  const [viewCounts, setViewCounts] = useState(null);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -588,6 +589,9 @@ function AdminCreateVenueScreen({ onDone }){
 
   const pickVenue = (v) => {
     setEditingId(v.id);
+    setViewCounts(null);
+    window.UMAuth.sb.from('venue_view_counts').select('*').eq('venue_id', v.id).maybeSingle()
+      .then(({ data }) => setViewCounts(data || { total_views: 0, views_last_7_days: 0, views_last_30_days: 0 }));
     const lunch = slotsToRange(v.times?.lunch) || { start:'13:00', end:'16:00' };
     const dinner = slotsToRange(v.times?.dinner) || { start:'20:00', end:'23:00' };
     setForm({
@@ -659,6 +663,10 @@ function AdminCreateVenueScreen({ onDone }){
         : mode === 'edit' && !editingId ? 'Elige un restaurante'
         : mode === 'edit' ? `Editando: ${form.name}` : 'Nuevo restaurante'
       )
+    ),
+
+    mode === 'edit' && editingId && viewCounts && React.createElement('p', { style:{ fontSize:13, color:'#888', marginTop:-8, marginBottom:16 } },
+      `👁 ${viewCounts.total_views} visitas en total · ${viewCounts.views_last_7_days} en los últimos 7 días · ${viewCounts.views_last_30_days} en los últimos 30`
     ),
 
     mode === 'picker' && React.createElement('div', null,
