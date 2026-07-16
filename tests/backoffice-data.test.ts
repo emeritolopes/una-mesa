@@ -97,7 +97,7 @@ Deno.test('un restaurante NO puede actualizar un plato de otro restaurante', asy
     assertEquals(json.length, 0) // RLS: 0 filas afectadas, no error — pero tampoco cambio
 
     const stillOriginal = await asStaff(tokenA, 'GET', `menu_items?id=eq.${item.id}&select=price`)
-    assertEquals(stillOriginal.json[0].price, '15.00')
+    assertEquals(Number(stillOriginal.json[0].price), 15)
   } finally {
     await deleteMenuItem(item.id)
   }

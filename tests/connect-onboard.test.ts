@@ -22,6 +22,7 @@ async function createTempVenue(overrides: Record<string, unknown> = {}) {
     body: JSON.stringify({
       name: 'TEST_CONNECT_VENUE_' + crypto.randomUUID().slice(0, 8),
       city: 'Madrid', deposit_amount: 1000, capacity: 50,
+      stripe_mode: 'test', // el default de la columna ahora es 'live' — esta prueba nunca debe tocar Stripe real
       ...overrides,
     }),
   })
