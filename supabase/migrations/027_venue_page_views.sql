@@ -5,7 +5,7 @@
 -- perfil, incluso antes de que pueda recibir reservas reales.
 
 create table if not exists public.venue_page_views (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   venue_id uuid not null references public.venues(id) on delete cascade,
   viewed_at timestamptz not null default now()
 );
