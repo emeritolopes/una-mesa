@@ -103,7 +103,8 @@ const BK_T = {
   }
 }[BK_LANG];
 
-const STRIPE_PK      = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
+const STRIPE_PK_TEST = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgVPIyBbbwU9iwKvB3SMZqH6benb6brq1nUPpBHbiObo0083nsPCFO';
+const STRIPE_PK_LIVE = 'pk_live_51TgPHIDa8CHGM8FqmX54PydABYboY7wJc57yQ9M5Ji4xGUFLlTvN1CQ4sneaZzABSLPq2w657jb8fhH4opIGRX1500Q5Q6prhz';
 const SUPA_BASE      = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1';
 const SUPA_PAY_FUNC  = SUPA_BASE + '/stripe-payment';
 const SUPA_EMAIL_FUNC= SUPA_BASE + '/send-email';
@@ -172,9 +173,10 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       // al confirmar el pago. Sin esto, el Elements quedaría scoped a la
       // cuenta de Una Mesa, no a la del restaurante, y confirmCardPayment
       // fallaría o cobraría en el lugar equivocado.
+      const stripePk = r.stripeMode === 'live' ? STRIPE_PK_LIVE : STRIPE_PK_TEST;
       const stripe   = r.stripeConnectAccountId
-        ? window.Stripe(STRIPE_PK, { stripeAccount: r.stripeConnectAccountId })
-        : window.Stripe(STRIPE_PK);
+        ? window.Stripe(stripePk, { stripeAccount: r.stripeConnectAccountId })
+        : window.Stripe(stripePk);
       const elements = stripe.elements();
       const stripeStyle = {
         style: {
