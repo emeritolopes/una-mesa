@@ -37,7 +37,6 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
   try {
     // 1 · Identidad real del que llama
@@ -53,7 +52,7 @@ Deno.serve(async (req) => {
     const targetStatus = requestedStatus === 'no_show' ? 'no_show' : 'completed'
 
     // 2 · Traer la reserva
-    const resRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(stripe_connect_account_id)`, { headers: h })
+    const resRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(stripe_connect_account_id,stripe_mode)`, { headers: h })
     const reservation = (await resRes.json())?.[0]
     if (!reservation) return new Response(JSON.stringify({ error: 'reservation not found' }), { status: 404, headers: corsHeaders })
 
@@ -74,6 +73,8 @@ Deno.serve(async (req) => {
     let finalStatus = targetStatus
     let wonLock = false
     const stripeAccount = reservation.venues?.stripe_connect_account_id
+    const isLive = reservation.venues?.stripe_mode === 'live'
+    const stripe = new Stripe((isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')) ?? '', { apiVersion: '2024-06-20' })
     if (reservation.payment_intent_id && stripeAccount) {
       const lockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/try_lock_deposit_capture`, {
         method: 'POST', headers: h, body: JSON.stringify({ p_reservation_id: reservation_id }),

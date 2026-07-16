@@ -62,6 +62,10 @@ Deno.serve(async (req) => {
     const deposit_amount = body.deposit_amount ?? 1000
     const capacity = body.capacity ?? 50
     const platform_fee_cents = body.platform_fee_cents ?? 100
+    // Cualquier restaurante nuevo entra en modo real por defecto — 'test'
+    // solo se usa a propósito (por ejemplo, si algún día se necesita otro
+    // restaurante de prueba para las pruebas automatizadas).
+    const stripe_mode = body.stripe_mode === 'test' ? 'test' : 'live'
     const lunchStart = body.lunch_start || '13:00'
     const lunchEnd = body.lunch_end || '16:00'
     const dinnerStart = body.dinner_start || '20:00'
@@ -86,7 +90,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { ...h, Prefer: 'return=representation' },
       body: JSON.stringify({
-        name, address, city, phone, email, cuisine, neighborhood, description, photo_url, photo_urls,
+        name, address, city, phone, email, cuisine, neighborhood, description, photo_url, photo_urls, stripe_mode,
         price_range, deposit_amount, capacity, platform_fee_cents,
         currency, timezone, times,
       }),

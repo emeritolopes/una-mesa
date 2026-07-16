@@ -17,7 +17,7 @@ import { assertEquals, assertExists } from 'https://deno.land/std@0.224.0/assert
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 import { SUPABASE_URL, h, stripe, TEST_VENUE_ID, TEST_STRIPE_ACCOUNT_ID } from './helpers.ts'
 
-const CONNECT_WEBHOOK_SECRET = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET')!
+const CONNECT_WEBHOOK_SECRET = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET_TEST')!
 
 async function getReservationByPaymentIntent(piId: string) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations?payment_intent_id=eq.${piId}&select=*`, { headers: h })
@@ -27,6 +27,18 @@ async function getReservationByPaymentIntent(piId: string) {
 
 async function deleteReservationById(id: string) {
   await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}`, { method: 'DELETE', headers: h })
+}
+
+async function signStripePayload(payload: string, secret: string): Promise<string> {
+  const timestamp = Math.floor(Date.now() / 1000)
+  const signedPayload = `${timestamp}.${payload}`
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  )
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload))
+  const signatureHex = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+  return `t=${timestamp},v1=${signatureHex}`
 }
 
 async function sendWebhookEvent(pi: Stripe.PaymentIntent) {
@@ -43,7 +55,7 @@ async function sendWebhookEvent(pi: Stripe.PaymentIntent) {
     api_version: '2024-06-20',
   }
   const payload = JSON.stringify(event)
-  const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: CONNECT_WEBHOOK_SECRET })
+  const signature = await signStripePayload(payload, CONNECT_WEBHOOK_SECRET)
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/stripe-webhook`, {
     method: 'POST',

@@ -31,9 +31,13 @@ const ET = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
-  const platformSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
-  const connectSecret = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET') ?? ''
+  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY_LIVE') ?? Deno.env.get('STRIPE_SECRET_KEY_TEST') ?? '', { apiVersion: '2024-06-20' })
+  const secretsToTry = [
+    Deno.env.get('STRIPE_WEBHOOK_SECRET_TEST') ?? '',
+    Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET_TEST') ?? '',
+    Deno.env.get('STRIPE_WEBHOOK_SECRET_LIVE') ?? '',
+    Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET_LIVE') ?? '',
+  ]
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const sbHeaders = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
@@ -45,15 +49,19 @@ Deno.serve(async (req) => {
     if (!signature) {
       return new Response(JSON.stringify({ error: 'missing signature' }), { status: 400, headers: corsHeaders })
     }
-    // Probamos contra los dos secretos posibles — este endpoint recibe dos
-    // registros de webhook distintos en Stripe (tu cuenta + cuentas
-    // conectadas), cada uno firma con su propio secreto, y no hay forma de
-    // saber cuál aplica antes de intentar verificar.
-    try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, platformSecret)
-    } catch (_) {
-      event = await stripe.webhooks.constructEventAsync(body, signature, connectSecret)
+    // Probamos contra los cuatro secretos posibles — test/real, cada uno con
+    // pagos normales y cuentas conectadas por separado — no hay forma de
+    // saber cuál aplica antes de intentar verificar la firma.
+    let verified: Stripe.Event | null = null
+    for (const secret of secretsToTry) {
+      if (!secret) continue
+      try {
+        verified = await stripe.webhooks.constructEventAsync(body, signature, secret)
+        break
+      } catch (_) { /* prueba el siguiente secreto */ }
     }
+    if (!verified) throw new Error('no matching webhook secret')
+    event = verified
   } catch (err) {
     return new Response(JSON.stringify({ error: `signature verification failed: ${err instanceof Error ? err.message : err}` }), { status: 400, headers: corsHeaders })
   }

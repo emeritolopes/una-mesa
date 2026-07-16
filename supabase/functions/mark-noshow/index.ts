@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer detalles de la reserva — útiles para mostrar en la pantalla,
   //    tanto en el modo "solo validar" como en el de ejecutar.
-  const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,customer_name,date,time,pax,payment_intent_id,deposit_amount,status,venues(name,stripe_connect_account_id)`, { headers: h })
+  const rRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,customer_name,date,time,pax,payment_intent_id,deposit_amount,status,venues(name,stripe_connect_account_id,stripe_mode)`, { headers: h })
   const reservation = (await rRes.json())?.[0]
   if (!reservation) return new Response(JSON.stringify({ ok: false, code: 'invalid' }), { headers: jsonHeaders, status: 404 })
 
@@ -101,7 +101,8 @@ Deno.serve(async (req) => {
   const stripeAccount = reservation.venues?.stripe_connect_account_id
   if (reservation.payment_intent_id && stripeAccount) {
     try {
-      const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
+      const isLive = reservation.venues?.stripe_mode === 'live'
+      const stripe = new Stripe((isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')) ?? '', { apiVersion: '2024-06-20' })
       await stripe.paymentIntents.capture(reservation.payment_intent_id, {}, { stripeAccount })
       captureOk = true
     } catch (_) { /* si Stripe falla, deposit_status queda en 'capturing' para revisión manual */ }

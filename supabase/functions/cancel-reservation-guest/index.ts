@@ -38,7 +38,6 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
   // 1. Token válido, no usado, no expirado
   const tRes = await fetch(`${supabaseUrl}/rest/v1/cancel_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
@@ -50,7 +49,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,stripe_connect_account_id)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,stripe_connect_account_id,stripe_mode)`,
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
@@ -71,6 +70,8 @@ Deno.serve(async (req) => {
   let depositStatus: string | null = reservation.deposit_status
   let finalStatus = 'cancelled'
   const stripeAccount = reservation.venues?.stripe_connect_account_id
+  const isLive = reservation.venues?.stripe_mode === 'live'
+  const stripe = new Stripe((isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')) ?? '', { apiVersion: '2024-06-20' })
   let wonLock = false
 
   if (reservation.payment_intent_id && stripeAccount) {

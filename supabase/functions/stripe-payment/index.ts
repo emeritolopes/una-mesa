@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     // Verificar el depósito, la moneda, y la cuenta Connect del restaurante
     // — nunca confiar en el cliente para ninguno de estos.
     const venueCheck = await fetch(
-      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_amount,currency,stripe_connect_account_id,stripe_charges_enabled,platform_fee_cents`,
+      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_amount,currency,stripe_connect_account_id,stripe_charges_enabled,platform_fee_cents,stripe_mode`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     )
     const venues = await venueCheck.json()
@@ -98,7 +98,21 @@ Deno.serve(async (req) => {
       })
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+    // Modo test/live por restaurante — los tres restaurantes de prueba
+    // existentes se quedan en 'test' para siempre (así las pruebas
+    // automatizadas nunca tocan dinero real); cualquier restaurante nuevo
+    // entra en 'live' por defecto.
+    const isLive = venue.stripe_mode === 'live'
+    const secretKey = isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')
+    const publishableKey = isLive ? Deno.env.get('STRIPE_PK_LIVE') : Deno.env.get('STRIPE_PK_TEST')
+    if (!secretKey || !publishableKey) {
+      return new Response(JSON.stringify({ error: `stripe keys not configured for mode: ${venue.stripe_mode}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const stripe = new Stripe(secretKey, {
       apiVersion: '2024-06-20',
     })
 
@@ -140,6 +154,7 @@ Deno.serve(async (req) => {
         client_secret:      paymentIntent.client_secret,
         payment_intent_id:  paymentIntent.id,
         stripe_account:      venue.stripe_connect_account_id, // el cliente lo necesita para inicializar Stripe.js
+        stripe_publishable_key: publishableKey, // el cliente necesita la clave pública correcta (test o live)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

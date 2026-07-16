@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     if (!token) return new Response(JSON.stringify({ ok: false, code: 'invalid' }), { status: 400, headers: jsonHeaders })
 
     const vRes = await fetch(
-      `${supabaseUrl}/rest/v1/venues?stripe_connect_invite_token=eq.${token}&select=id,name,city,email,stripe_connect_account_id,stripe_charges_enabled,stripe_connect_invite_expires_at`,
+      `${supabaseUrl}/rest/v1/venues?stripe_connect_invite_token=eq.${token}&select=id,name,city,email,stripe_connect_account_id,stripe_charges_enabled,stripe_connect_invite_expires_at,stripe_mode`,
       { headers: h }
     )
     const venue = (await vRes.json())?.[0]
@@ -50,7 +50,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, code: 'already_connected', restaurant_name: venue.name }), { status: 409, headers: jsonHeaders })
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
+    const isLive = venue.stripe_mode === 'live'
+    const stripe = new Stripe((isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')) ?? '', { apiVersion: '2024-06-20' })
 
     let accountId = venue.stripe_connect_account_id
     if (!accountId) {

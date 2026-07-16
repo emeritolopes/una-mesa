@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
 
   try {
     // 1 · Solo admin — mismo patrón que invite-restaurant
@@ -44,9 +43,12 @@ Deno.serve(async (req) => {
     if (!venue_id) return new Response(JSON.stringify({ error: 'venue_id required' }), { status: 400, headers: corsHeaders })
 
     // 2 · Traer el restaurante
-    const vRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=id,name,email,city,stripe_connect_account_id,stripe_connect_invite_token,stripe_charges_enabled`, { headers: h })
+    const vRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=id,name,email,city,stripe_connect_account_id,stripe_connect_invite_token,stripe_charges_enabled,stripe_mode`, { headers: h })
     const venue = (await vRes.json())?.[0]
     if (!venue) return new Response(JSON.stringify({ error: 'venue not found' }), { status: 404, headers: corsHeaders })
+
+    const isLive = venue.stripe_mode === 'live'
+    const stripe = new Stripe((isLive ? Deno.env.get('STRIPE_SECRET_KEY_LIVE') : Deno.env.get('STRIPE_SECRET_KEY_TEST')) ?? '', { apiVersion: '2024-06-20' })
 
     // 2b · Token de invitación persistente — el restaurante lo usa las veces
     //    que necesite hasta terminar, sin que el admin tenga que volver a

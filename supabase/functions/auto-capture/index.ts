@@ -16,9 +16,10 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' })
+  const stripeTest = new Stripe(Deno.env.get('STRIPE_SECRET_KEY_TEST') ?? '', { apiVersion: '2024-06-20' })
+  const stripeLive = new Stripe(Deno.env.get('STRIPE_SECRET_KEY_LIVE') ?? '', { apiVersion: '2024-06-20' })
 
-  const dueRes = await fetch(`${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id,stripe_connect_account_id&limit=50`, { headers: h })
+  const dueRes = await fetch(`${supabaseUrl}/rest/v1/reservations_due_capture?select=id,payment_intent_id,stripe_connect_account_id,stripe_mode&limit=50`, { headers: h })
   const due = await dueRes.json()
 
   const results: Array<{ id: string; result: string }> = []
@@ -38,6 +39,8 @@ Deno.serve(async (req) => {
     })
     const locked = await lockRes.json()
     if (!locked || locked.length === 0) { results.push({ id: r.id, result: 'skipped_locked' }); continue }
+
+    const stripe = r.stripe_mode === 'live' ? stripeLive : stripeTest
 
     try {
       await stripe.paymentIntents.capture(r.payment_intent_id, {}, { stripeAccount: r.stripe_connect_account_id })
