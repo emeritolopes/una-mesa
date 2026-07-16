@@ -21,7 +21,7 @@ const corsHeaders = {
 const EDITABLE_FIELDS = [
   'name', 'address', 'city', 'phone', 'email', 'cuisine', 'neighborhood',
   'description', 'deposit_amount', 'capacity', 'platform_fee_cents', 'grace_period_minutes',
-  'photo_url',
+  'photo_url', 'archived',
 ] as const
 
 function generateSlots(from: string, to: string) {

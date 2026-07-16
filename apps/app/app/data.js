@@ -337,7 +337,7 @@
       // sirvan como muestra a restaurantes potenciales ("mira, aparecerías
       // aquí"). La reserva en sí se bloquea aparte (ver stripeChargesEnabled
       // en detail.jsx/booking.jsx), no el listado.
-      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity);
+      const { data: rows, error } = await sb.from('venues').select('*').eq('city', targetCity).eq('archived', false);
       if (error) throw error;
       // Antes, "sin filas" y "la consulta falló" devolvían lo mismo (null),
       // y el llamador no podía distinguir un fallo técnico real de que
