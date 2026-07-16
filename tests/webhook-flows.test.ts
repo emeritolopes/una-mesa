@@ -29,6 +29,18 @@ async function deleteReservationById(id: string) {
   await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}`, { method: 'DELETE', headers: h })
 }
 
+async function signStripePayload(payload: string, secret: string): Promise<string> {
+  const timestamp = Math.floor(Date.now() / 1000)
+  const signedPayload = `${timestamp}.${payload}`
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  )
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload))
+  const signatureHex = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+  return `t=${timestamp},v1=${signatureHex}`
+}
+
 async function sendWebhookEvent(pi: Stripe.PaymentIntent) {
   const event = {
     id: 'evt_test_' + crypto.randomUUID(),
@@ -43,7 +55,7 @@ async function sendWebhookEvent(pi: Stripe.PaymentIntent) {
     api_version: '2024-06-20',
   }
   const payload = JSON.stringify(event)
-  const signature = await stripe.webhooks.generateTestHeaderStringAsync({ payload, secret: CONNECT_WEBHOOK_SECRET })
+  const signature = await signStripePayload(payload, CONNECT_WEBHOOK_SECRET)
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/stripe-webhook`, {
     method: 'POST',
