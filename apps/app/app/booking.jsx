@@ -13,6 +13,7 @@ const BK_LANG = bkMarket();
 const BK_T = {
   es: {
     notFound: 'Restaurante no encontrado.',
+    comingSoon: 'Este restaurante todavía no puede recibir reservas — se está incorporando a Una Mesa.',
     dows: ['D','L','M','X','J','V','S'], today: 'Hoy',
     dowRowHeader: ['L','M','X','J','V','S','D'],
     cancel: 'Cancelar', continue_: 'Continuar', back: 'Atrás',
@@ -58,6 +59,7 @@ const BK_T = {
   },
   en: {
     notFound: 'Restaurant not found.',
+    comingSoon: "This restaurant can't take bookings yet — it's joining Una Mesa soon.",
     dows: ['S','M','T','W','T','F','S'], today: 'Today',
     dowRowHeader: ['M','T','W','T','F','S','S'],
     cancel: 'Cancel', continue_: 'Continue', back: 'Back',
@@ -147,6 +149,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const cardElRef     = useRef(null); // { stripe, cardNumber } — live objects
 
   if (!r) return React.createElement('div',{className:'wrap',style:{padding:'60px 0'}},BK_T.notFound);
+  if (!r.stripeChargesEnabled) return React.createElement('div',{className:'wrap',style:{padding:'60px 0',textAlign:'center'}},BK_T.comingSoon);
 
   /* ── Countdown timer ── */
   React.useEffect(()=>{

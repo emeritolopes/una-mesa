@@ -14,6 +14,8 @@ const DT_T = {
   es: {
     notFound: 'Restaurante no encontrado.', backToResults: 'Volver a resultados',
     featured: 'Destacado', availToday: 'Disponible hoy', matchSuffix: '% afinidad',
+    comingSoonTitle: 'Próximamente',
+    comingSoonBody: 'Este restaurante se está incorporando a Una Mesa — todavía no se puede reservar aquí.',
     reviewsParen: n => '('+n+' reseñas)',
     address: 'Dirección', hours: 'Horario', phone: 'Teléfono', avgPrice: 'Precio medio',
     priceRange: (r) => { const sym=window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(r.currency):'€'; return r.price==='€€€' ? sym+'35–55' : sym+'18–30'; } /* rango aproximado por nivel de precio, no un dato real por restaurante */,
@@ -28,6 +30,8 @@ const DT_T = {
   en: {
     notFound: 'Restaurant not found.', backToResults: 'Back to results',
     featured: 'Featured', availToday: 'Available today', matchSuffix: '% match',
+    comingSoonTitle: 'Coming soon',
+    comingSoonBody: "This restaurant is joining Una Mesa — booking isn't available here yet.",
     reviewsParen: n => '('+n+' reviews)',
     address: 'Address', hours: 'Hours', phone: 'Phone', avgPrice: 'Average price',
     priceRange: (r) => { const sym=window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(r.currency):'£'; return r.price==='€€€' ? sym+'35–55' : sym+'18–30'; } /* approximate range by price tier, not real per-restaurant data */,
@@ -210,29 +214,40 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
               )
             ),
 
-            /* Available time slots */
-            React.createElement('p', { className:'det-bw-times-label' }, DT_T.timesToday),
-            filteredTimes.length
-              ? React.createElement('div', { className:'det-bw-times-grid' },
-                  filteredTimes.map(([t,st],i) => React.createElement('button', {
-                    key:i,
-                    type:'button',
-                    className:'det-tslot'+(st==='few'?' few':st==='full'?' full':''),
-                    disabled: st==='full',
-                    onClick: ()=>startBook(r.id,t)
-                  }, t))
+            /* Available time slots — o el aviso de "próximamente" si el
+               restaurante todavía no completó Stripe Connect. Se sigue
+               mostrando en el listado (visibilidad para restaurantes
+               potenciales), pero no se puede reservar hasta que conecte
+               su cuenta de pago. */
+            !r.stripeChargesEnabled
+              ? React.createElement('div', { className:'det-bw-coming-soon', style:{ padding:'16px', background:'#F9F8F5', borderRadius:12, textAlign:'center' } },
+                  React.createElement('p', { style:{ fontWeight:700, marginBottom:6 } }, DT_T.comingSoonTitle),
+                  React.createElement('p', { style:{ fontSize:14, color:'#777' } }, DT_T.comingSoonBody)
                 )
-              : React.createElement('p',{className:'muted',style:{fontSize:'14px',margin:'4px 0 14px'}},
-                  DT_T.noAvailability),
+              : React.createElement(React.Fragment, null,
+                  React.createElement('p', { className:'det-bw-times-label' }, DT_T.timesToday),
+                  filteredTimes.length
+                    ? React.createElement('div', { className:'det-bw-times-grid' },
+                        filteredTimes.map(([t,st],i) => React.createElement('button', {
+                          key:i,
+                          type:'button',
+                          className:'det-tslot'+(st==='few'?' few':st==='full'?' full':''),
+                          disabled: st==='full',
+                          onClick: ()=>startBook(r.id,t)
+                        }, t))
+                      )
+                    : React.createElement('p',{className:'muted',style:{fontSize:'14px',margin:'4px 0 14px'}},
+                        DT_T.noAvailability),
 
-            /* Primary CTA */
-            React.createElement('button', {
-              type:'button', className:'det-bw-cta',
-              onClick:()=>startBook(r.id,null)
-            },
-              React.createElement(Icon,{name:'cal',style:{width:17,height:17}}),
-              DT_T.chooseDateTime
-            )
+                  /* Primary CTA */
+                  React.createElement('button', {
+                    type:'button', className:'det-bw-cta',
+                    onClick:()=>startBook(r.id,null)
+                  },
+                    React.createElement(Icon,{name:'cal',style:{width:17,height:17}}),
+                    DT_T.chooseDateTime
+                  )
+                )
           )
         )
       )
