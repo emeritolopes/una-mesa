@@ -512,6 +512,8 @@ function AdminCreateVenueScreen({ onDone }){
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [viewCounts, setViewCounts] = useState(null);
+  const [editingArchived, setEditingArchived] = useState(false);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -571,7 +573,7 @@ function AdminCreateVenueScreen({ onDone }){
     if (venueList === null) {
       try {
         const sb = window.UMAuth.sb;
-        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity,photo_urls,times').order('name');
+        const { data } = await sb.from('venues').select('id,name,city,address,phone,email,cuisine,neighborhood,description,deposit_amount,capacity,photo_urls,times,archived').order('name');
         setVenueList(data || []);
       } catch (e) { setVenueList([]); }
     }
@@ -589,6 +591,7 @@ function AdminCreateVenueScreen({ onDone }){
 
   const pickVenue = (v) => {
     setEditingId(v.id);
+    setEditingArchived(!!v.archived);
     setViewCounts(null);
     window.UMAuth.sb.from('venue_view_counts').select('*').eq('venue_id', v.id).maybeSingle()
       .then(({ data }) => setViewCounts(data || { total_views: 0, views_last_7_days: 0, views_last_30_days: 0 }));
@@ -604,6 +607,27 @@ function AdminCreateVenueScreen({ onDone }){
       lunch_start: lunch.start, lunch_end: lunch.end,
       dinner_start: dinner.start, dinner_end: dinner.end,
     });
+  };
+
+  const toggleArchived = async () => {
+    setArchiveLoading(true);
+    try {
+      const { data } = await window.UMAuth.sb.auth.getSession();
+      const token = data?.session?.access_token;
+      if (!token) { setErrorMsg('No hay sesión iniciada.'); setArchiveLoading(false); return; }
+      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/update-venue', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ venue_id: editingId, archived: !editingArchived }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) { setErrorMsg(json.error || 'No se pudo cambiar el estado'); setArchiveLoading(false); return; }
+      setEditingArchived(!editingArchived);
+    } catch (e) {
+      setErrorMsg(e.message || String(e));
+    } finally {
+      setArchiveLoading(false);
+    }
   };
 
   const submit = async () => {
@@ -669,6 +693,15 @@ function AdminCreateVenueScreen({ onDone }){
       `👁 ${viewCounts.total_views} visitas en total · ${viewCounts.views_last_7_days} en los últimos 7 días · ${viewCounts.views_last_30_days} en los últimos 30`
     ),
 
+    mode === 'edit' && editingId && React.createElement('button', {
+      onClick: () => {
+        if (!editingArchived && !confirm('¿Archivar este restaurante? Dejará de verse en la web para los comensales — su historial de reservas no se toca, y puedes reactivarlo cuando quieras desde aquí mismo.')) return;
+        toggleArchived();
+      },
+      disabled: archiveLoading,
+      style: { width:'100%', padding:'10px', borderRadius:8, border:'1px solid ' + (editingArchived ? '#2e7d32' : '#c0392b'), background:'#fff', color: editingArchived ? '#2e7d32' : '#c0392b', marginBottom:16, cursor:'pointer', fontWeight:600 },
+    }, archiveLoading ? 'Procesando…' : editingArchived ? 'Reactivar restaurante' : 'Archivar restaurante (ocultar de la web)'),
+
     mode === 'picker' && React.createElement('div', null,
       React.createElement('button', { className:'btn btn-acc btn-block btn-lg', onClick:()=>setMode('create'), style:{marginBottom:10} }, 'Crear restaurante nuevo'),
       React.createElement('button', { className:'btn btn-block btn-lg', onClick:startEdit, style:{background:'#f3f3f3'} }, 'Editar restaurante existente')
@@ -679,8 +712,8 @@ function AdminCreateVenueScreen({ onDone }){
       venueList && venueList.length === 0 && React.createElement('p', { style:{color:'#777'} }, 'No hay restaurantes todavía.'),
       venueList && venueList.map(v => React.createElement('button', {
         key:v.id, onClick:()=>pickVenue(v),
-        style:{ width:'100%', textAlign:'left', padding:'12px 14px', borderRadius:8, border:'1px solid #eee', background:'#fff', marginBottom:8, cursor:'pointer' },
-      }, `${v.name} — ${v.city}`))
+        style:{ width:'100%', textAlign:'left', padding:'12px 14px', borderRadius:8, border:'1px solid #eee', background:v.archived ? '#f5f5f5' : '#fff', marginBottom:8, cursor:'pointer', color:v.archived ? '#999' : '#000' },
+      }, `${v.name} — ${v.city}${v.archived ? ' (archivado)' : ''}`))
     ),
 
     showForm && React.createElement('div', null,
