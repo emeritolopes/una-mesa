@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       apiVersion: '2024-06-20',
     })
 
-    const platformFee = venue.platform_fee_cents ?? 100
+    const platformFee = (venue.platform_fee_cents ?? 100) * party
     // La comisión no puede ser mayor que el propio depósito — protección
     // simple contra una configuración mal puesta que Stripe rechazaría igual,
     // pero con un mensaje más claro que el error crudo de la API.
