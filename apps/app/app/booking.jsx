@@ -572,7 +572,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             React.createElement('span', { style:{opacity:.7} }, BK_T.processing)
           ) :
           expired ? BK_T.timeExpired :
-          user    ? BK_T.payAndBook(deposit,curSym) :
+          user    ? BK_T.payAndBook(deposit*party,curSym) :
                     BK_T.continueAsGuest
         ))
     );
@@ -601,7 +601,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           React.createElement('span',{className:'v'}, party)),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},BK_T.deposit),
-          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, BK_T.depositNote(deposit,curSym))),
+          React.createElement('span',{className:'v',style:{color:'var(--accent)'}}, BK_T.depositNote(deposit*party,curSym))),
         React.createElement('div',{className:'cd-row'},
           React.createElement('span',{className:'k'},BK_T.confirmation),
           React.createElement('span',{className:'v'}, notify==='sms'?BK_T.bySms:BK_T.byEmail))

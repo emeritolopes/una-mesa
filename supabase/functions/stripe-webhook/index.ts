@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
     }
 
     const restaurantName = venue?.name || t.restaurantFallback
-    const depositAmount = venue?.deposit_amount || 1000
+    const depositAmount = (venue?.deposit_amount || 1000) * party
     const menuUrl = venue?.menu_url || null
 
     const dayLabel = new Date(meta.date + 'T00:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {

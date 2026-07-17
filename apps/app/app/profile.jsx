@@ -368,7 +368,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
       React.createElement('div',{className:'br-meta'}, (b.dayLabel||PR_T.today)+' · '+b.time+' · '+b.party+(b.party===1?PR_T.guestSingular:PR_T.guestPlural)),
-      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+b.deposit)),
+      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+(b.deposit*(b.party||1)))),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
       React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante'),
