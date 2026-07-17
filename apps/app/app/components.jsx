@@ -116,7 +116,7 @@ function cmMarket() {
 const CM_LANG = cmMarket();
 const CM_T = {
   es: {
-    discover:'Descubrir', explore:'Explorar', concierge:'Conserje IA', forRestaurants:'Para restaurantes',
+    discover:'Descubrir', explore:'Explorar', concierge:'Conserje IA',
     searchPh:'Busca restaurante, cocina o zona…', search:'Buscar',
     lightMode:'Modo claro', darkMode:'Modo oscuro',
     myProfile:'👤  Mi perfil', logout:'→  Cerrar sesión',
@@ -126,7 +126,7 @@ const CM_T = {
     help:'Ayuda', privacy:'Privacidad', terms:'Términos',
   },
   en: {
-    discover:'Discover', explore:'Explore', concierge:'AI Concierge', forRestaurants:'For restaurants',
+    discover:'Discover', explore:'Explore', concierge:'AI Concierge',
     searchPh:'Search restaurant, cuisine or area…', search:'Search',
     lightMode:'Light mode', darkMode:'Dark mode',
     myProfile:'👤  My profile', logout:'→  Log out',
@@ -190,11 +190,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
         React.createElement('nav', { className:'hdr-links' },
           lnk('home',      CM_T.discover),
           lnk('results',   CM_T.explore),
-          lnk('concierge', CM_T.concierge),
-          React.createElement('a', {
-            className:'hdr-link hdr-link-b2b',
-            href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener'
-          }, CM_T.forRestaurants)
+          lnk('concierge', CM_T.concierge)
         ),
 
         /* ── Barra de búsqueda scroll ── */
@@ -275,12 +271,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
     React.createElement('nav', { className: 'hdr-mobile-menu' + (menuOpen ? ' open' : ''), 'aria-hidden': String(!menuOpen) },
       mlnk('home',      CM_T.discover),
       mlnk('results',   CM_T.explore),
-      mlnk('concierge', CM_T.concierge),
-      React.createElement('a', {
-        className: 'hdr-mobile-link',
-        href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener',
-        onClick: () => setMenuOpen(false)
-      }, CM_T.forRestaurants)
+      mlnk('concierge', CM_T.concierge)
     )
   );
 }
@@ -292,7 +283,6 @@ function Footer() {
       React.createElement('div', { className:'foot-in' },
         React.createElement('span', null, CM_T.footerTag),
         React.createElement('div', { className:'foot-links' },
-          React.createElement('a', { href:'https://unamesa-backofhouse.com', target:'_blank', rel:'noopener' }, CM_T.forRestaurants),
           React.createElement('a', { href:'#' }, CM_T.help),
           React.createElement('a', { href:'#' }, CM_T.privacy),
           React.createElement('a', { href:'#' }, CM_T.terms)
