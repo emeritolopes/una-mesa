@@ -10,6 +10,7 @@ function apMarket() {
   return 'es';
 }
 const AP_LANG = apMarket();
+document.title = AP_LANG === 'en' ? 'Una Mesa — Reserve your table in London' : 'Una Mesa — Reserva tu mesa en Madrid';
 const AP_T = {
   es: {
     removedFav: 'Quitado de favoritos', addedFav: '♥ Guardado en favoritos',
