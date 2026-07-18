@@ -76,10 +76,32 @@ Deno.serve(async (req) => {
   if (event.type === 'account.updated') {
     const account = event.data.object as Stripe.Account
     try {
+      // Miramos el estado ANTES de actualizar — así solo mandamos el email
+      // de "ya estás en vivo" la primera vez que de verdad pasa a activo,
+      // no cada vez que Stripe repite este evento durante la verificación.
+      const beforeRes = await fetch(`${supabaseUrl}/rest/v1/venues?stripe_connect_account_id=eq.${account.id}&select=id,name,email,city,stripe_charges_enabled`, { headers: sbHeaders })
+      const beforeRows = await beforeRes.json()
+      const venueBefore = beforeRows?.[0]
+
       await fetch(`${supabaseUrl}/rest/v1/venues?stripe_connect_account_id=eq.${account.id}`, {
         method: 'PATCH', headers: sbHeaders,
         body: JSON.stringify({ stripe_charges_enabled: !!account.charges_enabled }),
       })
+
+      const justWentLive = venueBefore && !venueBefore.stripe_charges_enabled && account.charges_enabled
+      if (justWentLive && venueBefore.email) {
+        try {
+          await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: 'POST', headers: sbHeaders,
+            body: JSON.stringify({
+              to: venueBefore.email,
+              restaurant_name: venueBefore.name,
+              live_confirmation: true,
+              lang: venueBefore.city === 'London' ? 'en' : 'es',
+            }),
+          })
+        } catch (e) { console.warn('[stripe-webhook] live-confirmation email:', e instanceof Error ? e.message : e) }
+      }
     } catch (e) { console.warn('[stripe-webhook] account.updated:', e instanceof Error ? e.message : e) }
     return new Response(JSON.stringify({ received: true }), { headers: corsHeaders })
   }
