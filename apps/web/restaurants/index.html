@@ -31,10 +31,13 @@
   h1, h2, .display { font-family: 'Playfair Display', serif; font-weight: 800; letter-spacing: -0.02em; }
 
   /* ── Nav ── */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 0; }
-  .logo { display: flex; align-items: center; text-decoration: none; }
-  .logo img { height: 32px; width: auto; display: block; }
-  .nav-cta { background: var(--coral); color: #fff; padding: 11px 22px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; line-height: 1; display: inline-flex; align-items: center; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px; max-width: 1080px; margin: 0 auto; box-sizing: border-box; }
+  .logo { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; height: 32px; }
+  .logo img { height: 32px; width: 32px; border-radius: 9px; display: block; }
+  .logo span { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 20px; line-height: 1; }
+  .logo span .light { color: var(--ink); }
+  .logo span .accent { color: var(--coral); }
+  .nav-cta { background: var(--coral); color: #fff; padding: 0 22px; height: 40px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; box-sizing: border-box; }
 
   /* ── Hero ── */
   .hero { padding: 72px 0 64px; text-align: center; }
@@ -108,8 +111,11 @@
 </head>
 <body>
 
-<nav class="wrap">
-  <a class="logo" href="https://unamesa.co.uk"><img src="https://app.unamesa.co/una-mesa-logo.png" alt="Una Mesa"></a>
+<nav>
+  <a class="logo" href="https://unamesa.co.uk">
+    <img src="./icon.png" alt="Una Mesa">
+    <span><span class="light">Una</span> <span class="accent">Mesa</span></span>
+  </a>
   <a class="nav-cta" href="#join">List your restaurant</a>
 </nav>
 
