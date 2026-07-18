@@ -1,17 +1,17 @@
 {
   "redirects": [
     {
-      "source": "/:path((?!portfolio|restaurants).*)",
+      "source": "/((?!portfolio).*)",
       "has": [{ "type": "host", "value": "unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/:path",
+      "destination": "https://app.unamesa.co.uk/$1",
       "permanent": false
     },
     {
-      "source": "/:path((?!portfolio|restaurants).*)",
+      "source": "/((?!portfolio).*)",
       "has": [{ "type": "host", "value": "www.unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/:path",
+      "destination": "https://app.unamesa.co.uk/$1",
       "permanent": false
     },
-    { "source": "/:path((?!portfolio|restaurants).*)", "destination": "https://app.unamesa.co/:path", "permanent": false }
+    { "source": "/((?!portfolio).*)", "destination": "https://app.unamesa.co/$1", "permanent": false }
   ]
 }
