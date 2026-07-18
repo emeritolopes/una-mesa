@@ -23,6 +23,10 @@ const ET = {
     footerTag: 'Una Mesa · La mesa que siempre te espera',
     subjectRestaurant: (name: string, date: string, time: string) => `Nueva reserva: ${name} · ${date} ${time}`,
     subjectStripeInvite: (r: string) => `${r} — conecta tu cuenta de cobro en Una Mesa`,
+    subjectLive: (r: string) => `¡${r} ya está en vivo en Una Mesa!`,
+    liveHeading: (r: string) => `¡${r} ya aparece en Una Mesa!`,
+    liveBody: 'Tu cuenta de cobro quedó verificada — ya puedes recibir reservas y depósitos de comensales reales. Te avisaremos por email en cuanto llegue la primera.',
+    liveFooter: 'Cada depósito llega directo a tu cuenta — Una Mesa nunca lo retiene.',
     stripeInviteHeading: (r: string) => `¡Bienvenido a Una Mesa, ${r}!`,
     stripeInviteBody: 'Para empezar a recibir reservas y sus depósitos, conecta tu cuenta bancaria — el proceso lo gestiona Stripe directamente, es rápido y seguro.',
     stripeInviteButton: 'Conectar mi cuenta de cobro',
@@ -62,6 +66,10 @@ const ET = {
     footerTag: 'Una Mesa · The table that always awaits you',
     subjectRestaurant: (name: string, date: string, time: string) => `New booking: ${name} · ${date} ${time}`,
     subjectStripeInvite: (r: string) => `${r} — connect your payout account on Una Mesa`,
+    subjectLive: (r: string) => `${r} is now live on Una Mesa!`,
+    liveHeading: (r: string) => `${r} is now live on Una Mesa!`,
+    liveBody: "Your payout account is verified — you're ready to receive bookings and deposits from real diners. We'll email you as soon as the first one comes in.",
+    liveFooter: "Each deposit goes straight to your account — Una Mesa never holds it.",
     stripeInviteHeading: (r: string) => `Welcome to Una Mesa, ${r}!`,
     stripeInviteBody: "To start receiving bookings and their deposits, connect your bank account — Stripe handles the process directly, it's quick and secure.",
     stripeInviteButton: 'Connect my payout account',
@@ -442,6 +450,57 @@ function buildHtml(opts: {
 </html>`
 }
 
+function buildLiveConfirmationHtml(opts: {
+  restaurant_name: string
+  lang: 'es' | 'en'
+}): string {
+  const { restaurant_name, lang } = opts
+  const t = ET[lang] || ET.es
+  return `<!DOCTYPE html>
+<html lang="${t.htmlLang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${t.subjectLive(restaurant_name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4F0;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+          <tr>
+            <td align="center" style="padding:0 0 28px 0;">
+              <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="background:#2e7d32;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:36px 40px;">
+                  <p style="margin:0 0 16px 0;font-size:20px;font-weight:800;color:#1a130d;">✅ ${t.liveHeading(restaurant_name)}</p>
+                  <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#555;">${t.liveBody}</p>
+                  <p style="margin:0;font-size:12px;color:#999;">${t.liveFooter}</p>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 0 0 0;">
+              <p style="margin:0;font-size:12px;color:#999;">${t.footerTag}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 function buildStripeInviteHtml(opts: {
   restaurant_name: string
   self_service_url: string
@@ -501,7 +560,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -514,15 +573,20 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
 
-    const isStripeInvite = !!stripe_invite_url
-    const isRestaurant = !isStripeInvite && !!noshow_url
-    const html = isStripeInvite
+    const isLiveConfirmation = !!live_confirmation
+    const isStripeInvite = !isLiveConfirmation && !!stripe_invite_url
+    const isRestaurant = !isLiveConfirmation && !isStripeInvite && !!noshow_url
+    const html = isLiveConfirmation
+      ? buildLiveConfirmationHtml({ restaurant_name, lang })
+      : isStripeInvite
       ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
       : isRestaurant
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
       : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, lang })
 
-    const subject = isStripeInvite
+    const subject = isLiveConfirmation
+      ? t.subjectLive(restaurant_name)
+      : isStripeInvite
       ? t.subjectStripeInvite(restaurant_name)
       : isRestaurant
       ? t.subjectRestaurant(customer_name, date, time)
