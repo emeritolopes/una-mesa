@@ -112,7 +112,7 @@
 <body>
 
 <nav>
-  <a class="logo" href="https://unamesa.co.uk">
+  <a class="logo" href="https://unamesa.co.uk" id="logo-link">
     <img src="/restaurants/icon.png" alt="Una Mesa">
     <span><span class="light">Una</span> <span class="accent">Mesa</span></span>
   </a>
@@ -222,7 +222,7 @@
 </section>
 
 <footer class="wrap">
-  Una Mesa — <a href="https://unamesa.co.uk" style="color:inherit;">unamesa.co.uk</a>
+  Una Mesa — <a href="https://unamesa.co.uk" id="footer-link" style="color:inherit;">unamesa.co.uk</a>
 </footer>
 
 <script>
@@ -315,6 +315,11 @@ var I18N = {
     if (t[key] !== undefined) el.innerHTML = t[key];
   });
   document.getElementById('city').setAttribute('placeholder', t.cityPlaceholder);
+
+  var domain = lang === 'en' ? 'unamesa.co.uk' : 'unamesa.co';
+  document.getElementById('logo-link').href = 'https://' + domain;
+  document.getElementById('footer-link').href = 'https://' + domain;
+  document.getElementById('footer-link').textContent = domain;
 
   document.getElementById('lead-form').addEventListener('submit', async function(e) {
     e.preventDefault();
