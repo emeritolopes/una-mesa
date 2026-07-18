@@ -116,7 +116,7 @@ function cmMarket() {
 const CM_LANG = cmMarket();
 const CM_T = {
   es: {
-    discover:'Descubrir', explore:'Explorar', concierge:'Conserje IA',
+    discover:'Descubrir', explore:'Explorar', concierge:'Conserje IA', forRestaurants:'¿Tienes un restaurante?',
     searchPh:'Busca restaurante, cocina o zona…', search:'Buscar',
     lightMode:'Modo claro', darkMode:'Modo oscuro',
     myProfile:'👤  Mi perfil', logout:'→  Cerrar sesión',
@@ -126,7 +126,7 @@ const CM_T = {
     help:'Ayuda', privacy:'Privacidad', terms:'Términos',
   },
   en: {
-    discover:'Discover', explore:'Explore', concierge:'AI Concierge',
+    discover:'Discover', explore:'Explore', concierge:'AI Concierge', forRestaurants:'Own a restaurant?',
     searchPh:'Search restaurant, cuisine or area…', search:'Search',
     lightMode:'Light mode', darkMode:'Dark mode',
     myProfile:'👤  My profile', logout:'→  Log out',
@@ -283,6 +283,7 @@ function Footer() {
       React.createElement('div', { className:'foot-in' },
         React.createElement('span', null, CM_T.footerTag),
         React.createElement('div', { className:'foot-links' },
+          React.createElement('a', { href:'/restaurants' }, CM_T.forRestaurants),
           React.createElement('a', { href:'#' }, CM_T.help),
           React.createElement('a', { href:'#' }, CM_T.privacy),
           React.createElement('a', { href:'#' }, CM_T.terms)
