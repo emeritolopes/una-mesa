@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Una Mesa for Restaurants — Stop losing money to no-shows</title>
-<meta name="description" content="List your restaurant on Una Mesa. No membership fee — just £1 per diner, only when you get a booking. Deposits go straight to your bank account.">
-<meta property="og:title" content="Una Mesa for Restaurants">
-<meta property="og:description" content="No membership fee. £1 per diner. Deposits paid straight to your account. Stop losing money to no-shows.">
+<title id="page-title">Una Mesa for Restaurants — Stop losing money to no-shows</title>
+<meta id="meta-description" name="description" content="List your restaurant on Una Mesa. No membership fee — just £1 per diner, only when you get a booking. Deposits go straight to your bank account.">
+<meta id="og-title" property="og:title" content="Una Mesa for Restaurants">
+<meta id="og-description" property="og:description" content="No membership fee. £1 per diner. Deposits paid straight to your account. Stop losing money to no-shows.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -116,75 +116,75 @@
     <img src="/restaurants/icon.png" alt="Una Mesa">
     <span><span class="light">Una</span> <span class="accent">Mesa</span></span>
   </a>
-  <a class="nav-cta" href="#join">List your restaurant</a>
+  <a class="nav-cta" href="#join" data-i18n="navCta">List your restaurant</a>
 </nav>
 
 <section class="hero wrap">
-  <h1>The empty table costs you more than the <span class="accent">deposit</span> ever will.</h1>
-  <p>List your restaurant on Una Mesa. Diners pay a deposit to book — you keep it if they don't show. No membership fee, ever.</p>
+  <h1 data-i18n-html="heroTitle">The empty table costs you more than the <span class="accent">deposit</span> ever will.</h1>
+  <p data-i18n="heroSub">List your restaurant on Una Mesa. Diners pay a deposit to book — you keep it if they don't show. No membership fee, ever.</p>
   <div class="hero-ctas">
-    <a class="btn-primary" href="#join">List your restaurant — free</a>
-    <a class="btn-secondary" href="#pricing">See the pricing</a>
+    <a class="btn-primary" href="#join" data-i18n="heroCta1">List your restaurant — free</a>
+    <a class="btn-secondary" href="#pricing" data-i18n="heroCta2">See the pricing</a>
   </div>
 </section>
 
 <section class="receipt-section wrap" id="pricing">
   <div class="receipt">
-    <p class="receipt-title">A table for 2, booked on Una Mesa</p>
+    <p class="receipt-title" data-i18n="receiptTitle">A table for 2, booked on Una Mesa</p>
     <div class="receipt-row">
-      <span class="label">Deposit (you set the amount)</span>
+      <span class="label" data-i18n="receiptDeposit">Deposit (you set the amount)</span>
       <span class="amt">£2.00 × 2</span>
     </div>
     <div class="receipt-row">
-      <span class="label">Una Mesa fee — £1 per diner</span>
+      <span class="label" data-i18n="receiptFee">Una Mesa fee — £1 per diner</span>
       <span class="amt negative">−£2.00</span>
     </div>
     <div class="receipt-row total">
-      <span class="label">Paid straight to your bank</span>
+      <span class="label" data-i18n="receiptPaid">Paid straight to your bank</span>
       <span class="amt">£2.00</span>
     </div>
-    <p class="receipt-note">No booking, no fee. No membership, ever.</p>
+    <p class="receipt-note" data-i18n="receiptNote">No booking, no fee. No membership, ever.</p>
   </div>
 </section>
 
 <section class="values wrap">
   <div class="values-grid">
     <div class="value-card">
-      <span class="value-num">No membership</span>
-      <h3>Free to list</h3>
-      <p>You never pay to appear on Una Mesa. The only fee is per diner, per booking — and only when you actually get one.</p>
+      <span class="value-num" data-i18n="value1Num">No membership</span>
+      <h3 data-i18n="value1Title">Free to list</h3>
+      <p data-i18n="value1Body">You never pay to appear on Una Mesa. The only fee is per diner, per booking — and only when you actually get one.</p>
     </div>
     <div class="value-card">
-      <span class="value-num">Your money, your bank</span>
-      <h3>Nothing held back</h3>
-      <p>Deposits go directly into your own Stripe account. Una Mesa never holds your funds — not for a day, not for an hour.</p>
+      <span class="value-num" data-i18n="value2Num">Your money, your bank</span>
+      <h3 data-i18n="value2Title">Nothing held back</h3>
+      <p data-i18n="value2Body">Deposits go directly into your own Stripe account. Una Mesa never holds your funds — not for a day, not for an hour.</p>
     </div>
     <div class="value-card">
-      <span class="value-num">One email, one button</span>
-      <h3>No new software</h3>
-      <p>No dashboard to learn. You get an email per booking, with one button: mark it completed, or mark it a no-show.</p>
+      <span class="value-num" data-i18n="value3Num">One email, one button</span>
+      <h3 data-i18n="value3Title">No new software</h3>
+      <p data-i18n="value3Body">No dashboard to learn. You get an email per booking, with one button: mark it completed, or mark it a no-show.</p>
     </div>
   </div>
 </section>
 
 <section class="how">
   <div class="wrap">
-    <h2>Live in under five minutes</h2>
+    <h2 data-i18n="howTitle">Live in under five minutes</h2>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <h3>Tell us about your restaurant</h3>
-        <p>Send us your details below — we'll set up your listing for you.</p>
+        <h3 data-i18n="step1Title">Tell us about your restaurant</h3>
+        <p data-i18n="step1Body">Send us your details below — we'll set up your listing for you.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <h3>Connect your bank account</h3>
-        <p>A short, secure form from Stripe — the same payment processor used by millions of businesses.</p>
+        <h3 data-i18n="step2Title">Connect your bank account</h3>
+        <p data-i18n="step2Body">A short, secure form from Stripe — the same payment processor used by millions of businesses.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <h3>Start receiving bookings</h3>
-        <p>You're live. Diners book, deposits land in your account, no-shows stop costing you money.</p>
+        <h3 data-i18n="step3Title">Start receiving bookings</h3>
+        <p data-i18n="step3Body">You're live. Diners book, deposits land in your account, no-shows stop costing you money.</p>
       </div>
     </div>
   </div>
@@ -192,30 +192,30 @@
 
 <section class="form-section wrap" id="join">
   <div class="form-inner">
-    <h2>List your restaurant</h2>
-    <p>Leave your details and we'll reach out to get you set up.</p>
+    <h2 data-i18n="formTitle">List your restaurant</h2>
+    <p data-i18n="formSub">Leave your details and we'll reach out to get you set up.</p>
     <form id="lead-form">
       <div>
-        <label for="restaurant_name">Restaurant name</label>
+        <label for="restaurant_name" data-i18n="labelRestaurant">Restaurant name</label>
         <input type="text" id="restaurant_name" required>
       </div>
       <div>
-        <label for="contact_name">Your name</label>
+        <label for="contact_name" data-i18n="labelName">Your name</label>
         <input type="text" id="contact_name">
       </div>
       <div>
-        <label for="email">Email</label>
+        <label for="email" data-i18n="labelEmail">Email</label>
         <input type="email" id="email" required>
       </div>
       <div>
-        <label for="phone">Phone</label>
+        <label for="phone" data-i18n="labelPhone">Phone</label>
         <input type="tel" id="phone">
       </div>
       <div>
-        <label for="city">City</label>
+        <label for="city" data-i18n="labelCity">City</label>
         <input type="text" id="city" placeholder="London">
       </div>
-      <button type="submit" class="btn-primary submit-btn" id="submit-btn">Send my details</button>
+      <button type="submit" class="btn-primary submit-btn" id="submit-btn" data-i18n="submitBtn">Send my details</button>
       <p id="form-status"></p>
     </form>
   </div>
@@ -226,43 +226,134 @@
 </footer>
 
 <script>
-document.getElementById('lead-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  var btn = document.getElementById('submit-btn');
-  var status = document.getElementById('form-status');
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-  status.textContent = '';
-  status.className = '';
-  try {
-    var res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/submit-restaurant-lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        restaurant_name: document.getElementById('restaurant_name').value,
-        contact_name: document.getElementById('contact_name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        city: document.getElementById('city').value
-      })
-    });
-    var json = await res.json();
-    if (res.ok && json.success) {
-      status.textContent = "Thanks — we'll be in touch shortly.";
-      status.className = 'ok';
-      document.getElementById('lead-form').reset();
-    } else {
-      status.textContent = 'Something went wrong — please try again.';
-      status.className = 'err';
-    }
-  } catch (err) {
-    status.textContent = 'Something went wrong — please try again.';
-    status.className = 'err';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Send my details';
+var I18N = {
+  en: {
+    pageTitle: 'Una Mesa for Restaurants — Stop losing money to no-shows',
+    metaDescription: 'List your restaurant on Una Mesa. No membership fee — just £1 per diner, only when you get a booking. Deposits go straight to your bank account.',
+    ogTitle: 'Una Mesa for Restaurants',
+    ogDescription: 'No membership fee. £1 per diner. Deposits paid straight to your account. Stop losing money to no-shows.',
+    navCta: 'List your restaurant',
+    heroTitle: 'The empty table costs you more than the <span class="accent">deposit</span> ever will.',
+    heroSub: "List your restaurant on Una Mesa. Diners pay a deposit to book — you keep it if they don't show. No membership fee, ever.",
+    heroCta1: 'List your restaurant — free',
+    heroCta2: 'See the pricing',
+    receiptTitle: 'A table for 2, booked on Una Mesa',
+    receiptDeposit: 'Deposit (you set the amount)',
+    receiptFee: 'Una Mesa fee — £1 per diner',
+    receiptPaid: 'Paid straight to your bank',
+    receiptNote: 'No booking, no fee. No membership, ever.',
+    value1Num: 'No membership', value1Title: 'Free to list',
+    value1Body: 'You never pay to appear on Una Mesa. The only fee is per diner, per booking — and only when you actually get one.',
+    value2Num: 'Your money, your bank', value2Title: 'Nothing held back',
+    value2Body: 'Deposits go directly into your own Stripe account. Una Mesa never holds your funds — not for a day, not for an hour.',
+    value3Num: 'One email, one button', value3Title: 'No new software',
+    value3Body: "No dashboard to learn. You get an email per booking, with one button: mark it completed, or mark it a no-show.",
+    howTitle: 'Live in under five minutes',
+    step1Title: 'Tell us about your restaurant', step1Body: "Send us your details below — we'll set up your listing for you.",
+    step2Title: 'Connect your bank account', step2Body: 'A short, secure form from Stripe — the same payment processor used by millions of businesses.',
+    step3Title: 'Start receiving bookings', step3Body: "You're live. Diners book, deposits land in your account, no-shows stop costing you money.",
+    formTitle: 'List your restaurant', formSub: "Leave your details and we'll reach out to get you set up.",
+    labelRestaurant: 'Restaurant name', labelName: 'Your name', labelEmail: 'Email', labelPhone: 'Phone', labelCity: 'City',
+    submitBtn: 'Send my details', sending: 'Sending…',
+    ok: "Thanks — we'll be in touch shortly.", err: 'Something went wrong — please try again.',
+    cityPlaceholder: 'London'
+  },
+  es: {
+    pageTitle: 'Una Mesa para Restaurantes — Deja de perder dinero con los no-shows',
+    metaDescription: 'Publica tu restaurante en Una Mesa. Sin cuota de membresía — solo £1 por comensal, y solo cuando consigues una reserva. Los depósitos van directo a tu cuenta bancaria.',
+    ogTitle: 'Una Mesa para Restaurantes',
+    ogDescription: 'Sin cuota de membresía. £1 por comensal. Los depósitos se pagan directo a tu cuenta. Deja de perder dinero con los no-shows.',
+    navCta: 'Publica tu restaurante',
+    heroTitle: 'La mesa vacía te cuesta más que el <span class="accent">depósito</span>.',
+    heroSub: 'Publica tu restaurante en Una Mesa. Los comensales pagan un depósito para reservar — tú te lo quedas si no aparecen. Sin cuota de membresía, nunca.',
+    heroCta1: 'Publica tu restaurante — gratis',
+    heroCta2: 'Ver el precio',
+    receiptTitle: 'Una mesa para 2, reservada en Una Mesa',
+    receiptDeposit: 'Depósito (tú eliges el monto)',
+    receiptFee: 'Comisión de Una Mesa — £1 por comensal',
+    receiptPaid: 'Pagado directo a tu banco',
+    receiptNote: 'Sin reserva, sin comisión. Sin membresía, nunca.',
+    value1Num: 'Sin membresía', value1Title: 'Gratis publicarte',
+    value1Body: 'Nunca pagas por aparecer en Una Mesa. La única comisión es por comensal, por reserva — y solo cuando de verdad consigues una.',
+    value2Num: 'Tu dinero, tu banco', value2Title: 'Nada retenido',
+    value2Body: 'Los depósitos van directo a tu propia cuenta de Stripe. Una Mesa nunca retiene tus fondos — ni un día, ni una hora.',
+    value3Num: 'Un email, un botón', value3Title: 'Sin software nuevo',
+    value3Body: 'Sin panel que aprender. Recibes un email por reserva, con un botón: marcar como completada, o marcar como no-show.',
+    howTitle: 'En vivo en menos de cinco minutos',
+    step1Title: 'Cuéntanos sobre tu restaurante', step1Body: 'Mándanos tus datos abajo — nosotros creamos tu perfil por ti.',
+    step2Title: 'Conecta tu cuenta bancaria', step2Body: 'Un formulario corto y seguro de Stripe — el mismo procesador de pagos que usan millones de negocios.',
+    step3Title: 'Empieza a recibir reservas', step3Body: 'Ya estás en vivo. Los comensales reservan, los depósitos llegan a tu cuenta, los no-shows dejan de costarte dinero.',
+    formTitle: 'Publica tu restaurante', formSub: 'Déjanos tus datos y nos pondremos en contacto para darte de alta.',
+    labelRestaurant: 'Nombre del restaurante', labelName: 'Tu nombre', labelEmail: 'Email', labelPhone: 'Teléfono', labelCity: 'Ciudad',
+    submitBtn: 'Enviar mis datos', sending: 'Enviando…',
+    ok: 'Gracias — nos pondremos en contacto pronto.', err: 'Algo salió mal — inténtalo de nuevo.',
+    cityPlaceholder: 'Madrid'
   }
-});
+};
+
+(function() {
+  var lang = 'es';
+  try {
+    var q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') lang = 'en';
+    else if (window.location.hostname.endsWith('.co.uk')) lang = 'en';
+  } catch (e) {}
+
+  var t = I18N[lang];
+  document.documentElement.lang = lang;
+  document.getElementById('page-title').textContent = t.pageTitle;
+  document.getElementById('meta-description').setAttribute('content', t.metaDescription);
+  document.getElementById('og-title').setAttribute('content', t.ogTitle);
+  document.getElementById('og-description').setAttribute('content', t.ogDescription);
+
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.textContent = t[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-html');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+  document.getElementById('city').setAttribute('placeholder', t.cityPlaceholder);
+
+  document.getElementById('lead-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('submit-btn');
+    var status = document.getElementById('form-status');
+    btn.disabled = true;
+    btn.textContent = t.sending;
+    status.textContent = '';
+    status.className = '';
+    try {
+      var res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/submit-restaurant-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurant_name: document.getElementById('restaurant_name').value,
+          contact_name: document.getElementById('contact_name').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          city: document.getElementById('city').value
+        })
+      });
+      var json = await res.json();
+      if (res.ok && json.success) {
+        status.textContent = t.ok;
+        status.className = 'ok';
+        document.getElementById('lead-form').reset();
+      } else {
+        status.textContent = t.err;
+        status.className = 'err';
+      }
+    } catch (err) {
+      status.textContent = t.err;
+      status.className = 'err';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = t.submitBtn;
+    }
+  });
+})();
 </script>
 
 </body>
