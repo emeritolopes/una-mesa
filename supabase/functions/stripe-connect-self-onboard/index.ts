@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       accountId = account.id
       await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venue.id}`, {
         method: 'PATCH', headers: h,
-        body: JSON.stringify({ stripe_connect_account_id: accountId }),
+        body: JSON.stringify({ stripe_connect_account_id: accountId, stripe_onboarding_started_at: new Date().toISOString() }),
       })
     }
 

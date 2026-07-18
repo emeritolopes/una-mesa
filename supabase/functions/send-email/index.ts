@@ -24,6 +24,10 @@ const ET = {
     subjectRestaurant: (name: string, date: string, time: string) => `Nueva reserva: ${name} · ${date} ${time}`,
     subjectStripeInvite: (r: string) => `${r} — conecta tu cuenta de cobro en Una Mesa`,
     subjectLive: (r: string) => `¡${r} ya está en vivo en Una Mesa!`,
+    subjectReminder: (r: string) => `${r} — te falta un paso para empezar a recibir reservas`,
+    reminderHeading: (r: string) => `¿Te ayudamos a terminar, ${r}?`,
+    reminderBody: 'Empezaste a conectar tu cuenta de cobro hace un tiempo, pero el proceso quedó a medias — te faltan solo un par de minutos para poder recibir reservas y depósitos reales.',
+    reminderButton: 'Terminar de conectar mi cuenta',
     liveHeading: (r: string) => `¡${r} ya aparece en Una Mesa!`,
     liveBody: 'Tu cuenta de cobro quedó verificada — ya puedes recibir reservas y depósitos de comensales reales. Te avisaremos por email en cuanto llegue la primera.',
     liveFooter: 'Cada depósito llega directo a tu cuenta — Una Mesa nunca lo retiene.',
@@ -67,6 +71,10 @@ const ET = {
     subjectRestaurant: (name: string, date: string, time: string) => `New booking: ${name} · ${date} ${time}`,
     subjectStripeInvite: (r: string) => `${r} — connect your payout account on Una Mesa`,
     subjectLive: (r: string) => `${r} is now live on Una Mesa!`,
+    subjectReminder: (r: string) => `${r} — one step left to start receiving bookings`,
+    reminderHeading: (r: string) => `Need a hand finishing up, ${r}?`,
+    reminderBody: "You started connecting your payout account a little while ago, but the process was left unfinished — it only takes a couple more minutes to be ready for real bookings and deposits.",
+    reminderButton: 'Finish connecting my account',
     liveHeading: (r: string) => `${r} is now live on Una Mesa!`,
     liveBody: "Your payout account is verified — you're ready to receive bookings and deposits from real diners. We'll email you as soon as the first one comes in.",
     liveFooter: "Each deposit goes straight to your account — Una Mesa never holds it.",
@@ -501,6 +509,60 @@ function buildLiveConfirmationHtml(opts: {
 </html>`
 }
 
+function buildReminderHtml(opts: {
+  restaurant_name: string
+  self_service_url: string
+  lang: 'es' | 'en'
+}): string {
+  const { restaurant_name, self_service_url, lang } = opts
+  const t = ET[lang] || ET.es
+  return `<!DOCTYPE html>
+<html lang="${t.htmlLang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${t.subjectReminder(restaurant_name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4F0;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+          <tr>
+            <td align="center" style="padding:0 0 28px 0;">
+              <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="background:#D8552E;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:36px 40px;">
+                  <p style="margin:0 0 16px 0;font-size:20px;font-weight:800;color:#1a130d;">${t.reminderHeading(restaurant_name)}</p>
+                  <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#555;">${t.reminderBody}</p>
+                  <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:10px;background:#D8552E;">
+                    <a href="${self_service_url}" style="display:block;padding:14px 28px;color:#fff;text-decoration:none;font-size:14px;font-weight:700;">${t.reminderButton}</a>
+                  </td></tr></table>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 0 0 0;">
+              <p style="margin:0;font-size:12px;color:#999;">${t.footerTag}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 function buildStripeInviteHtml(opts: {
   restaurant_name: string
   self_service_url: string
@@ -560,7 +622,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -574,10 +636,13 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
 
     const isLiveConfirmation = !!live_confirmation
-    const isStripeInvite = !isLiveConfirmation && !!stripe_invite_url
-    const isRestaurant = !isLiveConfirmation && !isStripeInvite && !!noshow_url
+    const isReminder = !isLiveConfirmation && !!onboarding_reminder_url
+    const isStripeInvite = !isLiveConfirmation && !isReminder && !!stripe_invite_url
+    const isRestaurant = !isLiveConfirmation && !isReminder && !isStripeInvite && !!noshow_url
     const html = isLiveConfirmation
       ? buildLiveConfirmationHtml({ restaurant_name, lang })
+      : isReminder
+      ? buildReminderHtml({ restaurant_name, self_service_url: onboarding_reminder_url, lang })
       : isStripeInvite
       ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
       : isRestaurant
@@ -586,6 +651,8 @@ Deno.serve(async (req) => {
 
     const subject = isLiveConfirmation
       ? t.subjectLive(restaurant_name)
+      : isReminder
+      ? t.subjectReminder(restaurant_name)
       : isStripeInvite
       ? t.subjectStripeInvite(restaurant_name)
       : isRestaurant
