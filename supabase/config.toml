@@ -512,4 +512,8 @@ verify_jwt = true
 [functions.onboarding-reminder]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/onboarding-reminder/index.ts"
+
+[functions.submit-restaurant-lead]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/submit-restaurant-lead/index.ts"
