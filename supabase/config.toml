@@ -508,4 +508,8 @@ verify_jwt = true
 [functions.health-check]
 enabled = true
 verify_jwt = true
-entrypoint = "./functions/health-check/index.ts"
+
+[functions.onboarding-reminder]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/onboarding-reminder/index.ts"
