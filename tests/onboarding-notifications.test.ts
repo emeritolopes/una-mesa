@@ -29,7 +29,7 @@ async function createTempVenue(overrides: Record<string, unknown> = {}) {
       name: 'TEST_ONBOARD_NOTIF_' + crypto.randomUUID().slice(0, 8),
       city: 'London', deposit_amount: 1000, capacity: 50,
       stripe_mode: 'test', archived: false, stripe_charges_enabled: false,
-      email: 'test-onboard-notif@example.com',
+      email: 'unamesagroup@gmail.com',
       stripe_connect_invite_token: crypto.randomUUID(),
       ...overrides,
     }),
