@@ -26,6 +26,31 @@ document.title = AP_LANG === 'en' ? 'Una Mesa — Reserve your table in London' 
     ogUrl.setAttribute('property', 'og:url');
     ogUrl.setAttribute('content', window.location.origin + '/');
     head.appendChild(ogUrl);
+
+    // La meta descripción y las etiquetas Open Graph/Twitter venían fijas
+    // en español, apuntando siempre a app.unamesa.co — incorrectas para
+    // quien visita app.unamesa.co.uk. Las actualizamos según el mercado.
+    const seoText = AP_LANG === 'en'
+      ? {
+          desc: 'Book a table at the best restaurants with a refundable deposit — no queues, no no-shows. London.',
+          title: 'Una Mesa — Reserve your table',
+        }
+      : {
+          desc: 'Reserva mesa en los mejores restaurantes con un depósito reembolsable — sin colas de espera, sin no-shows. Madrid.',
+          title: 'Una Mesa — Reserva tu mesa',
+        };
+    const ogImage = window.location.origin + '/og-image.jpg';
+    const setMeta = (selector, attr, value) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute(attr, value);
+    };
+    setMeta('meta[name="description"]', 'content', seoText.desc);
+    setMeta('meta[property="og:title"]', 'content', seoText.title);
+    setMeta('meta[property="og:description"]', 'content', seoText.desc);
+    setMeta('meta[property="og:image"]', 'content', ogImage);
+    setMeta('meta[name="twitter:title"]', 'content', seoText.title);
+    setMeta('meta[name="twitter:description"]', 'content', seoText.desc);
+    setMeta('meta[name="twitter:image"]', 'content', ogImage);
   } catch (_) {}
 })();
 const AP_T = {
