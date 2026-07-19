@@ -13,12 +13,12 @@ const path = require('path')
 
 const SEO = {
   en: {
-    title: 'Una Mesa — Reserve your table',
+    title: "Una Mesa — Reserve Your Table at London's Best Restaurants",
     description: 'Book a table at the best restaurants with a refundable deposit — no queues, no no-shows. London.',
     domain: 'app.unamesa.co.uk',
   },
   es: {
-    title: 'Una Mesa — Reserva tu mesa',
+    title: 'Una Mesa — Reserva tu Mesa en los Mejores Restaurantes',
     description: 'Reserva mesa en los mejores restaurantes con un depósito reembolsable — sin colas de espera, sin no-shows. Madrid.',
     domain: 'app.unamesa.co',
   },
