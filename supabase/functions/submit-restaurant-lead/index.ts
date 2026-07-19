@@ -27,9 +27,26 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'restaurant_name and email are required' }), { status: 400, headers: corsHeaders })
     }
 
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+
+    // Límite de frecuencia — máximo 3 envíos por hora desde la misma IP.
+    // Es un formulario público sin login; sin esto, un bot podría mandar
+    // cientos de envíos falsos, cada uno disparando un email real.
+    if (ip !== 'unknown') {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+      const recentRes = await fetch(
+        `${supabaseUrl}/rest/v1/restaurant_leads?ip_address=eq.${encodeURIComponent(ip)}&created_at=gt.${oneHourAgo}&select=id`,
+        { headers: h },
+      )
+      const recent = await recentRes.json()
+      if (Array.isArray(recent) && recent.length >= 3) {
+        return new Response(JSON.stringify({ error: 'too many submissions — please try again later' }), { status: 429, headers: corsHeaders })
+      }
+    }
+
     const insertRes = await fetch(`${supabaseUrl}/rest/v1/restaurant_leads`, {
       method: 'POST', headers: { ...h, Prefer: 'return=representation' },
-      body: JSON.stringify({ restaurant_name, contact_name, email, phone, city, message }),
+      body: JSON.stringify({ restaurant_name, contact_name, email, phone, city, message, ip_address: ip }),
     })
     const inserted = await insertRes.json()
     if (!insertRes.ok) {
