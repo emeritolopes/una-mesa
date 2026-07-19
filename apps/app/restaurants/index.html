@@ -301,6 +301,18 @@ var I18N = {
 
   var t = I18N[lang];
   document.documentElement.lang = lang;
+
+  // Registro de visita — un conteo simple, sin datos personales, para
+  // saber cuánta gente ve esta página vs. cuántos completan el formulario.
+  fetch('https://rkaytcmyaaighozxatod.supabase.co/rest/v1/restaurant_page_views', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s',
+    },
+    body: JSON.stringify({ lang: lang }),
+  }).catch(function() {});
+
   document.getElementById('page-title').textContent = t.pageTitle;
   document.getElementById('meta-description').setAttribute('content', t.metaDescription);
   document.getElementById('og-title').setAttribute('content', t.ogTitle);
