@@ -104,7 +104,25 @@
   #form-status.ok { color: #2e7d32; }
   #form-status.err { color: var(--coral-dark); }
 
+  /* ── Comparison table ── */
+  .compare { background: var(--cream-2); padding: 80px 0; }
+  .compare h2 { text-align: center; font-size: 32px; margin-bottom: 12px; }
+  .compare-sub { text-align: center; color: var(--muted); font-size: 15px; max-width: 620px; margin: 0 auto 40px; }
+  .compare-table-wrap { overflow-x: auto; }
+  table.compare-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; min-width: 640px; }
+  table.compare-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; padding: 14px 18px; border-bottom: 1.5px solid var(--line); }
+  table.compare-table td { padding: 14px 18px; font-size: 14.5px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.compare-table tr.us td { background: #FBEDE6; font-weight: 700; }
+  table.compare-table td.category { color: var(--muted); font-size: 12.5px; }
+  table.compare-table td .yes { color: #2e7d32; font-weight: 700; }
+  table.compare-table td .no { color: var(--coral-dark); font-weight: 700; }
+  .compare-footnote { font-size: 12.5px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
+  @media (max-width: 720px) {
+    table.compare-table { font-size: 13px; }
+  }
+
   footer { padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+
 
   @media (max-width: 720px) {
     .values-grid, .steps { grid-template-columns: 1fr; }
@@ -190,6 +208,71 @@
         <p data-i18n="step3Body">You're live. Diners book, deposits land in your account, no-shows stop costing you money.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="compare" id="compare-section" style="display:none;">
+  <div class="wrap">
+    <h2>How Una Mesa compares</h2>
+    <p class="compare-sub">Not every platform does the same job. Some bring you new diners. Others just manage the ones you already have.</p>
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Platform</th>
+            <th>Monthly fee</th>
+            <th>Fee per diner</th>
+            <th>Brings new diners?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="us">
+            <td class="category">Marketplace<br>(real discovery)</td>
+            <td>Una Mesa</td>
+            <td>£0</td>
+            <td>£1.00</td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td class="category"></td>
+            <td>Dojo Bookings</td>
+            <td>£149/mo + VAT*</td>
+            <td>£0</td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td class="category"></td>
+            <td>OpenTable</td>
+            <td>Quote-based — no published UK price</td>
+            <td>~£1–2</td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td class="category"></td>
+            <td>Quandoo Pro / Premium</td>
+            <td>£39 / £99/mo + £249 / £749 setup</td>
+            <td>£3.90 (partner network only)</td>
+            <td><span class="yes">Yes</span> — stops taking bookings 30 Sep 2026</td>
+          </tr>
+          <tr>
+            <td class="category">White-label<br>(manages your own customers)</td>
+            <td>Seatly</td>
+            <td>£89/mo</td>
+            <td>£0</td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td class="category"></td>
+            <td>ResDiary</td>
+            <td>From £109/mo (capped at 150 bookings) + £99 setup*</td>
+            <td>£0</td>
+            <td><span class="no">No</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="compare-footnote">*Dojo and ResDiary figures are reported by third-party resellers and comparison sites, not published directly by Dojo or ResDiary — worth confirming directly with them if this matters to your decision. Figures approximate as of mid-2026 and subject to change.</p>
   </div>
 </section>
 
@@ -330,6 +413,13 @@ var I18N = {
     if (t[key] !== undefined) el.innerHTML = t[key];
   });
   document.getElementById('city').setAttribute('placeholder', t.cityPlaceholder);
+
+  // La tabla comparativa solo aplica al mercado de Reino Unido — los
+  // competidores y precios mencionados son específicos de ahí.
+  if (lang === 'en') {
+    document.getElementById('compare-section').style.display = '';
+  }
+
 
   var domain = lang === 'en' ? 'unamesa.co.uk' : 'unamesa.co';
   document.getElementById('logo-link').href = 'https://' + domain;
