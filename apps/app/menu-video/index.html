@@ -49,14 +49,23 @@
   /* ── Hero grid ── */
   main { padding:48px 0 20px; }
   .hero-grid { display:grid; grid-template-columns:1fr; gap:24px; }
-  @media (min-width:1024px) { .hero-grid { grid-template-columns:2.4fr 1fr; } }
+  @media (min-width:1024px) { .hero-grid { grid-template-columns:3fr 1fr; } }
 
   .player { position:relative; aspect-ratio:16/9; border-radius:16px; overflow:hidden; background:#000; border:1px solid var(--line); }
-  .player video { width:100%; height:100%; object-fit:cover; }
-  .player-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:32px; background:linear-gradient(to top, rgba(0,0,0,.75), transparent 55%); pointer-events:none; }
-  .player-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; pointer-events:auto; }
+  .player video { width:100%; height:100%; object-fit:cover; cursor:pointer; }
+  .player-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:32px; background:linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.15) 55%, transparent 75%); pointer-events:none; }
+  .player-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; pointer-events:auto; }
   .player-title { font-size:clamp(26px,3.4vw,42px); font-weight:700; color:#fff; margin-bottom:6px; }
   .player-meta { display:flex; align-items:center; gap:8px; color:var(--on-surface-variant); font-size:14px; font-weight:600; }
+  .player-controls { display:flex; align-items:center; gap:16px; pointer-events:auto; }
+  .play-toggle { width:56px; height:56px; min-width:56px; border-radius:999px; background:var(--primary); border:none; color:var(--on-primary); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(255,87,51,.4); transition:transform .15s; }
+  .play-toggle:hover { transform:scale(1.05); }
+  .play-toggle svg { width:22px; height:22px; }
+  .progress-track { flex:1; height:4px; background:rgba(255,255,255,.25); border-radius:999px; position:relative; cursor:pointer; }
+  .progress-fill { position:absolute; inset:0; width:0%; background:var(--primary); border-radius:999px; }
+  .player-time { font-size:12px; font-weight:600; color:rgba(255,255,255,.75); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .fullscreen-btn { width:36px; height:36px; border:none; background:none; color:rgba(255,255,255,.75); display:flex; align-items:center; justify-content:center; }
+  .fullscreen-btn:hover { color:#fff; }
   .glass-round { width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.12); backdrop-filter:blur(12px); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:#fff; }
 
   .side-panel { display:flex; flex-direction:column; gap:20px; }
@@ -146,6 +155,8 @@ const ICONS = {
   chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18l6-6-6-6"/></svg>',
   book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z"/></svg>',
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
+  fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
 };
 
 const qs = new URLSearchParams(window.location.search);
@@ -232,7 +243,7 @@ function renderHero() {
   document.getElementById('content').innerHTML = `
     <div class="hero-grid">
       <div class="player">
-        <video src="${v.video_url}" controls playsinline controlslist="nodownload" disablepictureinpicture></video>
+        <video id="hero-video" src="${v.video_url}" playsinline controlslist="nodownload" disablepictureinpicture></video>
         <div class="player-overlay">
           <div class="player-top">
             <div>
@@ -242,6 +253,12 @@ function renderHero() {
             <div style="display:flex;gap:12px;pointer-events:auto;">
               <button class="glass-round" id="share-btn">${ICONS.share}</button>
             </div>
+          </div>
+          <div class="player-controls">
+            <button class="play-toggle" id="play-toggle">${ICONS.play}</button>
+            <div class="progress-track" id="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+            <span class="player-time" id="player-time">0:00 / 0:00</span>
+            <button class="fullscreen-btn" id="fullscreen-btn">${ICONS.fullscreen}</button>
           </div>
         </div>
       </div>
@@ -256,6 +273,40 @@ function renderHero() {
   document.getElementById('share-btn').addEventListener('click', shareDish);
   document.getElementById('scroll-menu-btn').addEventListener('click', () => {
     document.querySelector('.cat-nav')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ── Reproductor personalizado — nada de controles nativos del navegador ──
+  const video = document.getElementById('hero-video');
+  const playToggle = document.getElementById('play-toggle');
+  const progressTrack = document.getElementById('progress-track');
+  const progressFill = document.getElementById('progress-fill');
+  const timeLabel = document.getElementById('player-time');
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+  const fmt = s => {
+    if (!isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  };
+  const updateTime = () => {
+    timeLabel.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+    progressFill.style.width = video.duration ? `${(video.currentTime / video.duration) * 100}%` : '0%';
+  };
+  const togglePlay = () => { video.paused ? video.play() : video.pause(); };
+
+  video.addEventListener('loadedmetadata', updateTime);
+  video.addEventListener('timeupdate', updateTime);
+  video.addEventListener('play', () => { playToggle.innerHTML = ICONS.pause; });
+  video.addEventListener('pause', () => { playToggle.innerHTML = ICONS.play; });
+  video.addEventListener('click', togglePlay);
+  playToggle.addEventListener('click', togglePlay);
+  progressTrack.addEventListener('click', e => {
+    const rect = progressTrack.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    if (isFinite(video.duration)) video.currentTime = pct * video.duration;
+  });
+  fullscreenBtn.addEventListener('click', () => {
+    if (video.requestFullscreen) video.requestFullscreen();
   });
 }
 
