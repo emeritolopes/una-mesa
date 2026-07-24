@@ -19,6 +19,8 @@ const DT_T = {
     matchSuffix: '% afinidad',
     comingSoonTitle: 'Próximamente',
     comingSoonBody: 'Este restaurante se está incorporando a Una Mesa — todavía no se puede reservar aquí.',
+    menuVideoCta: 'Ver el menú en video',
+    menuVideoLocked: 'Menú en video — próximamente para este restaurante',
     reviewsParen: n => '(' + n + ' reseñas)',
     address: 'Dirección',
     hours: 'Horario',
@@ -48,6 +50,8 @@ const DT_T = {
     matchSuffix: '% match',
     comingSoonTitle: 'Coming soon',
     comingSoonBody: "This restaurant is joining Una Mesa — booking isn't available here yet.",
+    menuVideoCta: 'Watch the video menu',
+    menuVideoLocked: 'Video menu — coming soon for this restaurant',
     reviewsParen: n => '(' + n + ' reviews)',
     address: 'Address',
     hours: 'Hours',
@@ -75,7 +79,8 @@ function DetailScreen({
   back,
   favs,
   toggleFav,
-  startBook
+  startBook,
+  startMenuVideo
 }) {
   const data = window.UM_DATA;
   const r = data.find(x => x.id === rid);
@@ -386,7 +391,43 @@ function DetailScreen({
       width: 17,
       height: 17
     }
-  }), DT_T.chooseDateTime)))))));
+  }), DT_T.chooseDateTime))),
+  /* Menú en video — servicio de pago aparte, deshabilitado si el
+     restaurante no tiene acceso activo */
+  r.menuVideoAccess ? React.createElement('button', {
+    type: 'button',
+    className: 'det-bw-cta',
+    style: {
+      marginTop: 12,
+      background: '#1A130D'
+    },
+    onClick: () => startMenuVideo(r.id)
+  }, React.createElement(Icon, {
+    name: 'play',
+    fill: 'currentColor',
+    style: {
+      width: 17,
+      height: 17
+    }
+  }), DT_T.menuVideoCta) : React.createElement('button', {
+    type: 'button',
+    className: 'det-bw-cta',
+    disabled: true,
+    style: {
+      marginTop: 12,
+      background: '#E8E0D4',
+      color: '#999',
+      cursor: 'not-allowed'
+    },
+    title: DT_T.menuVideoLocked
+  }, React.createElement(Icon, {
+    name: 'play',
+    fill: 'currentColor',
+    style: {
+      width: 17,
+      height: 17
+    }
+  }), DT_T.menuVideoCta)))));
 }
 Object.assign(window, {
   DetailScreen

@@ -41,7 +41,8 @@ const PATHS = {
   mail: 'M3 6h18v12H3z|M3 7l9 6 9-6',
   phone: 'M7 3h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 5 5a2 2 0 0 1 2-2Z',
   gift: 'M20 12v9H4v-9|M2 7h20v5H2zM12 7v14|M12 7S10.8 3 8.5 3a2.5 2.5 0 0 0 0 5H12Zm0 0s1.2-4 3.5-4a2.5 2.5 0 0 1 0 5H12Z',
-  lock: 'M6 10V8a6 6 0 0 1 12 0v2|M5 10h14v11H5z|M12 14v3'
+  lock: 'M6 10V8a6 6 0 0 1 12 0v2|M5 10h14v11H5z|M12 14v3',
+  play: 'M6 4l14 8-14 8V4Z'
 };
 function Icon({
   name,
