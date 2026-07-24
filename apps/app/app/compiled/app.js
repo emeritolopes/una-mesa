@@ -409,6 +409,12 @@ function App() {
       presetDate: date || null
     });
   };
+  const startMenuVideo = rid => setRoute({
+    view: 'menu-video',
+    rid,
+    query: route.query,
+    presetTime: null
+  });
   const toggleFav = rid => {
     setFavs(f => {
       const has = f.includes(rid);
@@ -527,7 +533,11 @@ function App() {
     back: () => go('results'),
     favs,
     toggleFav,
-    startBook
+    startBook,
+    startMenuVideo
+  });else if (route.view === 'menu-video') screen = React.createElement(window.MenuVideoScreen, {
+    rid: route.rid,
+    back: () => openRest(route.rid)
   });else if (route.view === 'booking') screen = React.createElement(window.BookingScreen, {
     rid: route.rid,
     presetTime: route.presetTime,
