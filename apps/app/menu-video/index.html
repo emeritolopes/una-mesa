@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">Una Mesa — Video Menu</title>
+<meta name="description" content="Watch the dishes before you order.">
+<link rel="icon" type="image/png" href="/restaurants/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: #131313;
+    --surface-container-lowest: #0e0e0e;
+    --surface-container-low: #1c1b1b;
+    --surface-container: #201f1f;
+    --surface-container-high: #2a2a2a;
+    --on-surface: #e5e2e1;
+    --on-surface-variant: #a89f9c;
+    --outline: #ab8982;
+    --primary: #ff5733;
+    --on-primary: #fff5f2;
+    --secondary: #e6c364;
+    --line: rgba(255,255,255,.10);
+    --line-soft: rgba(255,255,255,.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { background:var(--surface); color:var(--on-surface); }
+  body { font-family:'Manrope',sans-serif; font-size:16px; line-height:1.55; padding-top:80px; }
+  .wrap { max-width:1240px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3,h4,blockquote { font-family:'Playfair Display',serif; }
+  a { color:inherit; text-decoration:none; }
+  button { font-family:inherit; cursor:pointer; }
+  img, video { display:block; max-width:100%; }
+
+  /* ── Nav ── */
+  header { position:fixed; top:0; left:0; right:0; z-index:50; background:rgba(19,19,19,.82); backdrop-filter:blur(24px); border-bottom:1px solid var(--line); }
+  nav { display:flex; align-items:center; justify-content:space-between; height:80px; max-width:1240px; margin:0 auto; padding:0 24px; }
+  .nav-left { display:flex; align-items:center; gap:32px; }
+  .logo { font-size:22px; font-weight:800; }
+  .cat-nav { display:flex; align-items:center; gap:24px; overflow-x:auto; }
+  .cat-nav button { background:none; border:none; color:var(--on-surface-variant); font-family:'Manrope'; font-size:14.5px; font-weight:600; white-space:nowrap; padding:6px 0; border-bottom:2px solid transparent; transition:color .2s; }
+  .cat-nav button:hover { color:var(--on-surface); }
+  .cat-nav button.active { color:var(--primary); font-weight:800; border-bottom-color:var(--primary); }
+  .nav-right { display:flex; align-items:center; gap:6px; }
+  .icon-btn { width:40px; height:40px; border-radius:999px; border:none; background:none; color:var(--on-surface-variant); display:flex; align-items:center; justify-content:center; transition:color .2s, background .2s; }
+  .icon-btn:hover { color:var(--primary); background:rgba(255,255,255,.05); }
+
+  /* ── Hero grid ── */
+  main { padding:48px 0 20px; }
+  .hero-grid { display:grid; grid-template-columns:1fr; gap:24px; }
+  @media (min-width:1024px) { .hero-grid { grid-template-columns:2.4fr 1fr; } }
+
+  .player { position:relative; aspect-ratio:16/9; border-radius:16px; overflow:hidden; background:#000; border:1px solid var(--line); }
+  .player video { width:100%; height:100%; object-fit:cover; }
+  .player-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:32px; background:linear-gradient(to top, rgba(0,0,0,.75), transparent 55%); pointer-events:none; }
+  .player-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; pointer-events:auto; }
+  .player-title { font-size:clamp(26px,3.4vw,42px); font-weight:700; color:#fff; margin-bottom:6px; }
+  .player-meta { display:flex; align-items:center; gap:8px; color:var(--on-surface-variant); font-size:14px; font-weight:600; }
+  .glass-round { width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.12); backdrop-filter:blur(12px); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:#fff; }
+
+  .side-panel { display:flex; flex-direction:column; gap:20px; }
+  .glass-panel { background:rgba(19,19,19,.65); backdrop-filter:blur(20px); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .eyebrow { font-size:11.5px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--outline); margin-bottom:14px; }
+  .story-quote { font-size:22px; font-style:italic; font-weight:700; line-height:1.25; margin-bottom:12px; }
+  .story-body { font-size:14px; color:var(--on-surface-variant); line-height:1.6; }
+
+  .macros { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .macro-pill { background:rgba(19,19,19,.65); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center; }
+  .macro-pill b { display:block; font-size:19px; color:var(--primary); font-weight:800; }
+  .macro-pill span { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--on-surface-variant); }
+
+  .cta-primary { width:100%; height:56px; border-radius:999px; border:none; background:var(--primary); color:var(--on-primary); font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .16s, box-shadow .16s; }
+  .cta-primary:hover { transform:translateY(-2px); box-shadow:0 0 20px rgba(255,87,51,.3); }
+  .cta-ghost { width:100%; height:56px; border-radius:999px; background:rgba(19,19,19,.65); backdrop-filter:blur(20px); border:1px solid var(--line); color:var(--on-surface); font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .16s; }
+  .cta-ghost:hover { background:rgba(255,255,255,.06); }
+
+  /* ── Carousel ── */
+  .carousel-section { margin-top:56px; }
+  .carousel-head { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; }
+  .carousel-head h3 { font-size:clamp(24px,3vw,36px); font-weight:700; }
+  .carousel-nav { display:flex; gap:8px; }
+  .carousel-track { display:flex; gap:20px; overflow-x:auto; padding-bottom:16px; scroll-snap-type:x mandatory; }
+  .carousel-track::-webkit-scrollbar { display:none; }
+  .carousel-card { min-width:220px; max-width:220px; scroll-snap-align:start; cursor:pointer; }
+  .carousel-thumb { position:relative; aspect-ratio:4/5; border-radius:12px; overflow:hidden; background:var(--surface-container-high); margin-bottom:12px; }
+  .carousel-thumb img, .carousel-thumb video { width:100%; height:100%; object-fit:cover; }
+  .chef-badge { position:absolute; bottom:10px; left:10px; background:var(--primary); color:var(--on-primary); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:4px 8px; border-radius:6px; }
+  .carousel-card h4 { font-size:19px; font-weight:700; }
+  .carousel-card p { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--primary); margin-top:4px; }
+
+  .empty-state { text-align:center; padding:80px 24px; color:var(--on-surface-variant); }
+
+  footer { margin-top:80px; padding:48px 0; border-top:1px solid var(--line); background:var(--surface-container-lowest); }
+  .foot-inner { display:flex; flex-direction:column; align-items:center; gap:24px; text-align:center; }
+  @media (min-width:768px) { .foot-inner { flex-direction:row; justify-content:space-between; text-align:left; } }
+  .foot-brand span { font-size:22px; font-weight:800; display:block; }
+  .foot-brand small { color:var(--on-surface-variant); font-size:13px; }
+  .foot-links { display:flex; gap:28px; }
+  .foot-links a { color:var(--on-surface-variant); font-size:14px; }
+  .foot-links a:hover { color:var(--primary); }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="nav-left">
+      <span class="logo">Una Mesa</span>
+      <div class="cat-nav" id="cat-nav"></div>
+    </div>
+    <div class="nav-right">
+      <a class="icon-btn" id="book-link" title="Book a table" href="#">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div id="content"></div>
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand">
+      <span>Una Mesa</span>
+      <small id="foot-venue-name"></small>
+    </div>
+    <div class="foot-links">
+      <a href="#" id="foot-book">Book a table</a>
+      <a href="https://unamesa.co.uk">unamesa.co.uk</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+
+const ICONS = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4Z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18l6-6-6-6"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>',
+};
+
+const qs = new URLSearchParams(window.location.search);
+const venueId = qs.get('venue');
+const requestedDishId = qs.get('dish');
+
+let ALL_VIDEOS = [];
+let VENUE = null;
+let currentCategory = null;
+let currentDish = null;
+
+async function sbSelect(table, query) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    return null; // fallo de red real, distinto de "sin resultados"
+  }
+}
+
+function bookUrl() {
+  const host = window.location.hostname.endsWith('.co.uk') ? 'app.unamesa.co.uk' : 'app.unamesa.co';
+  return `https://${host}/#detail/${venueId}`;
+}
+
+function renderEmpty(message) {
+  document.getElementById('content').innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+function renderCategoryNav() {
+  const cats = [...new Set(ALL_VIDEOS.map(v => v.category))];
+  const nav = document.getElementById('cat-nav');
+  nav.innerHTML = cats.map(c =>
+    `<button data-cat="${c}" class="${c === currentCategory ? 'active' : ''}">${c}</button>`
+  ).join('');
+  nav.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCategory = btn.dataset.cat;
+      const first = ALL_VIDEOS.find(v => v.category === currentCategory);
+      if (first) selectDish(first.id);
+    });
+  });
+}
+
+function selectDish(dishId) {
+  currentDish = ALL_VIDEOS.find(v => v.id === dishId);
+  if (!currentDish) return;
+  currentCategory = currentDish.category;
+  const url = new URL(window.location);
+  url.searchParams.set('dish', dishId);
+  window.history.replaceState({}, '', url);
+  renderCategoryNav();
+  renderHero();
+  renderCarousel();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function shareDish() {
+  const shareText = `${currentDish.dish_name} — ${VENUE.name} — Una Mesa`;
+  if (navigator.share) {
+    navigator.share({ title: currentDish.dish_name, text: shareText, url: window.location.href }).catch(() => {});
+  } else {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`, '_blank', 'noopener');
+  }
+}
+
+function renderHero() {
+  const v = currentDish;
+  const macrosHtml = (v.carbs_g != null || v.fats_g != null) ? `
+    <div class="macros">
+      ${v.carbs_g != null ? `<div class="macro-pill"><b>${v.carbs_g}g</b><span>Carbs</span></div>` : ''}
+      ${v.fats_g != null ? `<div class="macro-pill"><b>${v.fats_g}g</b><span>Fats</span></div>` : ''}
+    </div>` : '';
+  const storyHtml = (v.story_quote || v.story_body) ? `
+    <div class="glass-panel">
+      <div class="eyebrow">The Story</div>
+      ${v.story_quote ? `<blockquote class="story-quote">"${v.story_quote}"</blockquote>` : ''}
+      ${v.story_body ? `<p class="story-body">${v.story_body}</p>` : ''}
+    </div>` : '';
+
+  document.getElementById('content').innerHTML = `
+    <div class="hero-grid">
+      <div class="player">
+        <video src="${v.video_url}" controls playsinline controlslist="nodownload" disablepictureinpicture></video>
+        <div class="player-overlay">
+          <div class="player-top">
+            <div>
+              <h1 class="player-title">${v.dish_name}</h1>
+              <div class="player-meta">${ICONS.play.replace('viewBox', 'width="14" height="14" viewBox')} Watch before you order</div>
+            </div>
+            <div style="display:flex;gap:12px;pointer-events:auto;">
+              <button class="glass-round" id="share-btn">${ICONS.share}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="side-panel">
+        ${storyHtml}
+        ${macrosHtml}
+        <a class="cta-primary" href="${bookUrl()}">${ICONS.cal.replace('viewBox', 'width="18" height="18" viewBox')} Book a Table</a>
+        <button class="cta-ghost" id="scroll-menu-btn">${ICONS.book.replace('viewBox', 'width="18" height="18" viewBox')} View Menu</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('share-btn').addEventListener('click', shareDish);
+  document.getElementById('scroll-menu-btn').addEventListener('click', () => {
+    document.querySelector('.cat-nav')?.scrollIntoView({ behavior: 'smooth' });
+  });
+}
+
+function renderCarousel() {
+  const siblings = ALL_VIDEOS.filter(v => v.category === currentCategory && v.id !== currentDish.id);
+  const track = document.createElement('div');
+  const section = document.createElement('section');
+  section.className = 'carousel-section';
+
+  if (siblings.length === 0) {
+    section.innerHTML = '';
+  } else {
+    section.innerHTML = `
+      <div class="carousel-head">
+        <div>
+          <div class="eyebrow" style="color:var(--primary);">Recommendations</div>
+          <h3>More from ${currentCategory}</h3>
+        </div>
+        <div class="carousel-nav">
+          <button class="icon-btn" id="car-left" style="border:1px solid var(--line);">${ICONS.chevL}</button>
+          <button class="icon-btn" id="car-right" style="border:1px solid var(--line);">${ICONS.chevR}</button>
+        </div>
+      </div>
+      <div class="carousel-track" id="carousel-track"></div>
+    `;
+  }
+
+  const existing = document.querySelector('.carousel-section');
+  if (existing) existing.remove();
+  document.getElementById('content').appendChild(section);
+
+  if (siblings.length === 0) return;
+
+  const trackEl = document.getElementById('carousel-track');
+  siblings.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'carousel-card';
+    card.innerHTML = `
+      <div class="carousel-thumb">
+        ${v.thumbnail_url
+          ? `<img src="${v.thumbnail_url}" alt="${v.dish_name}">`
+          : `<video src="${v.video_url}#t=0.5" muted></video>`}
+        ${v.is_chefs_choice ? `<span class="chef-badge">Chef's Choice</span>` : ''}
+      </div>
+      <h4>${v.dish_name}</h4>
+      ${v.subtitle ? `<p>${v.subtitle}</p>` : ''}
+    `;
+    card.addEventListener('click', () => selectDish(v.id));
+    trackEl.appendChild(card);
+  });
+
+  document.getElementById('car-left')?.addEventListener('click', () => trackEl.scrollBy({ left: -260, behavior: 'smooth' }));
+  document.getElementById('car-right')?.addEventListener('click', () => trackEl.scrollBy({ left: 260, behavior: 'smooth' }));
+}
+
+async function init() {
+  if (!venueId) { renderEmpty('Missing restaurant.'); return; }
+
+  const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access`);
+  if (venues === null) { renderEmpty("Couldn't connect right now — please try again in a moment."); return; }
+  VENUE = venues[0];
+  if (!VENUE || !VENUE.menu_video_access) {
+    renderEmpty("This restaurant's video menu isn't available yet.");
+    return;
+  }
+
+  document.getElementById('page-title').textContent = `${VENUE.name} — Video Menu — Una Mesa`;
+  document.getElementById('foot-venue-name').textContent = VENUE.name;
+  document.getElementById('book-link').href = bookUrl();
+  document.getElementById('foot-book').href = bookUrl();
+
+  ALL_VIDEOS = await sbSelect('menu_videos', `venue_id=eq.${venueId}&order=sort_order`);
+  if (ALL_VIDEOS === null) { renderEmpty("Couldn't load the menu right now — please try again in a moment."); return; }
+  if (ALL_VIDEOS.length === 0) {
+    renderEmpty("This restaurant hasn't uploaded any dishes yet.");
+    return;
+  }
+
+  const startDish = (requestedDishId && ALL_VIDEOS.find(v => v.id === requestedDishId)) || ALL_VIDEOS[0];
+  selectDish(startDish.id);
+}
+
+init().catch(() => renderEmpty("Something went wrong loading this page — please try again."));
+</script>
+
+</body>
+</html>

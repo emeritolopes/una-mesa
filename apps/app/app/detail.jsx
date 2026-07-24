@@ -49,7 +49,7 @@ const DT_T = {
   }
 }[DT_LANG];
 
-function DetailScreen({ rid, back, favs, toggleFav, startBook, startMenuVideo }) {
+function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
   const [tab, setTab] = useState('menu');
@@ -265,11 +265,10 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook, startMenuVideo })
           /* Menú en video — servicio de pago aparte, deshabilitado si el
              restaurante no tiene acceso activo */
           r.menuVideoAccess
-            ? React.createElement('button', {
-                type:'button',
+            ? React.createElement('a', {
+                href:`/menu-video/?venue=${r.id}`,
                 className:'det-bw-cta',
-                style:{ marginTop:12 },
-                onClick:()=>startMenuVideo(r.id)
+                style:{ marginTop:12, textDecoration:'none' }
               },
                 React.createElement(Icon,{name:'play',fill:'currentColor',style:{width:17,height:17}}),
                 DT_T.menuVideoCta
