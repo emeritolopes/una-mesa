@@ -111,7 +111,7 @@ function MenuVideoScreen({
     }
   }, t.title), React.createElement('p', {
     style: {
-      color: '#777',
+      color: 'var(--muted)',
       marginBottom: 32
     }
   }, r.name), videos === null ? React.createElement('p', null, t.loading) : videos.length === 0 ? React.createElement('p', {
@@ -139,7 +139,7 @@ function MenuVideoScreen({
     style: {
       borderRadius: 12,
       overflow: 'hidden',
-      background: '#F4EFE6'
+      background: 'var(--bg-3)'
     }
   }, React.createElement('video', {
     src: v.video_url,

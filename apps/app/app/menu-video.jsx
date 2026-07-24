@@ -72,7 +72,7 @@ function MenuVideoScreen({ rid, back }) {
   return React.createElement('div', { className:'wrap', style:{ padding:'40px 0 80px' } },
     React.createElement('button', { onClick: back, style:{ marginBottom:24, background:'none', border:'none', color:'var(--accent)', fontWeight:600, cursor:'pointer' } }, t.back),
     React.createElement('h1', { style:{ fontFamily:'Playfair Display, serif', fontSize:28, marginBottom:4 } }, t.title),
-    React.createElement('p', { style:{ color:'#777', marginBottom:32 } }, r.name),
+    React.createElement('p', { style:{ color:'var(--muted)', marginBottom:32 } }, r.name),
 
     videos === null
       ? React.createElement('p', null, t.loading)
@@ -83,7 +83,7 @@ function MenuVideoScreen({ rid, back }) {
             React.createElement('h2', { style:{ fontSize:18, fontWeight:700, marginBottom:16, textTransform:'capitalize' } }, cat),
             React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:20 } },
               byCategory[cat].map(v =>
-                React.createElement('div', { key:v.id, style:{ borderRadius:12, overflow:'hidden', background:'#F4EFE6' } },
+                React.createElement('div', { key:v.id, style:{ borderRadius:12, overflow:'hidden', background:'var(--bg-3)' } },
                   React.createElement('video', {
                     src: v.video_url, controls:true, playsInline:true,
                     style:{ width:'100%', aspectRatio:'9/16', objectFit:'cover', display:'block', background:'#000' }
