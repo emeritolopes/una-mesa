@@ -268,7 +268,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook, startMenuVideo })
             ? React.createElement('button', {
                 type:'button',
                 className:'det-bw-cta',
-                style:{ marginTop:12, background:'#1A130D' },
+                style:{ marginTop:12 },
                 onClick:()=>startMenuVideo(r.id)
               },
                 React.createElement(Icon,{name:'play',fill:'currentColor',style:{width:17,height:17}}),
@@ -278,7 +278,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook, startMenuVideo })
                 type:'button',
                 className:'det-bw-cta',
                 disabled:true,
-                style:{ marginTop:12, background:'#E8E0D4', color:'#999', cursor:'not-allowed' },
+                style:{ marginTop:12, background:'var(--line)', color:'var(--muted)', cursor:'not-allowed' },
                 title: DT_T.menuVideoLocked
               },
                 React.createElement(Icon,{name:'play',fill:'currentColor',style:{width:17,height:17}}),

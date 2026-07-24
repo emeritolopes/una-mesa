@@ -398,8 +398,7 @@ function DetailScreen({
     type: 'button',
     className: 'det-bw-cta',
     style: {
-      marginTop: 12,
-      background: '#1A130D'
+      marginTop: 12
     },
     onClick: () => startMenuVideo(r.id)
   }, React.createElement(Icon, {
@@ -415,8 +414,8 @@ function DetailScreen({
     disabled: true,
     style: {
       marginTop: 12,
-      background: '#E8E0D4',
-      color: '#999',
+      background: 'var(--line)',
+      color: 'var(--muted)',
       cursor: 'not-allowed'
     },
     title: DT_T.menuVideoLocked
