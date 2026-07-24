@@ -21,14 +21,16 @@ const MV_T = {
     title: 'Menú en video',
     loading: 'Cargando…',
     notAvailable: 'Este restaurante todavía no tiene menú en video disponible.',
-    empty: 'Este restaurante no ha subido ningún video todavía.'
+    empty: 'Este restaurante no ha subido ningún video todavía.',
+    share: 'Compartir'
   },
   en: {
     back: '← Back to profile',
     title: 'Video menu',
     loading: 'Loading…',
     notAvailable: "This restaurant doesn't have a video menu available yet.",
-    empty: "This restaurant hasn't uploaded any videos yet."
+    empty: "This restaurant hasn't uploaded any videos yet.",
+    share: 'Share'
   }
 };
 function MenuVideoScreen({
@@ -41,6 +43,19 @@ function MenuVideoScreen({
   const r = data.find(x => x.id === rid);
   const [videos, setVideos] = useState(null); // null = cargando, [] = vacío, [...] = datos
 
+  const shareVideo = (v, restaurantName) => {
+    const shareText = `${v.dish_name} — ${restaurantName} — Una Mesa`;
+    if (navigator.share) {
+      navigator.share({
+        title: v.dish_name,
+        text: shareText,
+        url: v.video_url
+      }).catch(() => {});
+    } else {
+      const waText = encodeURIComponent(`${shareText}\n${v.video_url}`);
+      window.open(`https://wa.me/?text=${waText}`, '_blank', 'noopener');
+    }
+  };
   useEffect(() => {
     if (!r || !r.menuVideoAccess || !window.UMAuth) {
       setVideos([]);
@@ -145,6 +160,9 @@ function MenuVideoScreen({
     src: v.video_url,
     controls: true,
     playsInline: true,
+    controlsList: 'nodownload',
+    disablePictureInPicture: true,
+    onContextMenu: e => e.preventDefault(),
     style: {
       width: '100%',
       aspectRatio: '9/16',
@@ -152,11 +170,36 @@ function MenuVideoScreen({
       display: 'block',
       background: '#000'
     }
-  }), React.createElement('p', {
+  }), React.createElement('div', {
     style: {
       padding: '10px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8
+    }
+  }, React.createElement('p', {
+    style: {
       fontWeight: 600,
       fontSize: 14
     }
-  }, v.dish_name)))))));
+  }, v.dish_name), React.createElement('button', {
+    type: 'button',
+    onClick: () => shareVideo(v, r.name),
+    title: t.share,
+    style: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: 'var(--muted)',
+      padding: 4,
+      flexShrink: 0
+    }
+  }, React.createElement(Icon, {
+    name: 'share',
+    style: {
+      width: 19,
+      height: 19
+    }
+  })))))))));
 }
