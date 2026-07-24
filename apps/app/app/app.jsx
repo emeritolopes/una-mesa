@@ -261,7 +261,6 @@ function App() {
   const startBook = (rid, t, party, date) => {
     setRoute({ view:'booking', rid, query:route.query, presetTime:t, presetParty: party||null, presetDate: date||null });
   };
-  const startMenuVideo = rid => setRoute({ view:'menu-video', rid, query:route.query, presetTime:null });
   const toggleFav = rid => {
     setFavs(f => {
       const has = f.includes(rid);
@@ -316,9 +315,7 @@ function App() {
   else if (route.view==='results')
     screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== AP_T.currentLocationSentinel ? geo.label : AP_T.yourArea, geo });
   else if (route.view==='detail')
-    screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook, startMenuVideo });
-  else if (route.view==='menu-video')
-    screen = React.createElement(window.MenuVideoScreen, { rid:route.rid, back:()=>openRest(route.rid) });
+    screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
   else if (route.view==='booking')
     screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, presetDate:route.presetDate, back:()=>go('home'), user, requireAuth, onConfirm });
   else if (route.view==='profile') {

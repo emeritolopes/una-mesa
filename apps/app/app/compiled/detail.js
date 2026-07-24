@@ -79,8 +79,7 @@ function DetailScreen({
   back,
   favs,
   toggleFav,
-  startBook,
-  startMenuVideo
+  startBook
 }) {
   const data = window.UM_DATA;
   const r = data.find(x => x.id === rid);
@@ -394,13 +393,13 @@ function DetailScreen({
   }), DT_T.chooseDateTime))),
   /* Menú en video — servicio de pago aparte, deshabilitado si el
      restaurante no tiene acceso activo */
-  r.menuVideoAccess ? React.createElement('button', {
-    type: 'button',
+  r.menuVideoAccess ? React.createElement('a', {
+    href: `/menu-video/?venue=${r.id}`,
     className: 'det-bw-cta',
     style: {
-      marginTop: 12
-    },
-    onClick: () => startMenuVideo(r.id)
+      marginTop: 12,
+      textDecoration: 'none'
+    }
   }, React.createElement(Icon, {
     name: 'play',
     fill: 'currentColor',
