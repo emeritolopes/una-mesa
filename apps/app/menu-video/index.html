@@ -146,11 +146,12 @@
 <div class="max-w-max-width mx-auto px-container-lg flex flex-col md:flex-row justify-between items-center gap-8">
 <div class="flex flex-col items-center md:items-start">
 <span class="font-headline-md text-headline-md text-on-surface font-bold">Una Mesa</span>
-<p class="text-on-surface-variant font-body-base mt-2" id="foot-venue-name"></p>
+<p class="text-on-surface-variant font-body-base mt-2" style="color: rgb(255, 87, 51);">© 2024 Una Mesa Hospitality Group</p>
 </div>
 <div class="flex gap-8">
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" id="foot-book" href="#">Book a Table</a>
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="https://unamesa.co.uk">unamesa.co.uk</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Contact Us</a>
 </div>
 </div>
 </footer>
@@ -237,6 +238,7 @@ function renderPage() {
             <p class="text-on-surface-variant font-body-medium flex items-center gap-2"><span class="material-symbols-outlined text-primary scale-75" style="color: rgb(255, 87, 51); font-variation-settings: 'FILL' 1;">movie</span><span id="duration-caption">cinematic presentation</span></p>
           </div>
           <div class="flex gap-4 pointer-events-auto">
+            <button id="fav-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white" id="fav-icon">favorite</span></button>
             <button id="share-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white">share</span></button>
           </div>
         </div>
@@ -340,6 +342,20 @@ function bindPlayerEvents() {
   });
   fullscreenBtn.addEventListener('click', () => { if (video.requestFullscreen) video.requestFullscreen(); });
   document.getElementById('share-btn').addEventListener('click', shareDish);
+  const favBtn = document.getElementById('fav-btn');
+  const favIcon = document.getElementById('fav-icon');
+  const favKey = `una-mesa-fav-${currentDish.id}`;
+  const applyFavState = () => {
+    const isFav = localStorage.getItem(favKey) === '1';
+    favIcon.style.fontVariationSettings = isFav ? "'FILL' 1" : "'FILL' 0";
+    favIcon.style.color = isFav ? 'rgb(255, 87, 51)' : '';
+  };
+  applyFavState();
+  favBtn.addEventListener('click', () => {
+    const isFav = localStorage.getItem(favKey) === '1';
+    if (isFav) localStorage.removeItem(favKey); else localStorage.setItem(favKey, '1');
+    applyFavState();
+  });
   document.getElementById('scroll-menu-btn')?.addEventListener('click', () => {
     document.getElementById('cat-nav').scrollIntoView({ behavior: 'smooth' });
   });
@@ -380,9 +396,7 @@ async function init() {
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
 
   document.getElementById('page-title').textContent = `${VENUE.name} — Video Menu — Una Mesa`;
-  document.getElementById('foot-venue-name').textContent = VENUE.name;
   document.getElementById('book-link').href = bookUrl();
-  document.getElementById('foot-book').href = bookUrl();
 
   ALL_VIDEOS = await sbSelect('menu_videos', `venue_id=eq.${venueId}&order=sort_order`);
   if (ALL_VIDEOS === null) { renderMessage("Couldn't load the menu right now — please try again in a moment."); return; }
@@ -393,6 +407,13 @@ async function init() {
 }
 
 init().catch(() => renderMessage('Something went wrong loading this page — please try again.'));
+
+// Micro-interactions — con delegación de eventos, ya que los botones se
+// generan dinámicamente (a diferencia del original, donde ya existían
+// todos en el HTML desde el principio).
+document.addEventListener('mousedown', e => { e.target.closest('a, button')?.classList.add('scale-95'); });
+document.addEventListener('mouseup', e => { e.target.closest('a, button')?.classList.remove('scale-95'); });
+document.addEventListener('mouseleave', e => { e.target.closest?.('a, button')?.classList.remove('scale-95'); }, true);
 </script>
 
 </body></html>
