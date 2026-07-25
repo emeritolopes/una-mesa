@@ -127,9 +127,10 @@
 <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
 <span class="material-symbols-outlined">light_mode</span>
 </button>
-<a id="book-link" href="#" class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Book a table">
-<span class="material-symbols-outlined">calendar_today</span>
-</a>
+<!-- Stitch had a specific user photo ("Carlos"). Replaced with a generic neutral avatar per Rule #3 — no real user exists in this context. -->
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10 flex items-center justify-center">
+  <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">person</span>
+</div>
 </div>
 </nav>
 </header>
@@ -137,7 +138,7 @@
 <!-- Main Content Area -->
 <main class="pt-20">
 <div class="max-w-max-width mx-auto px-container-md lg:px-container-lg py-12" id="content">
-  <p class="text-on-surface-variant py-24 text-center" id="loading-msg">Loading…</p>
+  <p class="text-on-surface-variant py-24 text-center">Loading…</p>
 </div>
 </main>
 
@@ -171,8 +172,8 @@ let currentDish = null;
 
 async function sbSelect(table, query) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + query, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
     });
     if (!res.ok) return [];
     return res.json();
@@ -182,206 +183,235 @@ async function sbSelect(table, query) {
 }
 
 function bookUrl() {
-  const host = window.location.hostname.endsWith('.co.uk') ? 'app.unamesa.co.uk' : 'app.unamesa.co';
-  return `https://${host}/#detail/${venueId}`;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const host = isLocal ? (window.location.protocol + '//' + window.location.host) : 'https://app.unamesa.co';
+  return host + '/#detail/' + venueId;
 }
 
 function renderMessage(msg) {
-  document.getElementById('content').innerHTML = `<p class="text-on-surface-variant py-24 text-center">${msg}</p>`;
+  document.getElementById('content').innerHTML = '<p class="text-on-surface-variant py-24 text-center">' + msg + '</p>';
 }
 
 function fmtTime(s) {
   if (!isFinite(s)) return '0:00';
-  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-  return `${m}:${String(sec).padStart(2, '0')}`;
+  var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return m + ':' + String(sec).padStart(2, '0');
+}
+
+function thumbBg(item) {
+  if (item.thumbnail_url) return 'background-image:url(' + item.thumbnail_url + ')';
+  return 'background:linear-gradient(135deg,#201f1f 0%,#131313 100%)';
 }
 
 function renderCatNav() {
-  const cats = [...new Set(ALL_VIDEOS.map(v => v.category))];
-  const nav = document.getElementById('cat-nav');
-  nav.innerHTML = cats.map(c => `
-    <a href="#" data-cat="${c}" class="${c === currentCategory ? 'text-primary font-bold' : 'text-on-surface-variant dark:text-on-surface-variant'} font-body-medium text-body-medium hover:text-primary transition-colors duration-300" style="${c === currentCategory ? 'color: rgb(255, 87, 51);' : ''}">${c}</a>
-  `).join('');
-  nav.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', e => {
+  var cats = [];
+  ALL_VIDEOS.forEach(function(v) { if (cats.indexOf(v.category) === -1) cats.push(v.category); });
+  var nav = document.getElementById('cat-nav');
+  nav.innerHTML = cats.map(function(c) {
+    var active = c === currentCategory;
+    return '<a href="#" data-cat="' + c + '" class="' + (active ? 'text-primary font-bold' : 'text-on-surface-variant dark:text-on-surface-variant') + ' font-body-medium text-body-medium hover:text-primary transition-colors duration-300"' + (active ? ' style="color: rgb(255, 87, 51);"' : '') + '>' + c + '</a>';
+  }).join('');
+  nav.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function(e) {
       e.preventDefault();
-      currentCategory = a.dataset.cat;
-      const first = ALL_VIDEOS.find(v => v.category === currentCategory);
+      var cat = a.dataset.cat;
+      if (cat === currentCategory) return;
+      currentCategory = cat;
+      var first = ALL_VIDEOS.find(function(v) { return v.category === cat; });
       if (first) selectDish(first.id);
     });
   });
 }
 
 function shareDish() {
-  const shareText = `${currentDish.dish_name} — ${VENUE.name} — Una Mesa`;
+  var shareText = currentDish.dish_name + ' — ' + VENUE.name + ' — Una Mesa';
   if (navigator.share) {
-    navigator.share({ title: currentDish.dish_name, text: shareText, url: window.location.href }).catch(() => {});
+    navigator.share({ title: currentDish.dish_name, text: shareText, url: window.location.href }).catch(function() {});
   } else {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`, '_blank', 'noopener');
+    window.open('https://wa.me/?text=' + encodeURIComponent(shareText + '\n' + window.location.href), '_blank', 'noopener');
   }
 }
 
+function buildCarouselCards(siblings) {
+  if (!siblings.length) return '';
+  var cards = siblings.map(function(s) {
+    var badge = s.is_chefs_choice
+      ? '<div class="absolute bottom-4 left-4 right-4"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef’s Choice</span></div>'
+      : '';
+    var subtitle = s.subtitle
+      ? '<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(255, 87, 51);">' + s.subtitle + '</p>'
+      : '';
+    return '<div class="min-w-[300px] group snap-start cursor-pointer" data-dish="' + s.id + '">'
+      + '<div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">'
+      + '<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="' + thumbBg(s) + '"></div>'
+      + '<div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all"></div>'
+      + '<button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20 backdrop-blur-xl border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">'
+      + '<span class="material-symbols-outlined text-white scale-125">play_arrow</span>'
+      + '</button>'
+      + badge
+      + '</div>'
+      + '<h4 class="font-headline-md text-2xl text-on-surface group-hover:text-primary transition-colors">' + s.dish_name + '</h4>'
+      + subtitle
+      + '</div>';
+  }).join('');
+
+  return '<section class="mt-20">'
+    + '<div class="flex items-end justify-between mb-8">'
+    + '<div>'
+    + '<h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Recommendations</h2>'
+    + '<h3 class="font-headline-lg text-headline-lg text-on-surface">More from ' + currentCategory + '</h3>'
+    + '</div>'
+    + '<div class="flex gap-2">'
+    + '<button id="car-left" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all"><span class="material-symbols-outlined">chevron_left</span></button>'
+    + '<button id="car-right" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all"><span class="material-symbols-outlined">chevron_right</span></button>'
+    + '</div>'
+    + '</div>'
+    + '<div class="flex gap-6 overflow-x-auto hide-scrollbar pb-8 snap-x" id="carousel-track">'
+    + cards
+    + '</div>'
+    + '</section>';
+}
+
 function renderPage() {
-  const v = currentDish;
-  const siblings = ALL_VIDEOS.filter(x => x.category === currentCategory && x.id !== v.id);
+  var v = currentDish;
+  var siblings = ALL_VIDEOS.filter(function(x) { return x.category === currentCategory && x.id !== v.id; });
 
-  document.getElementById('content').innerHTML = `
-<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
-  <!-- Left: Cinematic Video Player (Expanded) -->
-  <div class="xl:col-span-9 flex flex-col gap-6">
-    <div class="relative group aspect-video rounded-lg overflow-hidden glass-panel shadow-2xl">
-      <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" src="${v.video_url}" playsinline controlslist="nodownload" disablepictureinpicture loop></video>
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex flex-col">
-            <h1 class="font-headline-lg text-headline-lg text-white mb-2">${v.dish_name}</h1>
-            <p class="text-on-surface-variant font-body-medium flex items-center gap-2"><span class="material-symbols-outlined text-primary scale-75" style="color: rgb(255, 87, 51); font-variation-settings: 'FILL' 1;">movie</span><span id="duration-caption">cinematic presentation</span></p>
-          </div>
-          <div class="flex gap-4 pointer-events-auto">
-            <button id="fav-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white" id="fav-icon">favorite</span></button>
-            <button id="share-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white">share</span></button>
-          </div>
-        </div>
-        <div class="flex items-center gap-4 pointer-events-auto">
-          <button id="play-toggle" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-lg hover:scale-105 active:scale-95 transition-all" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined fill-current" id="play-icon">play_arrow</span></button>
-          <div class="flex-1 h-1 bg-white/20 rounded-full relative overflow-hidden cursor-pointer" id="progress-track"><div class="absolute inset-y-0 left-0 bg-primary" id="progress-fill" style="width:0%;background-color: rgb(255, 87, 51);"></div></div>
-          <span class="text-xs font-label-eyebrow text-white/70" id="time-label">0:00 / 0:00</span>
-          <button id="fullscreen-btn" class="p-2 text-white/70 hover:text-white"><span class="material-symbols-outlined">fullscreen</span></button>
-        </div>
-      </div>
-    </div>
-  </div>
+  var storyHtml = '';
+  if (v.story_quote || v.story_body) {
+    storyHtml = '<div class="glass-panel p-6 rounded-lg">'
+      + '<h3 class="font-label-eyebrow text-label-eyebrow text-outline uppercase tracking-widest mb-4">The Story</h3>'
+      + (v.story_quote ? '<blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">“' + v.story_quote + '”</blockquote>' : '')
+      + (v.story_body ? '<p class="text-on-surface-variant text-sm leading-relaxed opacity-80">' + v.story_body + '</p>' : '')
+      + '</div>';
+  }
 
-  <!-- Right: Information Panel (Narrower) -->
-  <div class="xl:col-span-3 flex flex-col gap-gutter">
-    ${(v.story_quote || v.story_body) ? `
-    <div class="glass-panel p-6 rounded-lg">
-      <h3 class="font-label-eyebrow text-label-eyebrow text-outline uppercase tracking-widest mb-4">The Story</h3>
-      ${v.story_quote ? `<blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">"${v.story_quote}"</blockquote>` : ''}
-      ${v.story_body ? `<p class="text-on-surface-variant text-sm leading-relaxed opacity-80">${v.story_body}</p>` : ''}
-    </div>` : ''}
-    <div class="flex flex-col gap-4">
-      <div class="grid grid-cols-3 gap-2 mb-2">
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">${v.carbs_g != null ? v.carbs_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">${v.fats_g != null ? v.fats_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Fats</span></div>
-        <div class="flex items-center justify-center"><button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group"><span class="material-symbols-outlined text-lg">menu_book</span><span class="text-[10px] font-label-eyebrow uppercase tracking-widest">Recipe</span></button></div>
-      </div>
-      <a href="${bookUrl()}" class="w-full h-14 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 hover:-translate-y-1 transition-all coral-glow" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined">calendar_today</span>Book a Table</a>
-      <button id="scroll-menu-btn" class="w-full h-14 glass-panel flex items-center justify-center rounded-full hover:bg-white/10 transition-all gap-2 font-bold"><span class="material-symbols-outlined">menu_book</span>View Menu</button>
-    </div>
-  </div>
-</div>
+  var carbsVal = v.carbs_g != null ? v.carbs_g + 'g' : '—';
+  var fatsVal = v.fats_g != null ? v.fats_g + 'g' : '—';
 
-${siblings.length ? `
-<!-- Bottom Section: Carousel -->
-<section class="mt-20">
-<div class="flex items-end justify-between mb-8">
-<div>
-<h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Recommendations</h2>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">More from ${currentCategory}</h3>
-</div>
-<div class="flex gap-2">
-<button id="car-left" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all"><span class="material-symbols-outlined">chevron_left</span></button>
-<button id="car-right" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all"><span class="material-symbols-outlined">chevron_right</span></button>
-</div>
-</div>
-<div class="flex gap-6 overflow-x-auto hide-scrollbar pb-8 snap-x" id="carousel-track">
-${siblings.map(s => `
-<div class="min-w-[300px] group snap-start cursor-pointer" data-dish="${s.id}">
-<div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
-${s.thumbnail_url
-  ? `<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="${s.thumbnail_url}" alt="${s.dish_name}">`
-  : `<video class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="${s.video_url}#t=0.4" muted playsinline></video>`}
-<div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all"></div>
-<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20 backdrop-blur-xl border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-<span class="material-symbols-outlined text-white scale-125">play_arrow</span>
-</div>
-${s.is_chefs_choice ? `<div class="absolute bottom-4 left-4 right-4"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
-</div>
-<h4 class="font-headline-md text-2xl text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
-${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(255, 87, 51);">${s.subtitle}</p>` : ''}
-</div>
-`).join('')}
-</div>
-</section>` : ''}
-  `;
+  var html = '<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">'
+    + '<!-- Left: Cinematic Video Player (Expanded) -->'
+    + '<div class="xl:col-span-9 flex flex-col gap-6">'
+    + '<div class="relative group aspect-video rounded-lg overflow-hidden glass-panel shadow-2xl">'
+    + '<video id="hero-video" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="' + v.video_url + '" playsinline controlslist="nodownload" disablepictureinpicture loop></video>'
+    + '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">'
+    + '<div class="flex items-center justify-between mb-4">'
+    + '<div class="flex flex-col">'
+    + '<h1 class="font-headline-lg text-headline-lg text-white mb-2">' + v.dish_name + '</h1>'
+    + '<p class="text-on-surface-variant font-body-medium flex items-center gap-2"><span class="material-symbols-outlined text-primary scale-75" style="color: rgb(255, 87, 51); font-variation-settings: &quot;FILL&quot; 1;">movie</span><span id="duration-caption">cinematic presentation</span></p>'
+    + '</div>'
+    + '<div class="flex gap-4 pointer-events-auto">'
+    + '<button id="fav-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white" id="fav-icon">favorite</span></button>'
+    + '<button id="share-btn" class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"><span class="material-symbols-outlined text-white">share</span></button>'
+    + '</div>'
+    + '</div>'
+    + '<div class="flex items-center gap-4 pointer-events-auto">'
+    + '<button id="play-toggle" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-lg hover:scale-105 active:scale-95 transition-all" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined fill-current" id="play-icon">play_arrow</span></button>'
+    + '<div class="flex-1 h-1 bg-white/20 rounded-full relative overflow-hidden cursor-pointer" id="progress-track"><div class="absolute inset-y-0 left-0 bg-primary" id="progress-fill" style="width:0%;background-color: rgb(255, 87, 51);"></div></div>'
+    + '<span class="text-xs font-label-eyebrow text-white/70" id="time-label">0:00 / 0:00</span>'
+    + '<button id="fullscreen-btn" class="p-2 text-white/70 hover:text-white"><span class="material-symbols-outlined">fullscreen</span></button>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '<!-- Right: Information Panel (Narrower) -->'
+    + '<div class="xl:col-span-3 flex flex-col gap-gutter">'
+    + storyHtml
+    + '<div class="flex flex-col gap-4">'
+    + '<div class="grid grid-cols-3 gap-2 mb-2">'
+    + '<div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">' + carbsVal + '</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>'
+    + '<div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">' + fatsVal + '</span><span class="text-[10px] uppercase text-on-surface-variant">Fats</span></div>'
+    + '<div class="flex items-center justify-center"><button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group"><span class="material-symbols-outlined text-lg">menu_book</span><span class="text-[10px] font-label-eyebrow uppercase tracking-widest">Recipe</span></button></div>'
+    + '</div>'
+    + '<a id="book-btn" href="' + bookUrl() + '" class="w-full h-14 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 hover:-translate-y-1 transition-all coral-glow" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined">calendar_today</span>Book a Table</a>'
+    + '<button id="scroll-menu-btn" class="w-full h-14 glass-panel flex items-center justify-center rounded-full hover:bg-white/10 transition-all gap-2 font-bold"><span class="material-symbols-outlined">menu_book</span>View Menu</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + buildCarouselCards(siblings);
 
+  document.getElementById('content').innerHTML = html;
   bindPlayerEvents();
   bindCarouselEvents();
 }
 
 function bindPlayerEvents() {
-  const video = document.getElementById('hero-video');
-  const playToggle = document.getElementById('play-toggle');
-  const playIcon = document.getElementById('play-icon');
-  const progressTrack = document.getElementById('progress-track');
-  const progressFill = document.getElementById('progress-fill');
-  const timeLabel = document.getElementById('time-label');
-  const fullscreenBtn = document.getElementById('fullscreen-btn');
+  var video = document.getElementById('hero-video');
+  var playToggle = document.getElementById('play-toggle');
+  var playIcon = document.getElementById('play-icon');
+  var progressTrack = document.getElementById('progress-track');
+  var progressFill = document.getElementById('progress-fill');
+  var timeLabel = document.getElementById('time-label');
+  var fullscreenBtn = document.getElementById('fullscreen-btn');
 
-  const updateTime = () => {
-    timeLabel.textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
-    progressFill.style.width = video.duration ? `${(video.currentTime / video.duration) * 100}%` : '0%';
-  };
-  const togglePlay = () => { video.paused ? video.play() : video.pause(); };
+  function updateTime() {
+    timeLabel.textContent = fmtTime(video.currentTime) + ' / ' + fmtTime(video.duration);
+    progressFill.style.width = video.duration ? ((video.currentTime / video.duration) * 100) + '%' : '0%';
+  }
+  function togglePlay() { video.paused ? video.play() : video.pause(); }
 
-  video.addEventListener('loadedmetadata', () => {
+  video.addEventListener('loadedmetadata', function() {
     updateTime();
-    const capEl = document.getElementById('duration-caption');
-    if (capEl) capEl.textContent = `${fmtTime(video.duration)} min cinematic presentation`;
+    var cap = document.getElementById('duration-caption');
+    if (cap) cap.textContent = fmtTime(video.duration) + ' cinematic presentation';
   });
   video.addEventListener('timeupdate', updateTime);
-  video.addEventListener('play', () => { playIcon.textContent = 'pause'; });
-  video.addEventListener('pause', () => { playIcon.textContent = 'play_arrow'; });
+  video.addEventListener('play', function() { playIcon.textContent = 'pause'; });
+  video.addEventListener('pause', function() { playIcon.textContent = 'play_arrow'; });
   video.addEventListener('click', togglePlay);
   playToggle.addEventListener('click', togglePlay);
-  progressTrack.addEventListener('click', e => {
-    const rect = progressTrack.getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
+  progressTrack.addEventListener('click', function(e) {
+    var rect = progressTrack.getBoundingClientRect();
+    var pct = (e.clientX - rect.left) / rect.width;
     if (isFinite(video.duration)) video.currentTime = pct * video.duration;
   });
-  fullscreenBtn.addEventListener('click', () => { if (video.requestFullscreen) video.requestFullscreen(); });
+  fullscreenBtn.addEventListener('click', function() { if (video.requestFullscreen) video.requestFullscreen(); });
   document.getElementById('share-btn').addEventListener('click', shareDish);
-  const favBtn = document.getElementById('fav-btn');
-  const favIcon = document.getElementById('fav-icon');
-  const favKey = `una-mesa-fav-${currentDish.id}`;
-  const applyFavState = () => {
-    const isFav = localStorage.getItem(favKey) === '1';
+
+  var favBtn = document.getElementById('fav-btn');
+  var favIcon = document.getElementById('fav-icon');
+  var favKey = 'una-mesa-fav-' + currentDish.id;
+  function applyFavState() {
+    var isFav = localStorage.getItem(favKey) === '1';
     favIcon.style.fontVariationSettings = isFav ? "'FILL' 1" : "'FILL' 0";
     favIcon.style.color = isFav ? 'rgb(255, 87, 51)' : '';
-  };
+  }
   applyFavState();
-  favBtn.addEventListener('click', () => {
-    const isFav = localStorage.getItem(favKey) === '1';
+  favBtn.addEventListener('click', function() {
+    var isFav = localStorage.getItem(favKey) === '1';
     if (isFav) localStorage.removeItem(favKey); else localStorage.setItem(favKey, '1');
     applyFavState();
   });
-  document.getElementById('scroll-menu-btn')?.addEventListener('click', () => {
-    document.getElementById('cat-nav').scrollIntoView({ behavior: 'smooth' });
-  });
+  var scrollMenuBtn = document.getElementById('scroll-menu-btn');
+  if (scrollMenuBtn) {
+    scrollMenuBtn.addEventListener('click', function() {
+      document.getElementById('cat-nav').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
 }
 
 function bindCarouselEvents() {
-  const track = document.getElementById('carousel-track');
+  var track = document.getElementById('carousel-track');
   if (!track) return;
-  track.querySelectorAll('[data-dish]').forEach(card => {
-    card.addEventListener('click', () => selectDish(card.dataset.dish));
+  track.querySelectorAll('[data-dish]').forEach(function(card) {
+    card.addEventListener('click', function() { selectDish(card.dataset.dish); });
   });
-  track.addEventListener('wheel', evt => {
+  track.addEventListener('wheel', function(evt) {
     evt.preventDefault();
     track.scrollLeft += evt.deltaY;
   });
-  document.getElementById('car-left')?.addEventListener('click', () => track.scrollBy({ left: -320, behavior: 'smooth' }));
-  document.getElementById('car-right')?.addEventListener('click', () => track.scrollBy({ left: 320, behavior: 'smooth' }));
+  var carLeft = document.getElementById('car-left');
+  var carRight = document.getElementById('car-right');
+  if (carLeft) carLeft.addEventListener('click', function() { track.scrollBy({ left: -320, behavior: 'smooth' }); });
+  if (carRight) carRight.addEventListener('click', function() { track.scrollBy({ left: 320, behavior: 'smooth' }); });
 }
 
 function selectDish(dishId) {
-  currentDish = ALL_VIDEOS.find(v => v.id === dishId);
+  currentDish = ALL_VIDEOS.find(function(v) { return v.id === dishId; });
   if (!currentDish) return;
   currentCategory = currentDish.category;
-  const url = new URL(window.location);
+  var url = new URL(window.location.href);
   url.searchParams.set('dish', dishId);
-  window.history.replaceState({}, '', url);
+  window.history.replaceState({}, '', url.toString());
   renderCatNav();
   renderPage();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -390,30 +420,36 @@ function selectDish(dishId) {
 async function init() {
   if (!venueId) { renderMessage('Missing restaurant.'); return; }
 
-  const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access`);
-  if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
+  var venues = await sbSelect('venues', 'id=eq.' + venueId + '&select=id,name,menu_video_access');
+  if (venues === null) { renderMessage('Couldn’t connect right now — please try again in a moment.'); return; }
   VENUE = venues[0];
-  if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
+  if (!VENUE || !VENUE.menu_video_access) { renderMessage('This restaurant’s video menu isn’t available yet.'); return; }
 
-  document.getElementById('page-title').textContent = `${VENUE.name} — Video Menu — Una Mesa`;
-  document.getElementById('book-link').href = bookUrl();
+  document.getElementById('page-title').textContent = VENUE.name + ' — Video Menu — Una Mesa';
 
-  ALL_VIDEOS = await sbSelect('menu_videos', `venue_id=eq.${venueId}&order=sort_order`);
-  if (ALL_VIDEOS === null) { renderMessage("Couldn't load the menu right now — please try again in a moment."); return; }
-  if (ALL_VIDEOS.length === 0) { renderMessage("This restaurant hasn't uploaded any dishes yet."); return; }
+  ALL_VIDEOS = await sbSelect('menu_videos', 'venue_id=eq.' + venueId + '&order=sort_order');
+  if (ALL_VIDEOS === null) { renderMessage('Couldn’t load the menu right now — please try again in a moment.'); return; }
+  if (ALL_VIDEOS.length === 0) { renderMessage('This restaurant hasn’t uploaded any dishes yet.'); return; }
 
-  const startDish = (requestedDishId && ALL_VIDEOS.find(v => v.id === requestedDishId)) || ALL_VIDEOS[0];
+  var startDish = (requestedDishId && ALL_VIDEOS.find(function(v) { return v.id === requestedDishId; })) || ALL_VIDEOS[0];
   selectDish(startDish.id);
 }
 
-init().catch(() => renderMessage('Something went wrong loading this page — please try again.'));
+init().catch(function() { renderMessage('Something went wrong loading this page — please try again.'); });
 
-// Micro-interactions — con delegación de eventos, ya que los botones se
-// generan dinámicamente (a diferencia del original, donde ya existían
-// todos en el HTML desde el principio).
-document.addEventListener('mousedown', e => { e.target.closest('a, button')?.classList.add('scale-95'); });
-document.addEventListener('mouseup', e => { e.target.closest('a, button')?.classList.remove('scale-95'); });
-document.addEventListener('mouseleave', e => { e.target.closest?.('a, button')?.classList.remove('scale-95'); }, true);
+// Micro-interactions — event delegation because buttons are rendered dynamically
+document.addEventListener('mousedown', function(e) {
+  var el = e.target.closest('a, button');
+  if (el) el.classList.add('scale-95');
+});
+document.addEventListener('mouseup', function(e) {
+  var el = e.target.closest('a, button');
+  if (el) el.classList.remove('scale-95');
+});
+document.addEventListener('mouseleave', function(e) {
+  var el = e.target && e.target.closest && e.target.closest('a, button');
+  if (el) el.classList.remove('scale-95');
+}, true);
 </script>
 
 </body></html>
