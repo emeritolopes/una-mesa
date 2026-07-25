@@ -110,6 +110,30 @@
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ── Modo claro ──
+           El sistema "Obsidian Reserve" nunca definió una paleta clara —
+           esta es una construida a propósito, usando el mismo tono crema
+           que ya usa el resto de la plataforma en modo claro, para que se
+           sienta parte de la misma marca, no algo inventado sin relación. */
+        html.light-mode body { background: #FAF6F0 !important; }
+        html.light-mode .bg-background { background-color: #FAF6F0 !important; }
+        html.light-mode .text-on-background,
+        html.light-mode .text-on-surface,
+        html.light-mode .text-on-surface-variant { color: #1A1411 !important; }
+        html.light-mode header.bg-surface\/80 { background-color: rgba(250, 246, 240, 0.85) !important; }
+        html.light-mode .bg-surface-container-lowest,
+        html.light-mode .bg-surface-container-high { background-color: #F4EFE6 !important; }
+        html.light-mode .border-white\/10,
+        html.light-mode .border-white\/20 { border-color: rgba(26, 20, 17, 0.12) !important; }
+        html.light-mode .glass-panel {
+            background: rgba(255, 255, 255, 0.75) !important;
+            border-color: rgba(26, 20, 17, 0.10) !important;
+        }
+        html.light-mode .text-outline { color: #8a7868 !important; }
+        html.light-mode .hover\:bg-white\/5:hover,
+        html.light-mode .hover\:bg-white\/10:hover,
+        html.light-mode .hover\:bg-white\/20:hover { background-color: rgba(26, 20, 17, 0.06) !important; }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white">
@@ -130,12 +154,9 @@
 <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
 <span class="material-symbols-outlined">search</span>
 </button>
-<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">light_mode</span>
+<button id="theme-toggle" class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" id="theme-icon">light_mode</span>
 </button>
-<a id="book-link" href="#" title="Book a table" class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">calendar_today</span>
-</a>
 </div>
 </nav>
 </header>
@@ -433,7 +454,6 @@ function selectDish(dishId) {
 async function init() {
   if (!venueId) { renderMessage('Missing restaurant.'); return; }
   document.getElementById('back-link').href = profileUrl();
-  document.getElementById('book-link').href = bookUrl();
 
   const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access`);
   if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
@@ -451,6 +471,23 @@ async function init() {
 }
 
 init().catch(() => renderMessage('Something went wrong loading this page — please try again.'));
+
+// Modo claro/oscuro — se recuerda entre visitas con localStorage.
+(function initTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+  const applyTheme = () => {
+    const isLight = localStorage.getItem('una-mesa-theme') === 'light';
+    document.documentElement.classList.toggle('light-mode', isLight);
+    themeIcon.textContent = isLight ? 'dark_mode' : 'light_mode';
+  };
+  applyTheme();
+  themeToggle.addEventListener('click', () => {
+    const current = localStorage.getItem('una-mesa-theme') === 'light' ? 'dark' : 'light';
+    localStorage.setItem('una-mesa-theme', current);
+    applyTheme();
+  });
+})();
 
 // Micro-interactions — con delegación de eventos, ya que el contenido se genera dinámicamente.
 document.addEventListener('mousedown', e => { e.target.closest('a, button')?.classList.add('scale-95'); });
