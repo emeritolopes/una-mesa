@@ -37,6 +37,7 @@ const PR_T = {
     signingIn: 'Iniciando sesión…', creatingAccount: 'Creando cuenta…',
     forgotPassword: '¿Olvidaste tu contraseña?',
     tabReservas: 'Mis reservas', tabPassport: 'Pasaporte', tabFavs: 'Favoritos', tabRewards: 'Recompensas',
+    bookAgain: 'Reservar otra vez', viewRestaurant: 'Ver restaurante',
     upcoming: 'Próximas', history: 'Historial',
     noBookings: 'Aún no tienes reservas.', findRestaurants: 'Buscar restaurantes',
     noFavs: 'Sin favoritos todavía. Toca el corazón en cualquier restaurante.', explore: 'Explorar',
@@ -83,6 +84,7 @@ const PR_T = {
     signingIn: 'Signing in…', creatingAccount: 'Creating account…',
     forgotPassword: 'Forgot your password?',
     tabReservas: 'My bookings', tabPassport: 'Passport', tabFavs: 'Favourites', tabRewards: 'Rewards',
+    bookAgain: 'Book again', viewRestaurant: 'View restaurant',
     upcoming: 'Upcoming', history: 'History',
     noBookings: "You don't have any bookings yet.", findRestaurants: 'Find restaurants',
     noFavs: 'No favourites yet. Tap the heart on any restaurant.', explore: 'Explore',
@@ -371,7 +373,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+(b.deposit*(b.party||1)))),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
-      React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?'Reservar otra vez':'Ver restaurante'),
+      React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?PR_T.bookAgain:PR_T.viewRestaurant),
       !isPast && b.isCancellable
         ? React.createElement('button',{
             className:'btn btn-sm',
