@@ -174,6 +174,19 @@ let VENUE = null;
 let currentCategory = null;
 let currentDish = null;
 
+// Contenido de ejemplo de la maqueta original — se usa como respaldo
+// mientras un plato todavía no tiene su propia historia, foto, o platos
+// relacionados reales cargados, para que la página nunca se vea vacía.
+const DEMO_STORY_QUOTE = 'A legacy of the salt marshes.';
+const DEMO_STORY_BODY = 'Sourced exclusively from the salt marshes of Suffolk, this lamb is slow-cooked for twelve hours in a reduction of wild thyme and marrow.';
+const DEMO_HERO_PHOTO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmCA4JQf-R25M8IvDLcaWT8clOjRpPOJeHRq4xizD9KEat1aVR88k1el0s00CENns1L5sjMe2Kn222DTSK0Il1pRHwOovgzzkTv6jQncFBDRSsngEAPwOmIjdGiqq74AqH2o2x5NtFLFA80uvT2ICl4zr32CZg1udiHsCJV8TIxFjKpi-qmb6Zz2hF-4BII6MK4LlQ1ncj5l2UEB-sOaOMxVzbkujZKgXGQwppmv5yTziKYh5NRRjbUu7FZDDdvkWrHlUvS1zcCQU';
+const DEMO_CAROUSEL = [
+  { dish_name: 'Mesa Wagyu', subtitle: 'Grade A5 • Kagoshima', is_chefs_choice: true, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBf4nxVczV26ScPYoBiE0eke7iDt-Hq1xjQBQlzVF0UN4M2FMWLXcxgv8bkVlxfcj8tlPVYfcDFD6x1O0S1dX2yQy8U37WGckB7LZMgp6_vwE8biFeHgzIcX5l-rg24jdrTUKFBBAu8-_TGRTKBDWn5sgz50mE78CAAfiNBzdTvIH0Z8kSP8achTtcwh2m2VdX8Vixek5ZK5eWSAwQxX4VtxLB6RmMjd33jDYESX8z2mzzmTr0aETnRowSIos1ILazinRTGcyyx7fI' },
+  { dish_name: 'Truffle Risotto', subtitle: 'Autumn Black Truffle', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu4g545-nXhWJBuz3pNly0-PjkfktpBiPabvZQVjePxtG0idNYj7_2CrzHRd0WjBOvZghevVAySODwOmKmlXp-g9qdtFPOeya5iEK1wpiy2bTejdgebAiogXwOQ8uiNlTfskr9YkMjg4b1NJgW3cmUw8_XGxPFHm8vomKKw7o0i9qRplXcIthX71o91wqyFX1bNmhM9owKpkIRwPH4IvXpHzE-wUIj5lJmjVshAwF9t7Zz8baV2V5dUdEDS_FMBiP1J3_OjeRcTWM' },
+  { dish_name: 'Obsidian Negroni', subtitle: 'Charcoal Gin • Bitters', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBXSBhJg1AuAGOfzC1BV4Y5Gq_20zc9mworXKbVljGn3oVezy4cg0Zkb9QIjkmNjdRgkKi0SzTih1bImHU0nJHWHkU8SlO1ygFJQZSBxI3_8CEX6J64-pxoUZvSSztgN8UZnt_3ItGcdxfJJbaH5XvacszYE_EG3Op3KKtgUsBQubE8Xr_aiGSQyZRXxnL6liKvtgNYJGJyFX6aQJEwuRWw8PXT2k3eDr2lbaMuKFL6Sxpff7ohJQmO3W-4ZnwEN2RIim1xizSo0Pc' },
+  { dish_name: 'Hokkaido Scallops', subtitle: 'Yuzu • Sea Foam', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBHSeJrW9r8vOPV_wm3UjbwcsVeubRG3JrJy1V5HuE7MiZ8HIZmj03Jdm3AsX-3rCdKT7aQZPArEEp7LXDkdeQun5iZyS-3SsU6l1VG1Q3GVe0X9eM71B51nPlGe9ecaIN166fuwxUJNrUgMCW-c7_RAyoYOX274zfOGVkCubSOoSnhz4RDfxnRe6AbISOaZ740fkkVlXcN40pQK3mr77hDGO3YuK2vCx4nEMZlOQnL1ORqKzFpBB5zrl_lMBfC5vpazvTGXKi8XQ' },
+];
+
 async function sbSelect(table, query) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
@@ -230,7 +243,7 @@ function shareDish() {
 function renderPage() {
   const v = currentDish;
   const siblings = ALL_VIDEOS.filter(x => x.category === currentCategory && x.id !== v.id);
-  const heroBg = v.video_url ? '' : `background-image: url("${v.thumbnail_url || ''}");`;
+  const heroBg = v.video_url ? '' : `background-image: url("${v.thumbnail_url || DEMO_HERO_PHOTO}");`;
 
   document.getElementById('content').innerHTML = `
 <div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
@@ -262,12 +275,11 @@ function renderPage() {
   </div>
 
   <div class="xl:col-span-3 flex flex-col gap-gutter">
-    ${(v.story_quote || v.story_body) ? `
     <div class="glass-panel p-6 rounded-lg">
       <h3 class="font-label-eyebrow text-label-eyebrow text-outline uppercase tracking-widest mb-4">The Story</h3>
-      ${v.story_quote ? `<blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">"${v.story_quote}"</blockquote>` : ''}
-      ${v.story_body ? `<p class="text-on-surface-variant text-sm leading-relaxed opacity-80">${v.story_body}</p>` : ''}
-    </div>` : ''}
+      <blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">"${v.story_quote || DEMO_STORY_QUOTE}"</blockquote>
+      <p class="text-on-surface-variant text-sm leading-relaxed opacity-80">${v.story_body || DEMO_STORY_BODY}</p>
+    </div>
     <div class="flex flex-col gap-4">
       <div class="grid grid-cols-3 gap-2 mb-2">
         <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">${v.carbs_g != null ? v.carbs_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>
@@ -280,7 +292,10 @@ function renderPage() {
   </div>
 </div>
 
-${siblings.length ? `
+${(() => {
+  const usingDemo = siblings.length === 0;
+  const cards = usingDemo ? DEMO_CAROUSEL : siblings;
+  return `
 <section class="mt-20">
 <div class="flex items-end justify-between mb-8">
 <div>
@@ -293,10 +308,12 @@ ${siblings.length ? `
 </div>
 </div>
 <div class="flex gap-6 overflow-x-auto hide-scrollbar pb-8 snap-x" id="carousel-track">
-${siblings.map(s => `
-<div class="min-w-[300px] group snap-start cursor-pointer" data-dish="${s.id}">
+${cards.map(s => `
+<div class="min-w-[300px] group snap-start${usingDemo ? '' : ' cursor-pointer'}" ${usingDemo ? '' : `data-dish="${s.id}"`}>
 <div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
-${s.thumbnail_url
+${usingDemo
+  ? `<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('${s.photo}');"></div>`
+  : s.thumbnail_url
   ? `<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('${s.thumbnail_url}');"></div>`
   : s.video_url
   ? `<video class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="${s.video_url}#t=0.4" muted playsinline preload="metadata"></video>`
@@ -312,7 +329,8 @@ ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase m
 </div>
 `).join('')}
 </div>
-</section>` : ''}
+</section>`;
+})()}
   `;
 
   bindPlayerEvents();
