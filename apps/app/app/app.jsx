@@ -10,6 +10,21 @@ function apMarket() {
   return 'es';
 }
 const AP_LANG = apMarket();
+
+/* Convierte el hash de la URL (ej. "#detail/abc123") en un objeto de ruta
+   — antes, la navegación nunca leía ni escribía la URL en absoluto, así
+   que un enlace compartido como #detail/{id} nunca funcionaba para
+   alguien que entra por primera vez (sin sessionStorage previo). */
+function parseRouteFromHash() {
+  const hash = (window.location.hash || '').replace(/^#/, '');
+  const [view, rid] = hash.split('/');
+  if (view === 'detail' && rid) return { view:'detail', rid, query:'', presetTime:null };
+  if (view === 'booking' && rid) return { view:'booking', rid, query:'', presetTime:null };
+  if (view === 'results') return { view:'results', rid:null, query:'', presetTime:null };
+  if (view === 'home') return { view:'home', rid:null, query:'', presetTime:null };
+  return null; // hash vacío o no reconocido — usar el respaldo de sessionStorage
+}
+
 document.title = AP_LANG === 'en' ? 'Una Mesa — Reserve your table in London' : 'Una Mesa — Reserva tu mesa en Madrid';
 (function setSeoLinks() {
   try {
@@ -87,6 +102,8 @@ function animateThemeTo(t){
 function App() {
   const [restaurants, setRestaurants] = useState(window.UM_DATA);
   const [route, setRoute] = useState(() => {
+    const fromHash = parseRouteFromHash();
+    if (fromHash) return fromHash;
     try {
       const saved = sessionStorage.getItem('um-route');
       const parsed = saved ? JSON.parse(saved) : null;
@@ -146,6 +163,18 @@ function App() {
 
   /* scroll to top on view change */
   useEffect(()=>{ window.scrollTo(0,0); }, [route.view, route.rid]);
+
+  // Reacciona a cambios de hash hechos por fuera de la navegación interna
+  // de la app (botón atrás/adelante del navegador, o un enlace externo
+  // que cambia el hash después de que la página ya cargó).
+  useEffect(() => {
+    const onHashChange = () => {
+      const parsed = parseRouteFromHash();
+      if (parsed) setRoute(parsed);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const [noRealRestaurants, setNoRealRestaurants] = useState(false);
 
