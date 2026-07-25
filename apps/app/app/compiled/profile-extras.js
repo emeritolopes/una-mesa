@@ -2,30 +2,193 @@
    1) Pasaporte Gastronómico  (cocinas + barrios conquistados)
    2) Tu Paladar IA           (perfil de gusto que aprende, editable)
    3) Mercado de Cucharas      (canjear puntos por recompensas)
+
+   Este archivo estaba completamente en español, sin ningún soporte de
+   inglés — por eso #profile se veía en español incluso en el dominio
+   .co.uk. Se agrega el mismo patrón bilingüe usado en el resto de la app.
 */
+
+/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
+function pxMarket() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+}
+const PX_LANG = pxMarket();
+const PX_T = {
+  es: {
+    ranks: [{
+      name: 'Sin estrenar',
+      tag: 'Tu primera mesa te espera'
+    }, {
+      name: 'Aprendiz',
+      tag: 'Acabas de empezar'
+    }, {
+      name: 'Explorador',
+      tag: 'Cogiendo el gusto'
+    }, {
+      name: 'Sibarita',
+      tag: 'Paladar curtido'
+    }, {
+      name: 'Maestro Gastronómico',
+      tag: 'Lo has probado casi todo'
+    }],
+    yourRank: 'Tu rango',
+    cuisinesRing: 'cocinas',
+    cuisinesConquered: 'Cocinas conquistadas',
+    areasExplored: (done, total) => `Barrios explorados · ${done}/${total}`,
+    spice: ['Sin picante', 'Suave', 'Medio', 'Picante'],
+    allergens: ['Gluten', 'Lactosa', 'Frutos secos', 'Marisco', 'Huevo', 'Soja'],
+    palateTitle: 'Tu Paladar IA',
+    palateSubtitle: 'Esto es lo que la IA ha aprendido de ti. Cuanto más reservas, mejor acierta.',
+    cuisinesYouLove: 'Cocinas que amas',
+    usualBudget: 'Presupuesto habitual',
+    preferredAmbiance: 'Ambiente preferido',
+    spiceLevel: 'Nivel de picante',
+    allergiesLabel: 'Alergias e intolerancias',
+    palateFooter: ' El conserje IA usa tu paladar para afinar cada recomendación. Solo tú lo ves.',
+    stillLearning: 'Aún aprendiendo',
+    toBeDiscovered: 'Por descubrir',
+    rewards: [{
+      id: 'welcome',
+      cost: 50,
+      name: 'Copa de bienvenida',
+      desc: 'Un vino o vermut de la casa al llegar',
+      icon: 'wine'
+    }, {
+      id: 'dessert',
+      cost: 80,
+      name: 'Postre de la casa',
+      desc: 'Postre gratis para la mesa',
+      icon: 'coffee'
+    }, {
+      id: 'priority',
+      cost: 120,
+      name: 'Prioridad en lista de espera',
+      desc: 'Te colamos cuando todo está lleno',
+      icon: 'clock'
+    }, {
+      id: 'view',
+      cost: 150,
+      name: 'La mejor mesa',
+      desc: 'Mesa con vistas o en zona premium',
+      icon: 'star'
+    }, {
+      id: 'wine',
+      cost: 220,
+      name: 'Botella de Albariño',
+      desc: 'Una botella seleccionada, invita la casa',
+      icon: 'wine'
+    }, {
+      id: 'dinner',
+      cost: 300,
+      name: 'Cena para dos -25%',
+      desc: 'Descuento en tu próxima reserva',
+      icon: 'gift'
+    }],
+    goldenSpoons: ' Cucharas de Oro',
+    spoonSub: 'Gánalas en cada reserva · canjéalas por experiencias',
+    onlyAtUnaMesa: 'Solo en Una Mesa',
+    redeemRewards: 'Canjea tus recompensas',
+    codeLabel: ' Código ',
+    redeemBtn: 'Canjear',
+    missingSpoons: n => `Te faltan ${n}`,
+    bookAgain: 'Reservar otra vez',
+    viewRestaurant: 'Ver restaurante'
+  },
+  en: {
+    ranks: [{
+      name: 'Unopened',
+      tag: 'Your first table awaits'
+    }, {
+      name: 'Apprentice',
+      tag: "You've just started"
+    }, {
+      name: 'Explorer',
+      tag: 'Getting a taste for it'
+    }, {
+      name: 'Epicure',
+      tag: 'A seasoned palate'
+    }, {
+      name: 'Culinary Master',
+      tag: "You've tried almost everything"
+    }],
+    yourRank: 'Your rank',
+    cuisinesRing: 'cuisines',
+    cuisinesConquered: 'Cuisines conquered',
+    areasExplored: (done, total) => `Neighbourhoods explored · ${done}/${total}`,
+    spice: ['No spice', 'Mild', 'Medium', 'Spicy'],
+    allergens: ['Gluten', 'Dairy', 'Nuts', 'Shellfish', 'Egg', 'Soy'],
+    palateTitle: 'Your AI Palate',
+    palateSubtitle: "This is what the AI has learned about you. The more you book, the sharper it gets.",
+    cuisinesYouLove: 'Cuisines you love',
+    usualBudget: 'Usual budget',
+    preferredAmbiance: 'Preferred ambiance',
+    spiceLevel: 'Spice level',
+    allergiesLabel: 'Allergies & intolerances',
+    palateFooter: ' The AI concierge uses your palate to fine-tune every recommendation. Only you can see it.',
+    stillLearning: 'Still learning',
+    toBeDiscovered: 'To be discovered',
+    rewards: [{
+      id: 'welcome',
+      cost: 50,
+      name: 'Welcome drink',
+      desc: 'A glass of wine or vermouth on arrival',
+      icon: 'wine'
+    }, {
+      id: 'dessert',
+      cost: 80,
+      name: "Chef's dessert",
+      desc: 'A free dessert for the table',
+      icon: 'coffee'
+    }, {
+      id: 'priority',
+      cost: 120,
+      name: 'Waitlist priority',
+      desc: "We'll squeeze you in when fully booked",
+      icon: 'clock'
+    }, {
+      id: 'view',
+      cost: 150,
+      name: 'The best table',
+      desc: 'A table with a view or in a premium spot',
+      icon: 'star'
+    }, {
+      id: 'wine',
+      cost: 220,
+      name: 'Bottle of Albariño',
+      desc: 'A selected bottle, on the house',
+      icon: 'wine'
+    }, {
+      id: 'dinner',
+      cost: 300,
+      name: 'Dinner for two -25%',
+      desc: 'Discount on your next booking',
+      icon: 'gift'
+    }],
+    goldenSpoons: ' Golden Spoons',
+    spoonSub: 'Earn them with every booking · redeem for experiences',
+    onlyAtUnaMesa: 'Only at Una Mesa',
+    redeemRewards: 'Redeem your rewards',
+    codeLabel: ' Code ',
+    redeemBtn: 'Redeem',
+    missingSpoons: n => `${n} more needed`,
+    bookAgain: 'Book again',
+    viewRestaurant: 'View restaurant'
+  }
+}[PX_LANG];
 
 /* nivel del pasaporte según cocinas descubiertas */
 function passportRank(n) {
-  if (n >= 8) return {
-    name: 'Maestro Gastronómico',
-    tag: 'Lo has probado casi todo'
-  };
-  if (n >= 5) return {
-    name: 'Sibarita',
-    tag: 'Paladar curtido'
-  };
-  if (n >= 3) return {
-    name: 'Explorador',
-    tag: 'Cogiendo el gusto'
-  };
-  if (n >= 1) return {
-    name: 'Aprendiz',
-    tag: 'Acabas de empezar'
-  };
-  return {
-    name: 'Sin estrenar',
-    tag: 'Tu primera mesa te espera'
-  };
+  const r = PX_T.ranks;
+  if (n >= 8) return r[4];
+  if (n >= 5) return r[3];
+  if (n >= 3) return r[2];
+  if (n >= 1) return r[1];
+  return r[0];
 }
 
 /* ── 1 · Pasaporte Gastronómico ── */
@@ -69,7 +232,7 @@ function GastroPassport({
     className: 'pp-left'
   }, React.createElement('div', {
     className: 'pp-rank-lbl'
-  }, 'Tu rango'), React.createElement('div', {
+  }, PX_T.yourRank), React.createElement('div', {
     className: 'pp-rank'
   }, rank.name), React.createElement('div', {
     className: 'pp-tag'
@@ -80,9 +243,9 @@ function GastroPassport({
     }
   }, React.createElement('div', {
     className: 'pp-ring-in'
-  }, React.createElement('b', null, doneCuisines.size + '/' + cuisines.length), React.createElement('span', null, 'cocinas')))), React.createElement('div', {
+  }, React.createElement('b', null, doneCuisines.size + '/' + cuisines.length), React.createElement('span', null, PX_T.cuisinesRing)))), React.createElement('div', {
     className: 'pp-sec-h'
-  }, 'Cocinas conquistadas'), React.createElement('div', {
+  }, PX_T.cuisinesConquered), React.createElement('div', {
     className: 'passport-grid'
   }, cuisines.map(c => {
     const done = doneCuisines.has(c.name);
@@ -107,7 +270,7 @@ function GastroPassport({
     })));
   })), React.createElement('div', {
     className: 'pp-sec-h'
-  }, 'Barrios explorados · ' + doneAreas.size + '/' + areas.length), React.createElement('div', {
+  }, PX_T.areasExplored(doneAreas.size, areas.length)), React.createElement('div', {
     className: 'pp-areas'
   }, areas.map(a => React.createElement('span', {
     key: a,
@@ -118,14 +281,14 @@ function GastroPassport({
 }
 
 /* ── 2 · Tu Paladar IA ── */
-const SPICE = ['Sin picante', 'Suave', 'Medio', 'Picante'];
-const ALLERGENS = ['Gluten', 'Lactosa', 'Frutos secos', 'Marisco', 'Huevo', 'Soja'];
 function PalateAI({
   user,
   data,
   bookings,
   favs
 }) {
+  const SPICE = PX_T.spice;
+  const ALLERGENS = PX_T.allergens;
   const load = () => {
     try {
       return JSON.parse(localStorage.getItem('um-palate') || '{}');
@@ -164,7 +327,7 @@ function PalateAI({
   };
   const topCuisines = countBy(refRests.map(r => r.cuisine)).slice(0, 3).map(x => x[0]);
   const prefList = user && user.prefs && user.prefs.length ? user.prefs.slice(0, 4) : [];
-  const tasteCuisines = topCuisines.length ? topCuisines : prefList.length ? prefList : ['Aún aprendiendo'];
+  const tasteCuisines = topCuisines.length ? topCuisines : prefList.length ? prefList : [PX_T.stillLearning];
   const budgetTier = (() => {
     const t = refRests.map(r => r.price.length);
     if (!t.length) return '€€';
@@ -175,7 +338,7 @@ function PalateAI({
     const tags = [];
     refRests.forEach(r => (r.tags || []).forEach(t => tags.push(t)));
     const top = countBy(tags)[0];
-    return top ? top[0] : 'Por descubrir';
+    return top ? top[0] : PX_T.toBeDiscovered;
   })();
   return React.createElement('div', {
     className: 'palate-card'
@@ -185,13 +348,13 @@ function PalateAI({
     className: 'palate-ico'
   }, React.createElement(Icon, {
     name: 'sparkle'
-  })), React.createElement('div', null, React.createElement('h3', null, 'Tu Paladar IA'), React.createElement('p', null, 'Esto es lo que la IA ha aprendido de ti. Cuanto más reservas, mejor acierta.'))), React.createElement('div', {
+  })), React.createElement('div', null, React.createElement('h3', null, PX_T.palateTitle), React.createElement('p', null, PX_T.palateSubtitle))), React.createElement('div', {
     className: 'palate-grid'
   }, React.createElement('div', {
     className: 'palate-cell'
   }, React.createElement('div', {
     className: 'pc-k'
-  }, 'Cocinas que amas'), React.createElement('div', {
+  }, PX_T.cuisinesYouLove), React.createElement('div', {
     className: 'pc-tags'
   }, tasteCuisines.map((c, i) => React.createElement('span', {
     key: i,
@@ -200,19 +363,19 @@ function PalateAI({
     className: 'palate-cell'
   }, React.createElement('div', {
     className: 'pc-k'
-  }, 'Presupuesto habitual'), React.createElement('div', {
+  }, PX_T.usualBudget), React.createElement('div', {
     className: 'pc-v'
   }, budgetTier)), React.createElement('div', {
     className: 'palate-cell'
   }, React.createElement('div', {
     className: 'pc-k'
-  }, 'Ambiente preferido'), React.createElement('div', {
+  }, PX_T.preferredAmbiance), React.createElement('div', {
     className: 'pc-v'
   }, ambiance))), React.createElement('div', {
     className: 'palate-edit'
   }, React.createElement('div', {
     className: 'pc-k'
-  }, 'Nivel de picante'), React.createElement('div', {
+  }, PX_T.spiceLevel), React.createElement('div', {
     className: 'spice-row'
   }, SPICE.map((s, i) => React.createElement('button', {
     key: i,
@@ -224,7 +387,7 @@ function PalateAI({
     className: 'palate-edit'
   }, React.createElement('div', {
     className: 'pc-k'
-  }, 'Alergias e intolerancias'), React.createElement('div', {
+  }, PX_T.allergiesLabel), React.createElement('div', {
     className: 'pc-tags'
   }, ALLERGENS.map(a => React.createElement('button', {
     key: a,
@@ -234,51 +397,15 @@ function PalateAI({
     className: 'palate-foot'
   }, React.createElement(Icon, {
     name: 'shield'
-  }), ' El conserje IA usa tu paladar para afinar cada recomendación. Solo tú lo ves.'));
+  }), PX_T.palateFooter));
 }
 
 /* ── 3 · Mercado de Cucharas de Oro ── */
-const REWARDS = [{
-  id: 'welcome',
-  cost: 50,
-  name: 'Copa de bienvenida',
-  desc: 'Un vino o vermut de la casa al llegar',
-  icon: 'wine'
-}, {
-  id: 'dessert',
-  cost: 80,
-  name: 'Postre de la casa',
-  desc: 'Postre gratis para la mesa',
-  icon: 'coffee'
-}, {
-  id: 'priority',
-  cost: 120,
-  name: 'Prioridad en lista de espera',
-  desc: 'Te colamos cuando todo está lleno',
-  icon: 'clock'
-}, {
-  id: 'view',
-  cost: 150,
-  name: 'La mejor mesa',
-  desc: 'Mesa con vistas o en zona premium',
-  icon: 'star'
-}, {
-  id: 'wine',
-  cost: 220,
-  name: 'Botella de Albariño',
-  desc: 'Una botella seleccionada, invita la casa',
-  icon: 'wine'
-}, {
-  id: 'dinner',
-  cost: 300,
-  name: 'Cena para dos -25%',
-  desc: 'Descuento en tu próxima reserva',
-  icon: 'gift'
-}];
 function RewardsMarket({
   spoons,
   onRedeem
 }) {
+  const REWARDS = PX_T.rewards;
   const load = () => {
     try {
       return JSON.parse(localStorage.getItem('um-rewards') || '[]');
@@ -311,13 +438,13 @@ function RewardsMarket({
     name: 'spoon'
   })), React.createElement('div', null, React.createElement('div', {
     className: 'sb-n'
-  }, spoons, React.createElement('span', null, ' Cucharas de Oro')), React.createElement('div', {
+  }, spoons, React.createElement('span', null, PX_T.goldenSpoons)), React.createElement('div', {
     className: 'sb-sub'
-  }, 'Gánalas en cada reserva · canjéalas por experiencias')), React.createElement('span', {
+  }, PX_T.spoonSub)), React.createElement('span', {
     className: 'sb-badge'
-  }, 'Solo en Una Mesa')), React.createElement('div', {
+  }, PX_T.onlyAtUnaMesa)), React.createElement('div', {
     className: 'pp-sec-h'
-  }, 'Canjea tus recompensas'), React.createElement('div', {
+  }, PX_T.redeemRewards), React.createElement('div', {
     className: 'rewards-grid'
   }, REWARDS.map(rw => {
     const owned = claimed.find(c => c.id === rw.id);
@@ -343,11 +470,11 @@ function RewardsMarket({
       className: 'rw-code'
     }, React.createElement(Icon, {
       name: 'check'
-    }), ' Código ' + owned.code) : React.createElement('button', {
+    }), PX_T.codeLabel + owned.code) : React.createElement('button', {
       className: 'btn ' + (can ? 'btn-acc' : 'btn-ghost') + ' btn-sm btn-block',
       disabled: !can,
       onClick: () => redeem(rw)
-    }, can ? 'Canjear' : 'Te faltan ' + (rw.cost - spoons)));
+    }, can ? PX_T.redeemBtn : PX_T.missingSpoons(rw.cost - spoons)));
   })));
 }
 Object.assign(window, {

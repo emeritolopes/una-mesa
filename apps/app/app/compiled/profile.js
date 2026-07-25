@@ -49,6 +49,8 @@ const PR_T = {
     tabPassport: 'Pasaporte',
     tabFavs: 'Favoritos',
     tabRewards: 'Recompensas',
+    bookAgain: 'Reservar otra vez',
+    viewRestaurant: 'Ver restaurante',
     upcoming: 'Próximas',
     history: 'Historial',
     noBookings: 'Aún no tienes reservas.',
@@ -117,6 +119,8 @@ const PR_T = {
     tabPassport: 'Passport',
     tabFavs: 'Favourites',
     tabRewards: 'Rewards',
+    bookAgain: 'Book again',
+    viewRestaurant: 'View restaurant',
     upcoming: 'Upcoming',
     history: 'History',
     noBookings: "You don't have any bookings yet.",
@@ -551,7 +555,7 @@ function ProfileScreen({
     }, isPast ? 'Completada' : 'Confirmada'), React.createElement('button', {
       className: 'btn btn-soft btn-sm',
       onClick: () => openRest(b.rid)
-    }, isPast ? 'Reservar otra vez' : 'Ver restaurante'), !isPast && b.isCancellable ? React.createElement('button', {
+    }, isPast ? PR_T.bookAgain : PR_T.viewRestaurant), !isPast && b.isCancellable ? React.createElement('button', {
       className: 'btn btn-sm',
       style: {
         color: '#E85D3A',
