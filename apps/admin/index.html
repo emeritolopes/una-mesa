@@ -59,7 +59,18 @@
 
   /* ── Cards / metrics ── */
   .metric-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:32px; }
-  .metric-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .metric-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; text-align:left; font-family:inherit; width:100%; transition:transform .12s, box-shadow .12s; }
+  button.metric-card { cursor:pointer; }
+  button.metric-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,19,13,.08); border-color:var(--coral); }
+  .metric-card.health-ok { border-color:#C8E6C9; }
+  .metric-card.health-bad { border-color:#FFCC80; background:#FFF8F0; }
+  .metric-card.health-bad .metric-val { color:var(--amber); }
+  .metric-card.health-ok .metric-val { color:var(--green); }
+
+  .filter-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-tab { background:#fff; border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:var(--muted); }
+  .filter-tab:hover { background:var(--bg); }
+  .filter-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
   .metric-label { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; margin-bottom:8px; }
   .metric-val { font-size:30px; font-weight:800; }
   .metric-sub { font-size:12.5px; color:var(--muted); margin-top:4px; }
@@ -154,11 +165,11 @@ async function checkAdminAndInit() {
   navigate((window.location.hash || '#overview').replace('#',''));
 }
 
-function navigate(view) {
+function navigate(view, params) {
   CURRENT_VIEW = view;
   window.location.hash = view;
   document.querySelectorAll('#sb-nav a').forEach(a => a.classList.toggle('active', a.dataset.view === view));
-  if (view === 'restaurants') renderRestaurants();
+  if (view === 'restaurants') renderRestaurants(params && params.filter);
   else if (view === 'leads') renderLeads();
   else renderOverview();
 }
@@ -172,51 +183,87 @@ async function renderOverview() {
     <div class="metric-grid" id="metric-grid"><p class="loading-txt">Cargando…</p></div>
   `;
 
-  const [venuesRes, activeRes, leadsRes, conversionRes] = await Promise.all([
-    sb.from('venues').select('id, archived, stripe_charges_enabled', { count: 'exact' }),
+  const [venuesRes, activeRes, leadsRes, leadsAllRes, conversionRes, healthRes] = await Promise.all([
+    sb.from('venues').select('id, archived, stripe_charges_enabled, menu_video_access', { count: 'exact' }),
     sb.from('venues').select('id', { count: 'exact' }).eq('archived', false).eq('stripe_charges_enabled', true),
     sb.from('restaurant_leads').select('id', { count: 'exact' }).gt('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
+    sb.from('restaurant_leads').select('id', { count: 'exact' }),
     sb.from('restaurant_page_conversion').select('*').maybeSingle(),
+    sb.rpc('find_cron_issues'),
   ]);
 
   const venues = venuesRes.data || [];
   const totalVenues = venuesRes.count ?? venues.length;
   const activeCount = activeRes.count ?? 0;
   const pendingCount = venues.filter(v => !v.archived && !v.stripe_charges_enabled).length;
+  const archivedCount = venues.filter(v => v.archived).length;
+  const menuVideoCount = venues.filter(v => v.menu_video_access).length;
   const leadsThisWeek = leadsRes.count ?? 0;
+  const leadsTotal = leadsAllRes.count ?? 0;
   const conv = conversionRes.data;
+  const healthIssues = healthRes.data || [];
 
   const grid = document.getElementById('metric-grid');
   grid.innerHTML = `
-    <div class="metric-card">
+    <button class="metric-card" data-nav="restaurants" data-filter="active">
       <div class="metric-label">Restaurantes activos</div>
       <div class="metric-val">${activeCount}</div>
       <div class="metric-sub">de ${totalVenues} en total</div>
-    </div>
-    <div class="metric-card">
+    </button>
+    <button class="metric-card" data-nav="restaurants" data-filter="pending">
       <div class="metric-label">Pendientes de Stripe</div>
       <div class="metric-val">${pendingCount}</div>
       <div class="metric-sub">restaurantes sin conectar pago</div>
-    </div>
-    <div class="metric-card">
+    </button>
+    <button class="metric-card" data-nav="restaurants" data-filter="archived">
+      <div class="metric-label">Archivados</div>
+      <div class="metric-val">${archivedCount}</div>
+      <div class="metric-sub">fuera del listado público</div>
+    </button>
+    <button class="metric-card" data-nav="restaurants" data-filter="menuvideo">
+      <div class="metric-label">Con menú en video</div>
+      <div class="metric-val">${menuVideoCount}</div>
+      <div class="metric-sub">servicio de pago activo</div>
+    </button>
+    <button class="metric-card" data-nav="leads">
       <div class="metric-label">Leads (últimos 7 días)</div>
       <div class="metric-val">${leadsThisWeek}</div>
-      <div class="metric-sub">nuevos restaurantes interesados</div>
-    </div>
+      <div class="metric-sub">${leadsTotal} en total desde el inicio</div>
+    </button>
     <div class="metric-card">
       <div class="metric-label">Conversión landing restaurantes</div>
       <div class="metric-val">${conv && conv.conversion_pct_total != null ? conv.conversion_pct_total + '%' : '—'}</div>
       <div class="metric-sub">${conv ? `${conv.leads_total} leads / ${conv.views_total} visitas` : 'Sin datos aún'}</div>
     </div>
+    <div class="metric-card ${healthIssues.length ? 'health-bad' : 'health-ok'}">
+      <div class="metric-label">Salud del sistema</div>
+      <div class="metric-val">${healthIssues.length ? healthIssues.length : '✓'}</div>
+      <div class="metric-sub">${healthIssues.length
+        ? healthIssues.map(i => `${i.job_name || i.venue_name}: ${i.detail}`).join(' · ')
+        : 'Todo en orden — sin anomalías'}</div>
+    </div>
   `;
+  grid.querySelectorAll('[data-nav]').forEach(card => {
+    card.addEventListener('click', () => {
+      const filter = card.dataset.filter;
+      navigate(card.dataset.nav, filter ? { filter } : null);
+    });
+  });
 }
 
 /* ── Restaurantes ── */
-async function renderRestaurants() {
+const FILTER_LABELS = {
+  all: 'Todos', active: 'Activos', pending: 'Pendientes de Stripe',
+  archived: 'Archivados', menuvideo: 'Con menú en video',
+};
+
+async function renderRestaurants(initialFilter) {
+  let currentFilter = initialFilter || 'all';
   const main = document.getElementById('main-content');
   main.innerHTML = `
     <div class="page-title">Restaurantes</div>
     <div class="page-sub">Todos los restaurantes conectados a Una Mesa</div>
+    <div class="filter-tabs" id="filter-tabs"></div>
     <div class="table-card">
       <table>
         <thead><tr><th>Nombre</th><th>Ciudad</th><th>Stripe</th><th>Estado</th><th>Menú en video</th><th></th></tr></thead>
@@ -229,44 +276,73 @@ async function renderRestaurants() {
     .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
     .order('name');
 
-  const tbody = document.getElementById('venues-tbody');
-  if (error || !data || data.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${error ? 'Error al cargar' : 'Sin restaurantes todavía'}</td></tr>`;
-    return;
-  }
+  const allData = data || [];
 
-  tbody.innerHTML = data.map(v => `
-    <tr data-id="${v.id}">
-      <td><strong>${v.name}</strong></td>
-      <td>${v.city || '—'}</td>
-      <td>${v.stripe_charges_enabled
-        ? '<span class="pill on">Conectado</span>'
-        : '<span class="pill pending">Pendiente</span>'}</td>
-      <td>${v.archived
-        ? '<span class="pill off">Archivado</span>'
-        : '<span class="pill on">Activo</span>'}</td>
-      <td>${v.menu_video_access
-        ? '<span class="pill on">Sí</span>'
-        : '<span class="pill off">No</span>'}</td>
-      <td>
-        <button class="tbl-action" data-action="toggle-archive" data-id="${v.id}" data-archived="${v.archived}">
-          ${v.archived ? 'Reactivar' : 'Archivar'}
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  const applyFilter = (filter) => {
+    if (filter === 'active') return allData.filter(v => !v.archived && v.stripe_charges_enabled);
+    if (filter === 'pending') return allData.filter(v => !v.archived && !v.stripe_charges_enabled);
+    if (filter === 'archived') return allData.filter(v => v.archived);
+    if (filter === 'menuvideo') return allData.filter(v => v.menu_video_access);
+    return allData;
+  };
 
-  tbody.querySelectorAll('[data-action="toggle-archive"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
-      const currentlyArchived = btn.dataset.archived === 'true';
-      btn.disabled = true;
-      btn.textContent = '...';
-      const { error } = await sb.from('venues').update({ archived: !currentlyArchived }).eq('id', id);
-      if (error) { alert('Error: ' + error.message); btn.disabled = false; }
-      renderRestaurants();
+  const renderTabs = () => {
+    const tabs = document.getElementById('filter-tabs');
+    tabs.innerHTML = Object.keys(FILTER_LABELS).map(f =>
+      `<button class="filter-tab${f === currentFilter ? ' active' : ''}" data-filter="${f}">${FILTER_LABELS[f]}</button>`
+    ).join('');
+    tabs.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderTabs(); renderRows(); });
     });
-  });
+  };
+
+  const renderRows = () => {
+    const tbody = document.getElementById('venues-tbody');
+    if (error || allData.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${error ? 'Error al cargar' : 'Sin restaurantes todavía'}</td></tr>`;
+      return;
+    }
+    const filtered = applyFilter(currentFilter);
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Ningún restaurante en esta categoría</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtered.map(v => `
+      <tr data-id="${v.id}">
+        <td><strong>${v.name}</strong></td>
+        <td>${v.city || '—'}</td>
+        <td>${v.stripe_charges_enabled
+          ? '<span class="pill on">Conectado</span>'
+          : '<span class="pill pending">Pendiente</span>'}</td>
+        <td>${v.archived
+          ? '<span class="pill off">Archivado</span>'
+          : '<span class="pill on">Activo</span>'}</td>
+        <td>${v.menu_video_access
+          ? '<span class="pill on">Sí</span>'
+          : '<span class="pill off">No</span>'}</td>
+        <td>
+          <button class="tbl-action" data-action="toggle-archive" data-id="${v.id}" data-archived="${v.archived}">
+            ${v.archived ? 'Reactivar' : 'Archivar'}
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-action="toggle-archive"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const currentlyArchived = btn.dataset.archived === 'true';
+        btn.disabled = true;
+        btn.textContent = '...';
+        const { error: updErr } = await sb.from('venues').update({ archived: !currentlyArchived }).eq('id', id);
+        if (updErr) { alert('Error: ' + updErr.message); btn.disabled = false; return; }
+        renderRestaurants(currentFilter);
+      });
+    });
+  };
+
+  renderTabs();
+  renderRows();
 }
 
 /* ── Leads ── */
