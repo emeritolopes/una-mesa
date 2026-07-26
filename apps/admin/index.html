@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Una Mesa — Admin</title>
+<link rel="icon" type="image/png" href="/restaurants/icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --coral: #D8552E;
+    --coral-dark: #B8431F;
+    --ink: #1A130D;
+    --muted: #6B6259;
+    --line: #E8E0D4;
+    --bg: #F7F5F2;
+    --sidebar-bg: #1A130D;
+    --sidebar-text: #C9BFB3;
+    --sidebar-active: #FAF6F0;
+    --green: #2E7D32;
+    --red: #B8431F;
+    --amber: #B8860B;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
+  button { font-family:inherit; cursor:pointer; }
+  a { color:inherit; }
+
+  /* ── Login screen ── */
+  #login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; }
+  .login-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:40px; width:340px; text-align:center; box-shadow:0 8px 32px rgba(26,19,13,.08); }
+  .login-logo { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px; }
+  .login-logo img { width:32px; height:32px; border-radius:9px; }
+  .login-logo span { font-weight:800; font-size:20px; }
+  .login-logo .accent { color:var(--coral); }
+  .btn-google { width:100%; height:46px; border-radius:10px; border:1.5px solid var(--line); background:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .btn-google:hover { background:var(--bg); }
+  .login-err { color:var(--red); font-size:13px; margin-top:16px; }
+
+  /* ── Shell ── */
+  #app-shell { display:none; min-height:100vh; }
+  #app-shell.visible { display:flex; }
+  .sidebar { width:230px; background:var(--sidebar-bg); color:var(--sidebar-text); flex-shrink:0; display:flex; flex-direction:column; padding:24px 16px; }
+  .sb-logo { display:flex; align-items:center; gap:8px; padding:0 8px; margin-bottom:32px; }
+  .sb-logo img { width:28px; height:28px; border-radius:8px; }
+  .sb-logo span { font-weight:800; font-size:17px; color:#fff; }
+  .sb-nav a { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; margin-bottom:2px; }
+  .sb-nav a:hover { background:rgba(255,255,255,.06); }
+  .sb-nav a.active { background:var(--coral); color:#fff; }
+  .sb-nav svg { width:18px; height:18px; flex-shrink:0; }
+  .sb-foot { margin-top:auto; padding:12px 8px; font-size:12px; color:#8a7c6d; }
+  .sb-foot button { background:none; border:none; color:#C9BFB3; font-size:13px; font-weight:600; padding:0; margin-top:6px; }
+  .sb-foot button:hover { color:#fff; }
+
+  .main { flex:1; padding:32px 40px; overflow-y:auto; }
+  .page-title { font-size:24px; font-weight:800; margin-bottom:4px; }
+  .page-sub { color:var(--muted); font-size:14px; margin-bottom:28px; }
+
+  /* ── Cards / metrics ── */
+  .metric-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:32px; }
+  .metric-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .metric-label { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; margin-bottom:8px; }
+  .metric-val { font-size:30px; font-weight:800; }
+  .metric-sub { font-size:12.5px; color:var(--muted); margin-top:4px; }
+
+  /* ── Tables ── */
+  .table-card { background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:700; padding:12px 16px; border-bottom:1px solid var(--line); background:#FBFAF8; }
+  td { padding:13px 16px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#FBFAF8; }
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; }
+  .pill.on { background:#E8F5E9; color:var(--green); }
+  .pill.off { background:#F4EFE6; color:var(--muted); }
+  .pill.pending { background:#FFF3E0; color:var(--amber); }
+  .tbl-action { background:none; border:1px solid var(--line); border-radius:7px; padding:5px 11px; font-size:12.5px; font-weight:700; color:var(--ink); }
+  .tbl-action:hover { background:var(--bg); }
+  .empty-row td { text-align:center; color:var(--muted); padding:40px 16px; }
+  .loading-txt { color:var(--muted); padding:20px; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/restaurants/icon.png" alt="">
+      <span>Una <span class="accent">Mesa</span></span>
+    </div>
+    <button class="btn-google" id="google-btn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.88 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.27c-.8.54-1.83.86-3.05.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.34C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.95 10.69A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.16.27-1.69V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.03l2.99-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l2.99 2.34C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      Entrar con Google
+    </button>
+    <p class="login-err" id="login-err"></p>
+  </div>
+</div>
+
+<div id="app-shell">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="/restaurants/icon.png" alt="">
+      <span>Una Mesa Admin</span>
+    </div>
+    <nav class="sb-nav" id="sb-nav">
+      <a href="#overview" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg> Resumen</a>
+      <a href="#restaurants" data-view="restaurants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg> Restaurantes</a>
+      <a href="#leads" data-view="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Leads</a>
+    </nav>
+    <div class="sb-foot">
+      <div id="sb-email"></div>
+      <button id="logout-btn">Cerrar sesión</button>
+    </div>
+  </aside>
+  <main class="main" id="main-content"></main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let CURRENT_VIEW = 'overview';
+
+/* ── Auth ── */
+document.getElementById('google-btn').addEventListener('click', async () => {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
+});
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.reload();
+});
+
+async function checkAdminAndInit() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { document.getElementById('login-screen').style.display = 'flex'; return; }
+
+  const { data: adminRow } = await sb.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
+  if (!adminRow) {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-err').textContent = `${session.user.email} no tiene acceso de administrador.`;
+    return;
+  }
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').classList.add('visible');
+  document.getElementById('sb-email').textContent = session.user.email;
+
+  document.querySelectorAll('#sb-nav a').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.view); });
+  });
+
+  navigate((window.location.hash || '#overview').replace('#',''));
+}
+
+function navigate(view) {
+  CURRENT_VIEW = view;
+  window.location.hash = view;
+  document.querySelectorAll('#sb-nav a').forEach(a => a.classList.toggle('active', a.dataset.view === view));
+  if (view === 'restaurants') renderRestaurants();
+  else if (view === 'leads') renderLeads();
+  else renderOverview();
+}
+
+/* ── Overview ── */
+async function renderOverview() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="page-title">Resumen</div>
+    <div class="page-sub">Un vistazo rápido a la actividad del negocio</div>
+    <div class="metric-grid" id="metric-grid"><p class="loading-txt">Cargando…</p></div>
+  `;
+
+  const [venuesRes, activeRes, leadsRes, conversionRes] = await Promise.all([
+    sb.from('venues').select('id, archived, stripe_charges_enabled', { count: 'exact' }),
+    sb.from('venues').select('id', { count: 'exact' }).eq('archived', false).eq('stripe_charges_enabled', true),
+    sb.from('restaurant_leads').select('id', { count: 'exact' }).gt('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
+    sb.from('restaurant_page_conversion').select('*').maybeSingle(),
+  ]);
+
+  const venues = venuesRes.data || [];
+  const totalVenues = venuesRes.count ?? venues.length;
+  const activeCount = activeRes.count ?? 0;
+  const pendingCount = venues.filter(v => !v.archived && !v.stripe_charges_enabled).length;
+  const leadsThisWeek = leadsRes.count ?? 0;
+  const conv = conversionRes.data;
+
+  const grid = document.getElementById('metric-grid');
+  grid.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Restaurantes activos</div>
+      <div class="metric-val">${activeCount}</div>
+      <div class="metric-sub">de ${totalVenues} en total</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Pendientes de Stripe</div>
+      <div class="metric-val">${pendingCount}</div>
+      <div class="metric-sub">restaurantes sin conectar pago</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Leads (últimos 7 días)</div>
+      <div class="metric-val">${leadsThisWeek}</div>
+      <div class="metric-sub">nuevos restaurantes interesados</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Conversión landing restaurantes</div>
+      <div class="metric-val">${conv && conv.conversion_pct_total != null ? conv.conversion_pct_total + '%' : '—'}</div>
+      <div class="metric-sub">${conv ? `${conv.leads_total} leads / ${conv.views_total} visitas` : 'Sin datos aún'}</div>
+    </div>
+  `;
+}
+
+/* ── Restaurantes ── */
+async function renderRestaurants() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="page-title">Restaurantes</div>
+    <div class="page-sub">Todos los restaurantes conectados a Una Mesa</div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Nombre</th><th>Ciudad</th><th>Stripe</th><th>Estado</th><th>Menú en video</th><th></th></tr></thead>
+        <tbody id="venues-tbody"><tr class="empty-row"><td colspan="6">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  `;
+
+  const { data, error } = await sb.from('venues')
+    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
+    .order('name');
+
+  const tbody = document.getElementById('venues-tbody');
+  if (error || !data || data.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${error ? 'Error al cargar' : 'Sin restaurantes todavía'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(v => `
+    <tr data-id="${v.id}">
+      <td><strong>${v.name}</strong></td>
+      <td>${v.city || '—'}</td>
+      <td>${v.stripe_charges_enabled
+        ? '<span class="pill on">Conectado</span>'
+        : '<span class="pill pending">Pendiente</span>'}</td>
+      <td>${v.archived
+        ? '<span class="pill off">Archivado</span>'
+        : '<span class="pill on">Activo</span>'}</td>
+      <td>${v.menu_video_access
+        ? '<span class="pill on">Sí</span>'
+        : '<span class="pill off">No</span>'}</td>
+      <td>
+        <button class="tbl-action" data-action="toggle-archive" data-id="${v.id}" data-archived="${v.archived}">
+          ${v.archived ? 'Reactivar' : 'Archivar'}
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('[data-action="toggle-archive"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const currentlyArchived = btn.dataset.archived === 'true';
+      btn.disabled = true;
+      btn.textContent = '...';
+      const { error } = await sb.from('venues').update({ archived: !currentlyArchived }).eq('id', id);
+      if (error) { alert('Error: ' + error.message); btn.disabled = false; }
+      renderRestaurants();
+    });
+  });
+}
+
+/* ── Leads ── */
+async function renderLeads() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="page-title">Leads de restaurantes</div>
+    <div class="page-sub">Restaurantes que dejaron sus datos en la landing</div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Restaurante</th><th>Contacto</th><th>Email</th><th>Teléfono</th><th>Ciudad</th><th>Fecha</th></tr></thead>
+        <tbody id="leads-tbody"><tr class="empty-row"><td colspan="6">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  `;
+
+  const { data, error } = await sb.from('restaurant_leads')
+    .select('restaurant_name, contact_name, email, phone, city, created_at')
+    .order('created_at', { ascending: false });
+
+  const tbody = document.getElementById('leads-tbody');
+  if (error || !data || data.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${error ? 'Error al cargar' : 'Sin leads todavía'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(l => `
+    <tr>
+      <td><strong>${l.restaurant_name}</strong></td>
+      <td>${l.contact_name || '—'}</td>
+      <td>${l.email}</td>
+      <td>${l.phone || '—'}</td>
+      <td>${l.city || '—'}</td>
+      <td>${new Date(l.created_at).toLocaleDateString('es-ES')}</td>
+    </tr>
+  `).join('');
+}
+
+checkAdminAndInit();
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN') checkAdminAndInit();
+});
+</script>
+
+</body>
+</html>
