@@ -10,6 +10,15 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+
+  // Este service worker es para la app de React (comensales) — páginas
+  // independientes como /menu-video/ o /restaurants/ no deben pasar por
+  // aquí en absoluto, o cualquier fallo real de red en ellas termina
+  // mostrando el "Offline" de respaldo pensado para la SPA, no un error
+  // real y útil.
+  const path = new URL(e.request.url).pathname;
+  if (path.startsWith('/menu-video/') || path.startsWith('/restaurants/')) return;
+
   e.respondWith(
     fetch(e.request).catch(async () => {
       // caches.match() puede devolver undefined si no hay nada guardado
