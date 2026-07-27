@@ -279,12 +279,12 @@ function renderPage() {
 
   document.getElementById('content').innerHTML = `
 <div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
-  <div class="xl:col-span-9 flex flex-col gap-6">
-    <div class="relative group rounded-lg overflow-hidden glass-panel shadow-2xl" style="aspect-ratio: 9 / 16; max-width:480px;margin:0 auto;">
+  <div class="xl:col-span-9 flex flex-col gap-6" style="min-width:0;">
+    <div class="group rounded-lg overflow-hidden glass-panel shadow-2xl" style="position:relative; aspect-ratio: 9 / 16; max-width:480px; margin:0 auto;">
       ${v.video_url
-        ? `<video id="hero-video" class="absolute inset-0 w-full h-full object-cover" src="${v.video_url}" playsinline autoplay muted controlslist="nodownload" disablepictureinpicture loop${v.thumbnail_url ? ` poster="${v.thumbnail_url}"` : ''}></video>`
-        : `<div class="absolute inset-0 bg-cover bg-center" style="${heroBg}"></div>`}
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
+        ? `<video id="hero-video" class="object-cover" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="${v.video_url}" playsinline autoplay muted controlslist="nodownload" disablepictureinpicture loop${v.thumbnail_url ? ` poster="${v.thumbnail_url}"` : ''}></video>`
+        : `<div class="bg-cover bg-center" style="position:absolute;top:0;left:0;width:100%;height:100%;${heroBg}"></div>`}
+      <div class="bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none" style="position:absolute;top:0;left:0;width:100%;height:100%;">
         <div class="flex items-center justify-between mb-4">
           <div class="flex flex-col">
             <h1 class="font-headline-lg text-headline-lg text-white mb-2">${v.dish_name}</h1>
@@ -298,7 +298,7 @@ function renderPage() {
         ${v.video_url ? `
         <div class="flex items-center gap-4 pointer-events-auto">
           <button id="play-toggle" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-lg hover:scale-105 active:scale-95 transition-all" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined fill-current" id="play-icon">play_arrow</span></button>
-          <div class="flex-1 h-1 bg-white/20 rounded-full relative overflow-hidden cursor-pointer" id="progress-track"><div class="absolute inset-y-0 left-0 bg-primary" id="progress-fill" style="width:0%;background-color: rgb(255, 87, 51);"></div></div>
+          <div class="flex-1 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer" id="progress-track" style="position:relative;"><div class="bg-primary" id="progress-fill" style="position:absolute;top:0;left:0;height:100%;width:0%;background-color: rgb(255, 87, 51);"></div></div>
           <span class="text-xs font-label-eyebrow text-white/70" id="time-label">0:00 / 0:00</span>
           <button id="fullscreen-btn" class="p-2 text-white/70 hover:text-white"><span class="material-symbols-outlined">fullscreen</span></button>
         </div>` : ''}
