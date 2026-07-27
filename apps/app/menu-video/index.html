@@ -158,7 +158,7 @@
 </a>
 <a href="https://unamesa.co.uk" class="flex items-center gap-2">
 <img src="/restaurants/icon.png" alt="Una Mesa" class="w-8 h-8 rounded-lg">
-<span class="font-headline-md text-headline-md font-bold"><span class="text-on-surface dark:text-on-surface">Una</span> <span style="color: rgb(255, 87, 51);">Mesa</span></span>
+<span style="font-family: 'Playfair Display', serif; font-weight: 800; font-size: 20px; line-height: 1;"><span class="text-on-surface dark:text-on-surface">Una</span> <span style="color: rgb(255, 87, 51);">Mesa</span></span>
 </a>
 <div class="hidden md:flex items-center gap-6" id="cat-nav"></div>
 </div>
@@ -314,9 +314,15 @@ function renderPage() {
   const dishesInCategory = ALL_VIDEOS.filter(x => x.category === currentCategory);
 
   document.getElementById('content').innerHTML = `
-<div class="mb-6">
-  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
-  <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
+<div class="mb-6" style="display:flex; align-items:flex-end; justify-content:space-between;">
+  <div>
+    <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
+    <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button id="car-left" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_left</span></button>
+    <button id="car-right" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_right</span></button>
+  </div>
 </div>
 <div class="menu-layout">
   <div class="menu-video-col">
@@ -354,6 +360,8 @@ function bindCardEvents() {
     const containerPadding = isMobile ? 48 : 380; // 380 ≈ ancho de la columna de la historia + separación en escritorio
     row.style.width = Math.max(280, window.innerWidth - containerPadding) + 'px';
   }
+  document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
+  document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
   document.querySelectorAll('[data-select]').forEach(el => {
     el.addEventListener('click', () => {
       const dish = ALL_VIDEOS.find(v => v.id === el.dataset.select);
@@ -364,6 +372,15 @@ function bindCardEvents() {
       window.history.replaceState({}, '', url);
       renderStoryPanel();
     });
+  });
+  // Llamada explícita de reproducción — el atributo autoplay solo no
+  // siempre es suficiente en navegadores móviles (sobre todo iOS Safari
+  // con varios videos a la vez), así que se refuerza por JavaScript.
+  document.querySelectorAll('#cards-row video').forEach(video => {
+    video.muted = true;
+    const tryPlay = () => video.play().catch(() => {});
+    if (video.readyState >= 2) tryPlay();
+    else video.addEventListener('loadeddata', tryPlay, { once: true });
   });
 }
 
