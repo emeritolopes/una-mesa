@@ -373,15 +373,25 @@ function bindCardEvents() {
       renderStoryPanel();
     });
   });
-  // Llamada explícita de reproducción — el atributo autoplay solo no
-  // siempre es suficiente en navegadores móviles (sobre todo iOS Safari
-  // con varios videos a la vez), así que se refuerza por JavaScript.
-  document.querySelectorAll('#cards-row video').forEach(video => {
-    video.muted = true;
-    const tryPlay = () => video.play().catch(() => {});
-    if (video.readyState >= 2) tryPlay();
-    else video.addEventListener('loadeddata', tryPlay, { once: true });
-  });
+  // Los navegadores móviles (sobre todo iOS Safari) solo permiten que
+  // pocos videos se reproduzcan a la vez — por eso antes solo uno
+  // arrancaba. Con IntersectionObserver, cada video se reproduce SOLO
+  // cuando está visible en pantalla, y se pausa al salir de vista —
+  // nunca se piden más de uno o dos a la vez, que es lo que el
+  // navegador sí permite de forma confiable.
+  const videos = document.querySelectorAll('#cards-row video');
+  videos.forEach(v => { v.muted = true; });
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.play().catch(() => {});
+        else entry.target.pause();
+      });
+    }, { threshold: 0.6 });
+    videos.forEach(v => observer.observe(v));
+  } else {
+    videos.forEach(v => v.play().catch(() => {}));
+  }
 }
 
 
