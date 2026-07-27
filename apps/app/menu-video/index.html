@@ -314,25 +314,27 @@ function renderPage() {
   const dishesInCategory = ALL_VIDEOS.filter(x => x.category === currentCategory);
 
   document.getElementById('content').innerHTML = `
+<div class="mb-6">
+  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
+  <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
+</div>
 <div class="menu-layout">
   <div class="menu-video-col">
-    <div class="mb-6">
-      <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
-      <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
-    </div>
-    <div style="display:flex; gap:20px; overflow-x:auto; width:100%; max-width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
-      ${dishesInCategory.map(s => `
-      <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
-        <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
-          ${s.video_url ? `
-          <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
-          <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
-          ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
+    <div style="overflow:hidden; width:100%;">
+      <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
+        ${dishesInCategory.map(s => `
+        <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
+          <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
+            ${s.video_url ? `
+            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
+            <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
+            ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
+          </div>
+          <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
+          ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(255, 87, 51); font-size:11px;">${s.subtitle}</p>` : ''}
         </div>
-        <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
-        ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(255, 87, 51); font-size:11px;">${s.subtitle}</p>` : ''}
+        `).join('')}
       </div>
-      `).join('')}
     </div>
   </div>
   <div class="menu-story-col">
@@ -346,6 +348,12 @@ function renderPage() {
 }
 
 function bindCardEvents() {
+  const row = document.getElementById('cards-row');
+  if (row) {
+    const isMobile = window.innerWidth <= 900;
+    const containerPadding = isMobile ? 48 : 380; // 380 ≈ ancho de la columna de la historia + separación en escritorio
+    row.style.width = Math.max(280, window.innerWidth - containerPadding) + 'px';
+  }
   document.querySelectorAll('[data-select]').forEach(el => {
     el.addEventListener('click', () => {
       const dish = ALL_VIDEOS.find(v => v.id === el.dataset.select);
