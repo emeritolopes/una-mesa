@@ -134,6 +134,18 @@
         html.light-mode .hover\:bg-white\/5:hover,
         html.light-mode .hover\:bg-white\/10:hover,
         html.light-mode .hover\:bg-white\/20:hover { background-color: rgba(26, 20, 17, 0.06) !important; }
+
+        /* ── Layout de la página del menú (video + historia) ── */
+        .menu-layout { display: flex; gap: 32px; align-items: flex-start; }
+        .menu-video-col { flex: 1; min-width: 0; }
+        .menu-story-col { width: 340px; flex-shrink: 0; }
+
+        @media (max-width: 900px) {
+          .menu-layout { flex-direction: column; }
+          .menu-story-col { width: 100%; }
+          #story-panel { position: static !important; }
+          #cards-row > div { width: 168px !important; }
+        }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white">
@@ -164,6 +176,9 @@
 
 <!-- Main Content Area -->
 <main class="pt-20">
+<div class="max-w-max-width mx-auto px-container-md lg:px-container-lg" style="padding-top:24px;">
+  <p class="text-on-surface-variant" id="venue-name" style="font-size:13px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;"></p>
+</div>
 <div class="max-w-max-width mx-auto px-container-md lg:px-container-lg py-12" id="content">
 <p class="text-on-surface-variant py-24 text-center">Loading…</p>
 </div>
@@ -299,8 +314,8 @@ function renderPage() {
   const dishesInCategory = ALL_VIDEOS.filter(x => x.category === currentCategory);
 
   document.getElementById('content').innerHTML = `
-<div style="display:flex; gap:32px; align-items:flex-start;">
-  <div style="flex:1; min-width:0;">
+<div class="menu-layout">
+  <div class="menu-video-col">
     <div class="mb-6">
       <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
       <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
@@ -312,7 +327,6 @@ function renderPage() {
           ${s.video_url ? `
           <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
           <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
-          <div class="transition-all" style="position:absolute;top:0;left:0;width:100%;height:100%;border:2px solid transparent;border-radius:8px;" id="ring-${s.id}"></div>
           ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
         </div>
         <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
@@ -321,7 +335,7 @@ function renderPage() {
       `).join('')}
     </div>
   </div>
-  <div style="width:340px; flex-shrink:0;">
+  <div class="menu-story-col">
     <div id="story-panel" style="position:sticky; top:24px;"></div>
   </div>
 </div>
@@ -341,16 +355,8 @@ function bindCardEvents() {
       url.searchParams.set('dish', dish.id);
       window.history.replaceState({}, '', url);
       renderStoryPanel();
-      highlightActiveCard();
     });
   });
-  highlightActiveCard();
-}
-
-function highlightActiveCard() {
-  document.querySelectorAll('[id^="ring-"]').forEach(ring => { ring.style.borderColor = 'transparent'; });
-  const activeRing = document.getElementById('ring-' + currentDish.id);
-  if (activeRing) activeRing.style.borderColor = 'rgb(255, 87, 51)';
 }
 
 
@@ -376,6 +382,7 @@ async function init() {
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
 
   document.title = `${VENUE.name} — Video Menu — Una Mesa`;
+  document.getElementById('venue-name').textContent = VENUE.name;
 
   ALL_VIDEOS = await sbSelect('menu_videos', `venue_id=eq.${venueId}&order=sort_order`);
   if (ALL_VIDEOS === null) { renderMessage("Couldn't load the menu right now — please try again in a moment."); return; }
