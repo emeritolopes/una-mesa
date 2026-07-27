@@ -282,7 +282,7 @@ function renderPage() {
   <div class="xl:col-span-9 flex flex-col gap-6">
     <div class="relative group aspect-[9/16] rounded-lg overflow-hidden glass-panel shadow-2xl" style="max-width:480px;margin:0 auto;">
       ${v.video_url
-        ? `<video id="hero-video" class="absolute inset-0 w-full h-full object-cover" src="${v.video_url}" playsinline controlslist="nodownload" disablepictureinpicture loop poster="${v.thumbnail_url || ''}"></video>`
+        ? `<video id="hero-video" class="absolute inset-0 w-full h-full object-cover" src="${v.video_url}" playsinline controlslist="nodownload" disablepictureinpicture loop${v.thumbnail_url ? ` poster="${v.thumbnail_url}"` : ''}></video>`
         : `<div class="absolute inset-0 bg-cover bg-center" style="${heroBg}"></div>`}
       <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
         <div class="flex items-center justify-between mb-4">
@@ -430,10 +430,6 @@ function bindCarouselEvents() {
   if (!track) return;
   track.querySelectorAll('[data-dish]').forEach(card => {
     card.addEventListener('click', () => selectDish(card.dataset.dish));
-  });
-  track.addEventListener('wheel', evt => {
-    evt.preventDefault();
-    track.scrollLeft += evt.deltaY;
   });
   document.getElementById('car-left')?.addEventListener('click', () => track.scrollBy({ left: -320, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => track.scrollBy({ left: 320, behavior: 'smooth' }));
