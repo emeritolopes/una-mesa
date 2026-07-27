@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<!DOCTYPE html><html class="dark" lang="en" style="overflow-x:hidden;"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Una Mesa | Digital Menu</title>
@@ -136,19 +136,19 @@
         html.light-mode .hover\:bg-white\/20:hover { background-color: rgba(26, 20, 17, 0.06) !important; }
 
         /* ── Layout de la página del menú (video + historia) ── */
-        .menu-layout { display: flex; gap: 32px; align-items: flex-start; }
+        .menu-layout { display: flex; gap: 32px; align-items: flex-start; min-width: 0; }
         .menu-video-col { flex: 1; min-width: 0; }
         .menu-story-col { width: 340px; flex-shrink: 0; }
 
         @media (max-width: 900px) {
           .menu-layout { flex-direction: column; }
           .menu-story-col { width: 100%; }
-          #story-panel { position: static !important; }
+          #story-panel { position: sticky !important; top: 80px !important; }
           #cards-row > div { width: 168px !important; }
         }
     </style>
 </head>
-<body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white">
+<body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
 <!-- TopNavBar -->
 <header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-2xl border-b border-white/10">
 <nav class="flex justify-between items-center px-container-lg max-w-max-width mx-auto h-20">
@@ -320,7 +320,7 @@ function renderPage() {
       <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
       <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
     </div>
-    <div style="display:flex; gap:20px; overflow-x:auto; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
+    <div style="display:flex; gap:20px; overflow-x:auto; width:100%; max-width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
       ${dishesInCategory.map(s => `
       <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
         <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
