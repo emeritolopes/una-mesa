@@ -139,12 +139,17 @@
         .menu-layout { display: flex; gap: 32px; align-items: flex-start; min-width: 0; }
         .menu-video-col { flex: 1; min-width: 0; }
         .menu-story-col { width: 340px; flex-shrink: 0; }
+        .carousel-dots { display: none; gap: 6px; justify-content: center; margin-top: 4px; }
+        .carousel-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.25); transition: background .2s, transform .2s; }
+        .carousel-dot.active { background: rgb(255, 87, 51); transform: scale(1.3); }
 
         @media (max-width: 900px) {
           .menu-layout { flex-direction: column; }
           .menu-story-col { width: 100%; }
           #story-panel { position: sticky !important; top: 80px !important; }
           #cards-row > div { width: 168px !important; }
+          .carousel-arrows { display: none !important; } /* en móvil se desliza con el dedo, las flechas sobran */
+          .carousel-dots { display: flex !important; }
         }
     </style>
 </head>
@@ -319,7 +324,7 @@ function renderPage() {
     <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
     <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
   </div>
-  <div style="display:flex; gap:8px;">
+  <div class="carousel-arrows" style="display:flex; gap:8px;">
     <button id="car-left" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_left</span></button>
     <button id="car-right" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_right</span></button>
   </div>
@@ -342,6 +347,7 @@ function renderPage() {
         `).join('')}
       </div>
     </div>
+    <div id="scroll-dots" class="carousel-dots"></div>
   </div>
   <div class="menu-story-col">
     <div id="story-panel" style="position:sticky; top:24px;"></div>
@@ -362,6 +368,25 @@ function bindCardEvents() {
   }
   document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
+
+  // Puntos de posición — solo se ven en móvil, como pista de que hay
+  // más platos deslizando el dedo, en vez de depender de las flechas.
+  const cards = row ? Array.from(row.children) : [];
+  const dotsWrap = document.getElementById('scroll-dots');
+  if (dotsWrap && cards.length > 1) {
+    dotsWrap.innerHTML = cards.map((_, i) => `<div class="carousel-dot${i === 0 ? ' active' : ''}"></div>`).join('');
+    const dots = Array.from(dotsWrap.children);
+    let scrollTimeout;
+    row.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const cardWidth = cards[0].getBoundingClientRect().width + 20; // 20 = separación entre tarjetas
+        const activeIdx = Math.round(row.scrollLeft / cardWidth);
+        dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(activeIdx, dots.length - 1)));
+      }, 80);
+    });
+  }
+
   document.querySelectorAll('[data-select]').forEach(el => {
     el.addEventListener('click', () => {
       const dish = ALL_VIDEOS.find(v => v.id === el.dataset.select);
