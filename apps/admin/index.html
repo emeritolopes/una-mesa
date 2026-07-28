@@ -184,6 +184,8 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   window.location.reload();
 });
 
+let HAS_RENDERED_SHELL = false;
+
 async function checkAdminAndInit() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { document.getElementById('login-screen').style.display = 'flex'; return; }
@@ -198,6 +200,14 @@ async function checkAdminAndInit() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-shell').classList.add('visible');
   document.getElementById('sb-email').textContent = session.user.email;
+
+  // Supabase vuelve a emitir "SIGNED_IN" al recuperar el foco de la
+  // pestaña (revalida el token) — sin este freno, eso disparaba de
+  // nuevo la navegación de abajo y borraba cualquier formulario a
+  // medio llenar (como un plato sin guardar, o una subida de video en
+  // curso). Solo se navega/renderiza una vez, la primera vez real.
+  if (HAS_RENDERED_SHELL) return;
+  HAS_RENDERED_SHELL = true;
 
   document.querySelectorAll('#sb-nav a').forEach(a => {
     a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.view); });
