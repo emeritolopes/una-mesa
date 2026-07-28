@@ -48,16 +48,6 @@ document.title = AP_LANG === 'en' ? 'Una Mesa — Reserve your table in London' 
 (function setSeoLinks() {
   try {
     const head = document.head;
-    const add = (rel, hreflang, href) => {
-      const l = document.createElement('link');
-      l.rel = rel;
-      if (hreflang) l.hreflang = hreflang;
-      l.href = href;
-      head.appendChild(l);
-    };
-    add('alternate', 'es', 'https://unamesa.co/');
-    add('alternate', 'en-GB', 'https://unamesa.co.uk/');
-    add('alternate', 'x-default', 'https://unamesa.co/');
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
     ogUrl.setAttribute('content', window.location.origin + '/');
