@@ -325,7 +325,7 @@ function renderPage() {
 </div>
 <div class="menu-layout">
   <div class="menu-video-col">
-    <div style="position:relative; overflow:hidden; width:100%;">
+    <div style="position:relative; z-index:60; overflow:hidden; width:100%;">
       <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
         ${dishesInCategory.map(s => `
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
