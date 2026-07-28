@@ -16,11 +16,13 @@ const SEO = {
     title: "Una Mesa — Reserve Your Table at London's Best Restaurants",
     description: 'Book a table at the best restaurants with a refundable deposit — no queues, no no-shows. London.',
     domain: 'app.unamesa.co.uk',
+    image: 'og-image.jpg',
   },
   es: {
     title: 'Una Mesa — Reserva tu Mesa en los Mejores Restaurantes',
     description: 'Reserva mesa en los mejores restaurantes con un depósito reembolsable — sin colas de espera, sin no-shows. Madrid.',
     domain: 'app.unamesa.co',
+    image: 'og-image-es.jpg',
   },
 }
 
@@ -28,7 +30,7 @@ module.exports = (req, res) => {
   const host = (req.headers.host || '').toLowerCase()
   const lang = host.endsWith('.co.uk') ? 'en' : 'es'
   const seo = SEO[lang]
-  const ogImage = `https://${seo.domain}/og-image.jpg`
+  const ogImage = `https://${seo.domain}/${seo.image}`
   const canonicalUrl = `https://${seo.domain}/`
 
   let html
