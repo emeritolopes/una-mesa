@@ -545,10 +545,13 @@ async function renderRestaurantDetail(id) {
   });
 
   document.getElementById('tg-archived').addEventListener('change', async (e) => {
-    await sb.from('venues').update({ archived: !e.target.checked }).eq('id', id);
+    const { error: tgErr } = await sb.from('venues').update({ archived: !e.target.checked }).eq('id', id);
+    if (tgErr) { alert('Error al actualizar: ' + tgErr.message); e.target.checked = !e.target.checked; }
   });
   document.getElementById('tg-menuvideo').addEventListener('change', async (e) => {
-    await sb.from('venues').update({ menu_video_access: e.target.checked }).eq('id', id);
+    const wantsOn = e.target.checked;
+    const { error: tgErr } = await sb.from('venues').update({ menu_video_access: wantsOn }).eq('id', id);
+    if (tgErr) { alert('Error al actualizar: ' + tgErr.message); e.target.checked = !wantsOn; return; }
     renderRestaurantDetail(id);
   });
 
