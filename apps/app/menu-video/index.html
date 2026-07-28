@@ -151,6 +151,19 @@
           .carousel-arrows { display: none !important; } /* en móvil se desliza con el dedo, las flechas sobran */
           .carousel-dots { display: flex !important; }
         }
+        /* ── Tipografía explícita ──
+           Antes dependía de que Tailwind generara correctamente estas
+           clases personalizadas (font-headline-lg, etc.) — igual que
+           pasó antes con la proporción del video, el CDN de Tailwind no
+           siempre las resuelve de forma confiable. Esto lo garantiza
+           con CSS normal, sin depender de eso, para que coincida
+           siempre con la tipografía real del resto de la plataforma. */
+        .font-headline-lg, .font-headline-md { font-family: 'Playfair Display', Georgia, serif !important; }
+        .font-body-base, .font-body-medium, .font-label-eyebrow { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+        .text-headline-lg { font-size: 48px !important; line-height: 1.05 !important; letter-spacing: -0.01em !important; font-weight: 700 !important; }
+        .text-headline-md { font-size: 34px !important; line-height: 1.1 !important; font-weight: 700 !important; }
+        .text-body-medium { font-size: 14.5px !important; line-height: 1.5 !important; font-weight: 600 !important; }
+        .text-label-eyebrow { font-size: 11.5px !important; line-height: 1.2 !important; letter-spacing: 0.18em !important; font-weight: 800 !important; }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
