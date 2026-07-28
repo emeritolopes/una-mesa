@@ -371,7 +371,14 @@ function bindCardEvents() {
     // desplazar. Este límite evita ese error de cálculo.
     const pageMaxWidth = 1240;
     const effectiveWidth = Math.min(window.innerWidth, pageMaxWidth);
-    row.style.width = Math.max(280, effectiveWidth - containerPadding) + 'px';
+    const rawWidth = Math.max(280, effectiveWidth - containerPadding);
+    // Redondear hacia abajo al múltiplo exacto de una tarjeta completa
+    // (220px + 20px de separación = 240px) — así, sin importar el
+    // ancho exacto de la ventana, nunca se corta una tarjeta a la
+    // mitad en el borde derecho del carrusel.
+    const cardUnit = 240;
+    const wholeCards = Math.max(1, Math.floor(rawWidth / cardUnit));
+    row.style.width = (wholeCards * cardUnit - 20) + 'px'; // -20: el último no necesita separación después
   }
   document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
