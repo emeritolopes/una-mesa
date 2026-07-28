@@ -29,6 +29,7 @@ module.exports = (req, res) => {
   const lang = host.endsWith('.co.uk') ? 'en' : 'es'
   const seo = SEO[lang]
   const ogImage = `https://${seo.domain}/og-image.jpg`
+  const canonicalUrl = `https://${seo.domain}/`
 
   let html
   try {
@@ -37,6 +38,20 @@ module.exports = (req, res) => {
     res.status(500).send('index.html not found')
     return
   }
+
+  // Etiquetas canónica y hreflang — antes solo se agregaban con
+  // JavaScript después de cargar, lo que Google Search Console reportó
+  // como "Duplicado sin canónica seleccionada por el usuario" al
+  // encontrar el mismo contenido en app.unamesa.co.uk y app.unamesa.co
+  // sin nada que indicara cuál es cuál. Ahora van directo en el HTML
+  // que sirve el servidor, con la URL real donde vive el contenido (no
+  // el dominio raíz que solo redirige).
+  const seoLinks = `
+  <link rel="canonical" href="${canonicalUrl}">
+  <link rel="alternate" hreflang="en-GB" href="https://app.unamesa.co.uk/">
+  <link rel="alternate" hreflang="es" href="https://app.unamesa.co/">
+  <link rel="alternate" hreflang="x-default" href="https://app.unamesa.co.uk/">
+</head>`
 
   html = html
     .replace(/<title>.*?<\/title>/, `<title>${seo.title}</title>`)
@@ -47,6 +62,7 @@ module.exports = (req, res) => {
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${seo.title}$2`)
     .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${seo.description}$2`)
     .replace(/(<meta name="twitter:image" content=")[^"]*(")/, `$1${ogImage}$2`)
+    .replace(/<\/head>/, seoLinks)
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.status(200).send(html)
