@@ -364,7 +364,14 @@ function bindCardEvents() {
   if (row) {
     const isMobile = window.innerWidth <= 900;
     const containerPadding = isMobile ? 48 : 380; // 380 ≈ ancho de la columna de la historia + separación en escritorio
-    row.style.width = Math.max(280, window.innerWidth - containerPadding) + 'px';
+    // La página tiene un ancho máximo real de 1240px (max-w-max-width) —
+    // en monitores anchos, usar window.innerWidth directo se pasaba de
+    // ese límite y le daba al carrusel más espacio del que en verdad
+    // tiene visible, eliminando el desbordamiento necesario para
+    // desplazar. Este límite evita ese error de cálculo.
+    const pageMaxWidth = 1240;
+    const effectiveWidth = Math.min(window.innerWidth, pageMaxWidth);
+    row.style.width = Math.max(280, effectiveWidth - containerPadding) + 'px';
   }
   document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
