@@ -6,5 +6,19 @@
   },
   "routes": [
     { "src": "^/$", "dest": "/api/index" }
+  ],
+  "headers": [
+    {
+      "source": "/menu-video/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/restaurants/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
   ]
 }
