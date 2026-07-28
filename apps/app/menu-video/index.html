@@ -319,19 +319,13 @@ function renderPage() {
   const dishesInCategory = ALL_VIDEOS.filter(x => x.category === currentCategory);
 
   document.getElementById('content').innerHTML = `
-<div class="mb-6" style="display:flex; align-items:flex-end; justify-content:space-between;">
-  <div>
-    <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
-    <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
-  </div>
-  <div class="carousel-arrows" style="display:flex; gap:8px;">
-    <button id="car-left" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_left</span></button>
-    <button id="car-right" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all" style="color:inherit;"><span class="material-symbols-outlined">chevron_right</span></button>
-  </div>
+<div class="mb-6">
+  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
+  <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
 </div>
 <div class="menu-layout">
   <div class="menu-video-col">
-    <div style="overflow:hidden; width:100%;">
+    <div style="position:relative; overflow:hidden; width:100%;">
       <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
         ${dishesInCategory.map(s => `
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
@@ -346,6 +340,12 @@ function renderPage() {
         </div>
         `).join('')}
       </div>
+      <button id="car-left" class="carousel-arrows" style="position:absolute; top:0; bottom:24px; left:0; width:56px; display:flex; align-items:center; justify-content:flex-start; padding-left:4px; background:linear-gradient(to right, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
+        <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_left</span></span>
+      </button>
+      <button id="car-right" class="carousel-arrows" style="position:absolute; top:0; bottom:24px; right:0; width:56px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; background:linear-gradient(to left, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
+        <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_right</span></span>
+      </button>
     </div>
     <div id="scroll-dots" class="carousel-dots"></div>
   </div>
