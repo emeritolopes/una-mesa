@@ -88,6 +88,47 @@
   .pill.pending { background:#FFF3E0; color:var(--amber); }
   .tbl-action { background:none; border:1px solid var(--line); border-radius:7px; padding:5px 11px; font-size:12.5px; font-weight:700; color:var(--ink); }
   .tbl-action:hover { background:var(--bg); }
+  .row-link:hover { color:var(--coral); text-decoration:underline; }
+
+  .btn-primary { background:var(--coral); color:#fff; border:none; border-radius:8px; padding:10px 18px; font-size:13.5px; font-weight:700; white-space:nowrap; }
+  .btn-primary:hover { background:var(--coral-dark); }
+  .btn-primary:disabled { opacity:.6; cursor:not-allowed; }
+  .btn-secondary { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 18px; font-size:13.5px; font-weight:700; color:var(--ink); }
+  .btn-secondary:hover { background:var(--bg); }
+  .btn-danger { background:none; border:1px solid #F4C7BC; color:var(--red); border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:700; }
+  .btn-danger:hover { background:#FFF3F0; }
+
+  .form-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .form-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; }
+  .form-field label { display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px; }
+  .form-field input, .form-field textarea, .form-field select {
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:13.5px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  .form-field textarea { resize:vertical; min-height:60px; }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline:2px solid var(--coral); outline-offset:-1px; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); }
+  .toggle-row:last-child { border-bottom:none; }
+  .switch { position:relative; width:42px; height:24px; }
+  .switch input { opacity:0; width:0; height:0; }
+  .switch-track { position:absolute; inset:0; background:var(--line); border-radius:999px; transition:background .15s; cursor:pointer; }
+  .switch-track:before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .15s; }
+  .switch input:checked + .switch-track { background:var(--coral); }
+  .switch input:checked + .switch-track:before { transform:translateX(18px); }
+
+  .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; font-weight:600; margin-bottom:16px; cursor:pointer; }
+  .back-link:hover { color:var(--ink); }
+  .section-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:20px; }
+  .section-title { font-size:16px; font-weight:800; margin-bottom:4px; }
+  .section-sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+
+  .dish-card { border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; }
+  .dish-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .dish-card-head strong { font-size:14px; }
+  .upload-drop { border:2px dashed var(--line); border-radius:10px; padding:20px; text-align:center; color:var(--muted); font-size:13px; cursor:pointer; }
+  .upload-drop:hover { border-color:var(--coral); background:#FBF6F2; }
+  .upload-drop.has-video { border-style:solid; border-color:#C8E6C9; background:#F5FBF6; color:var(--green); }
+  .progress-bar-wrap { height:6px; background:var(--line); border-radius:999px; overflow:hidden; margin-top:8px; }
+  .progress-bar-fill { height:100%; background:var(--coral); width:0%; transition:width .2s; }
   .empty-row td { text-align:center; color:var(--muted); padding:40px 16px; }
   .loading-txt { color:var(--muted); padding:20px; }
 </style>
@@ -162,7 +203,12 @@ async function checkAdminAndInit() {
     a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.view); });
   });
 
-  navigate((window.location.hash || '#overview').replace('#',''));
+  const initialHash = (window.location.hash || '#overview').replace('#', '');
+  if (initialHash.startsWith('restaurant/')) {
+    navigateToRestaurant(initialHash.split('/')[1], true);
+  } else {
+    navigate(initialHash);
+  }
 }
 
 function navigate(view, params) {
@@ -172,6 +218,13 @@ function navigate(view, params) {
   if (view === 'restaurants') renderRestaurants(params && params.filter);
   else if (view === 'leads') renderLeads();
   else renderOverview();
+}
+
+function navigateToRestaurant(id, skipHashUpdate) {
+  CURRENT_VIEW = 'restaurants';
+  if (!skipHashUpdate) window.location.hash = `restaurant/${id}`;
+  document.querySelectorAll('#sb-nav a').forEach(a => a.classList.toggle('active', a.dataset.view === 'restaurants'));
+  renderRestaurantDetail(id);
 }
 
 /* ── Overview ── */
@@ -261,8 +314,14 @@ async function renderRestaurants(initialFilter) {
   let currentFilter = initialFilter || 'all';
   const main = document.getElementById('main-content');
   main.innerHTML = `
-    <div class="page-title">Restaurantes</div>
-    <div class="page-sub">Todos los restaurantes conectados a Una Mesa</div>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+      <div>
+        <div class="page-title">Restaurantes</div>
+        <div class="page-sub">Todos los restaurantes conectados a Una Mesa</div>
+      </div>
+      <button class="btn-primary" id="new-venue-btn">+ Nuevo restaurante</button>
+    </div>
+    <div id="new-venue-form-wrap"></div>
     <div class="filter-tabs" id="filter-tabs"></div>
     <div class="table-card">
       <table>
@@ -271,6 +330,32 @@ async function renderRestaurants(initialFilter) {
       </table>
     </div>
   `;
+
+  document.getElementById('new-venue-btn').addEventListener('click', () => {
+    const wrap = document.getElementById('new-venue-form-wrap');
+    wrap.innerHTML = `
+      <div class="form-card" style="margin-bottom:20px;">
+        <div class="form-row">
+          <div class="form-field"><label>Nombre del restaurante</label><input type="text" id="nv-name" placeholder="Ej. The Thames Table"></div>
+          <div class="form-field"><label>Ciudad</label><input type="text" id="nv-city" placeholder="Ej. London"></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <button class="btn-primary" id="nv-save">Crear restaurante</button>
+          <button class="tbl-action" id="nv-cancel">Cancelar</button>
+        </div>
+        <p id="nv-error" style="color:var(--red); font-size:13px; margin-top:8px;"></p>
+      </div>
+    `;
+    document.getElementById('nv-cancel').addEventListener('click', () => { wrap.innerHTML = ''; });
+    document.getElementById('nv-save').addEventListener('click', async () => {
+      const name = document.getElementById('nv-name').value.trim();
+      const city = document.getElementById('nv-city').value.trim();
+      if (!name) { document.getElementById('nv-error').textContent = 'El nombre es obligatorio.'; return; }
+      const { data: newVenue, error: insErr } = await sb.from('venues').insert({ name, city: city || null, archived: false }).select('id').single();
+      if (insErr) { document.getElementById('nv-error').textContent = insErr.message; return; }
+      navigateToRestaurant(newVenue.id);
+    });
+  });
 
   const { data, error } = await sb.from('venues')
     .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
@@ -309,7 +394,7 @@ async function renderRestaurants(initialFilter) {
     }
     tbody.innerHTML = filtered.map(v => `
       <tr data-id="${v.id}">
-        <td><strong>${v.name}</strong></td>
+        <td><strong class="row-link" data-open="${v.id}" style="cursor:pointer;">${v.name}</strong></td>
         <td>${v.city || '—'}</td>
         <td>${v.stripe_charges_enabled
           ? '<span class="pill on">Conectado</span>'
@@ -321,6 +406,7 @@ async function renderRestaurants(initialFilter) {
           ? '<span class="pill on">Sí</span>'
           : '<span class="pill off">No</span>'}</td>
         <td>
+          <button class="tbl-action" data-open="${v.id}">Editar</button>
           <button class="tbl-action" data-action="toggle-archive" data-id="${v.id}" data-archived="${v.archived}">
             ${v.archived ? 'Reactivar' : 'Archivar'}
           </button>
@@ -328,8 +414,13 @@ async function renderRestaurants(initialFilter) {
       </tr>
     `).join('');
 
+    tbody.querySelectorAll('[data-open]').forEach(el => {
+      el.addEventListener('click', () => navigateToRestaurant(el.dataset.open));
+    });
+
     tbody.querySelectorAll('[data-action="toggle-archive"]').forEach(btn => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
         const currentlyArchived = btn.dataset.archived === 'true';
         btn.disabled = true;
@@ -379,6 +470,219 @@ async function renderLeads() {
       <td>${new Date(l.created_at).toLocaleDateString('es-ES')}</td>
     </tr>
   `).join('');
+}
+
+/* ── Detalle de restaurante ── */
+const STANDARD_CATEGORIES = ['Starters', 'Mains', 'Sides', 'Cocktails', 'Desserts'];
+
+async function renderRestaurantDetail(id) {
+  const main = document.getElementById('main-content');
+  main.innerHTML = `<p class="loading-txt">Cargando…</p>`;
+
+  const { data: venue, error } = await sb.from('venues')
+    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
+    .eq('id', id).maybeSingle();
+
+  if (error || !venue) {
+    main.innerHTML = `<a class="back-link" id="back-to-list">← Volver a Restaurantes</a><p class="loading-txt">No se encontró el restaurante.</p>`;
+    document.getElementById('back-to-list').addEventListener('click', () => navigate('restaurants'));
+    return;
+  }
+
+  const { data: dishes } = await sb.from('menu_videos')
+    .select('*').eq('venue_id', id).order('sort_order');
+
+  main.innerHTML = `
+    <a class="back-link" id="back-to-list">← Volver a Restaurantes</a>
+    <div class="page-title">${venue.name}</div>
+    <div class="page-sub">${venue.city || 'Sin ciudad'}</div>
+
+    <div class="section-card">
+      <div class="section-title">Información básica</div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="form-field"><label>Nombre</label><input type="text" id="ed-name" value="${venue.name.replace(/"/g, '&quot;')}"></div>
+        <div class="form-field"><label>Ciudad</label><input type="text" id="ed-city" value="${(venue.city || '').replace(/"/g, '&quot;')}"></div>
+      </div>
+      <button class="btn-primary" id="save-basic">Guardar cambios</button>
+      <span id="save-basic-msg" style="margin-left:10px; font-size:13px; color:var(--green);"></span>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Estado</div>
+      <div class="toggle-row">
+        <div><strong>Restaurante activo</strong><br><span class="page-sub" style="margin:0;">Visible públicamente si no está archivado</span></div>
+        <label class="switch"><input type="checkbox" id="tg-archived" ${venue.archived ? '' : 'checked'}><span class="switch-track"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><strong>Menú en video</strong><br><span class="page-sub" style="margin:0;">Activa el servicio de pago del menú en video</span></div>
+        <label class="switch"><input type="checkbox" id="tg-menuvideo" ${venue.menu_video_access ? 'checked' : ''}><span class="switch-track"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><strong>Stripe Connect</strong><br><span class="page-sub" style="margin:0;">Estado de conexión de pagos (solo lectura)</span></div>
+        ${venue.stripe_charges_enabled ? '<span class="pill on">Conectado</span>' : '<span class="pill pending">Pendiente</span>'}
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Menú en video — platos</div>
+      <div class="section-sub">${venue.menu_video_access ? 'El servicio está activo. Administra los platos con video aquí.' : 'El servicio de menú en video no está activo — actívalo arriba para que se muestre en la web.'}</div>
+      <div id="dishes-list"></div>
+      <button class="btn-secondary" id="add-dish-btn">+ Agregar plato</button>
+      <div id="dish-form-wrap" style="margin-top:16px;"></div>
+    </div>
+  `;
+
+  document.getElementById('back-to-list').addEventListener('click', () => navigate('restaurants'));
+
+  document.getElementById('save-basic').addEventListener('click', async () => {
+    const name = document.getElementById('ed-name').value.trim();
+    const city = document.getElementById('ed-city').value.trim();
+    const { error: updErr } = await sb.from('venues').update({ name, city: city || null }).eq('id', id);
+    const msg = document.getElementById('save-basic-msg');
+    msg.textContent = updErr ? 'Error: ' + updErr.message : '✓ Guardado';
+    msg.style.color = updErr ? 'var(--red)' : 'var(--green)';
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  });
+
+  document.getElementById('tg-archived').addEventListener('change', async (e) => {
+    await sb.from('venues').update({ archived: !e.target.checked }).eq('id', id);
+  });
+  document.getElementById('tg-menuvideo').addEventListener('change', async (e) => {
+    await sb.from('venues').update({ menu_video_access: e.target.checked }).eq('id', id);
+    renderRestaurantDetail(id);
+  });
+
+  renderDishesList(dishes || [], id);
+
+  document.getElementById('add-dish-btn').addEventListener('click', () => renderDishForm(id, null));
+}
+
+function renderDishesList(dishes, venueId) {
+  const wrap = document.getElementById('dishes-list');
+  if (dishes.length === 0) {
+    wrap.innerHTML = `<p class="page-sub">Sin platos cargados todavía.</p>`;
+    return;
+  }
+  wrap.innerHTML = dishes.map(d => `
+    <div class="dish-card">
+      <div class="dish-card-head">
+        <strong>${d.dish_name} <span style="color:var(--muted); font-weight:600;">— ${d.category}</span></strong>
+        <div style="display:flex; gap:8px;">
+          <button class="tbl-action" data-edit="${d.id}">Editar</button>
+          <button class="btn-danger" data-delete="${d.id}">Eliminar</button>
+        </div>
+      </div>
+      ${d.video_url ? `<video src="${d.video_url}" muted style="width:120px; border-radius:6px; display:block;" preload="metadata"></video>` : '<span class="page-sub">Sin video</span>'}
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dish = dishes.find(d => d.id === btn.dataset.edit);
+      renderDishForm(venueId, dish);
+    });
+  });
+  wrap.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar este plato? Esta acción no se puede deshacer.')) return;
+      await sb.from('menu_videos').delete().eq('id', btn.dataset.delete);
+      renderRestaurantDetail(venueId);
+    });
+  });
+}
+
+function renderDishForm(venueId, existingDish) {
+  const wrap = document.getElementById('dish-form-wrap');
+  const d = existingDish || {};
+  const categoryOptions = STANDARD_CATEGORIES.map(c =>
+    `<option value="${c}" ${d.category === c ? 'selected' : ''}>${c}</option>`
+  ).join('');
+
+  wrap.innerHTML = `
+    <div class="form-card">
+      <div class="section-title" style="font-size:14px;">${existingDish ? 'Editar plato' : 'Nuevo plato'}</div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-field"><label>Categoría</label><select id="df-category">${categoryOptions}</select></div>
+        <div class="form-field"><label>Nombre del plato</label><input type="text" id="df-name" value="${(d.dish_name || '').replace(/"/g, '&quot;')}"></div>
+        <div class="form-field"><label>Subtítulo</label><input type="text" id="df-subtitle" value="${(d.subtitle || '').replace(/"/g, '&quot;')}" placeholder="Ej. Grade A5 · Kagoshima"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-field"><label>Cita de la historia</label><input type="text" id="df-quote" value="${(d.story_quote || '').replace(/"/g, '&quot;')}"></div>
+        <div class="form-field"><label>Carbohidratos (g)</label><input type="number" id="df-carbs" value="${d.carbs_g ?? ''}"></div>
+        <div class="form-field"><label>Grasas (g)</label><input type="number" id="df-fats" value="${d.fats_g ?? ''}"></div>
+      </div>
+      <div class="form-field" style="margin-bottom:12px;"><label>Descripción de la historia</label><textarea id="df-body">${d.story_body || ''}</textarea></div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="form-field"><label>Orden</label><input type="number" id="df-sort" value="${d.sort_order ?? 1}"></div>
+        <div class="toggle-row" style="border:none; padding-top:20px;">
+          <span style="font-size:13px; font-weight:700;">Elección del chef</span>
+          <label class="switch"><input type="checkbox" id="df-chefschoice" ${d.is_chefs_choice ? 'checked' : ''}><span class="switch-track"></span></label>
+        </div>
+      </div>
+      <div class="form-field" style="margin-bottom:14px;">
+        <label>Video del plato</label>
+        <div class="upload-drop ${d.video_url ? 'has-video' : ''}" id="df-upload-drop">
+          ${d.video_url ? '✓ Video cargado — sube otro archivo para reemplazarlo' : 'Haz clic para elegir un archivo de video (MP4)'}
+        </div>
+        <input type="file" id="df-video-file" accept="video/mp4,video/quicktime" style="display:none;">
+        <div class="progress-bar-wrap" id="df-progress-wrap" style="display:none;"><div class="progress-bar-fill" id="df-progress-fill"></div></div>
+        <input type="hidden" id="df-video-url" value="${d.video_url || ''}">
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-primary" id="df-save">${existingDish ? 'Guardar cambios' : 'Crear plato'}</button>
+        <button class="btn-secondary" id="df-cancel">Cancelar</button>
+      </div>
+      <p id="df-error" style="color:var(--red); font-size:13px; margin-top:8px;"></p>
+    </div>
+  `;
+
+  document.getElementById('df-cancel').addEventListener('click', () => { wrap.innerHTML = ''; });
+
+  const dropZone = document.getElementById('df-upload-drop');
+  const fileInput = document.getElementById('df-video-file');
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    dropZone.textContent = 'Subiendo…';
+    document.getElementById('df-progress-wrap').style.display = 'block';
+    const path = `${venueId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error: upErr } = await sb.storage.from('menu-videos').upload(path, file, { upsert: false });
+    if (upErr) {
+      dropZone.textContent = 'Error al subir: ' + upErr.message;
+      document.getElementById('df-progress-wrap').style.display = 'none';
+      return;
+    }
+    const { data: pub } = sb.storage.from('menu-videos').getPublicUrl(path);
+    document.getElementById('df-video-url').value = pub.publicUrl;
+    dropZone.textContent = '✓ Video subido correctamente';
+    dropZone.classList.add('has-video');
+    document.getElementById('df-progress-fill').style.width = '100%';
+  });
+
+  document.getElementById('df-save').addEventListener('click', async () => {
+    const payload = {
+      venue_id: venueId,
+      category: document.getElementById('df-category').value,
+      dish_name: document.getElementById('df-name').value.trim(),
+      subtitle: document.getElementById('df-subtitle').value.trim() || null,
+      story_quote: document.getElementById('df-quote').value.trim() || null,
+      story_body: document.getElementById('df-body').value.trim() || null,
+      carbs_g: document.getElementById('df-carbs').value ? Number(document.getElementById('df-carbs').value) : null,
+      fats_g: document.getElementById('df-fats').value ? Number(document.getElementById('df-fats').value) : null,
+      sort_order: Number(document.getElementById('df-sort').value) || 1,
+      is_chefs_choice: document.getElementById('df-chefschoice').checked,
+      video_url: document.getElementById('df-video-url').value || null,
+    };
+    if (!payload.dish_name) { document.getElementById('df-error').textContent = 'El nombre del plato es obligatorio.'; return; }
+
+    const query = existingDish
+      ? sb.from('menu_videos').update(payload).eq('id', existingDish.id)
+      : sb.from('menu_videos').insert(payload);
+    const { error: saveErr } = await query;
+    if (saveErr) { document.getElementById('df-error').textContent = saveErr.message; return; }
+    renderRestaurantDetail(venueId);
+  });
 }
 
 checkAdminAndInit();
