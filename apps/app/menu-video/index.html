@@ -383,6 +383,22 @@ function bindCardEvents() {
   document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
 
+  // Ocultar cada flecha cuando ya no hay nada más para ese lado — así
+  // nunca tapan visualmente el borde de la primera o última tarjeta
+  // cuando no hacen falta.
+  const leftArrow = document.getElementById('car-left');
+  const rightArrow = document.getElementById('car-right');
+  const updateArrowVisibility = () => {
+    if (!row || !leftArrow || !rightArrow) return;
+    const maxScroll = row.scrollWidth - row.clientWidth;
+    leftArrow.style.display = row.scrollLeft <= 10 ? 'none' : 'flex';
+    rightArrow.style.display = row.scrollLeft >= maxScroll - 10 ? 'none' : 'flex';
+  };
+  if (row) {
+    updateArrowVisibility();
+    row.addEventListener('scroll', updateArrowVisibility);
+  }
+
   // Puntos de posición — solo se ven en móvil, como pista de que hay
   // más platos deslizando el dedo, en vez de depender de las flechas.
   const cards = row ? Array.from(row.children) : [];
