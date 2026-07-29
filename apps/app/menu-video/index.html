@@ -273,8 +273,16 @@ const STANDARD_CATEGORIES = ['Starters', 'Mains', 'Sides', 'Cocktails', 'Dessert
 
 function renderCatNav() {
   const realCats = [...new Set(ALL_VIDEOS.map(v => v.category))];
-  const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
-  const cats = [...STANDARD_CATEGORIES, ...extraCats];
+  let cats;
+  if (VENUE && VENUE.category_order) {
+    const saved = VENUE.category_order.split(',').map(s => s.trim()).filter(Boolean);
+    const savedThatStillExist = saved.filter(c => realCats.includes(c));
+    const newOnes = realCats.filter(c => !saved.includes(c));
+    cats = [...savedThatStillExist, ...newOnes];
+  } else {
+    const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
+    cats = [...STANDARD_CATEGORIES, ...extraCats];
+  }
   const nav = document.getElementById('cat-nav');
   nav.innerHTML = cats.map(c => `
     <a href="#" data-cat="${c}" class="${c === currentCategory ? '' : 'text-on-surface-variant dark:text-on-surface-variant'} font-body-medium text-body-medium hover:text-primary transition-colors duration-300" style="${c === currentCategory ? 'color: rgb(255, 87, 51); font-weight:700;' : ''}">${c}</a>
@@ -479,7 +487,7 @@ async function init() {
   if (!venueId) { renderMessage('Missing restaurant.'); return; }
   document.getElementById('back-link').href = profileUrl();
 
-  const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access`);
+  const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access,category_order`);
   if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
   VENUE = venues[0];
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
