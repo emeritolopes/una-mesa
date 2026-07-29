@@ -71,6 +71,9 @@
   .filter-tab { background:#fff; border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:var(--muted); }
   .filter-tab:hover { background:var(--bg); }
   .filter-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .cat-chip { background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--muted); }
+  .cat-chip:hover { border-color:var(--coral); color:var(--coral); }
+  .cat-chip.active { background:var(--coral); border-color:var(--coral); color:#fff; }
   .metric-label { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; margin-bottom:8px; }
   .metric-val { font-size:30px; font-weight:800; }
   .metric-sub { font-size:12.5px; color:var(--muted); margin-top:4px; }
@@ -607,7 +610,9 @@ function renderDishesList(dishes, venueId) {
 function renderDishForm(venueId, existingDish) {
   const wrap = document.getElementById('dish-form-wrap');
   const d = existingDish || {};
-  const categoryDatalistOptions = STANDARD_CATEGORIES.map(c => `<option value="${c}">`).join('');
+  const categoryChips = STANDARD_CATEGORIES.map(c =>
+    `<button type="button" class="cat-chip" data-cat="${c}">${c}</button>`
+  ).join('');
 
   wrap.innerHTML = `
     <div class="form-card">
@@ -615,8 +620,8 @@ function renderDishForm(venueId, existingDish) {
       <div class="form-row" style="margin-bottom:12px;">
         <div class="form-field">
           <label>Categoría</label>
-          <input type="text" id="df-category" list="df-category-list" value="${(d.category || 'Mains').replace(/"/g, '&quot;')}" placeholder="Ej. Mains, o escribe una propia">
-          <datalist id="df-category-list">${categoryDatalistOptions}</datalist>
+          <input type="text" id="df-category" value="${(d.category || 'Mains').replace(/"/g, '&quot;')}" placeholder="Ej. Mains, o escribe una propia">
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">${categoryChips}</div>
         </div>
         <div class="form-field"><label>Nombre del plato</label><input type="text" id="df-name" value="${(d.dish_name || '').replace(/"/g, '&quot;')}"></div>
         <div class="form-field"><label>Subtítulo</label><input type="text" id="df-subtitle" value="${(d.subtitle || '').replace(/"/g, '&quot;')}" placeholder="Ej. Grade A5 · Kagoshima"></div>
@@ -652,6 +657,21 @@ function renderDishForm(venueId, existingDish) {
   `;
 
   document.getElementById('df-cancel').addEventListener('click', () => { wrap.innerHTML = ''; });
+
+  const categoryInput = document.getElementById('df-category');
+  const highlightActiveChip = () => {
+    wrap.querySelectorAll('.cat-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.cat === categoryInput.value.trim());
+    });
+  };
+  highlightActiveChip();
+  wrap.querySelectorAll('.cat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      categoryInput.value = chip.dataset.cat;
+      highlightActiveChip();
+    });
+  });
+  categoryInput.addEventListener('input', highlightActiveChip);
 
   const dropZone = document.getElementById('df-upload-drop');
   const fileInput = document.getElementById('df-video-file');
