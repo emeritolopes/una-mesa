@@ -151,6 +151,19 @@
           .carousel-arrows { display: none !important; } /* en móvil se desliza con el dedo, las flechas sobran */
           .carousel-dots { display: flex !important; }
         }
+        /* ── Tipografía explícita ──
+           Antes dependía de que Tailwind generara correctamente estas
+           clases personalizadas (font-headline-lg, etc.) — igual que
+           pasó antes con la proporción del video, el CDN de Tailwind no
+           siempre las resuelve de forma confiable. Esto lo garantiza
+           con CSS normal, sin depender de eso, para que coincida
+           siempre con la tipografía real del resto de la plataforma. */
+        .font-headline-lg, .font-headline-md { font-family: 'Playfair Display', Georgia, serif !important; }
+        .font-body-base, .font-body-medium, .font-label-eyebrow { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+        .text-headline-lg { font-size: 48px !important; line-height: 1.05 !important; letter-spacing: -0.01em !important; font-weight: 700 !important; }
+        .text-headline-md { font-size: 34px !important; line-height: 1.1 !important; font-weight: 700 !important; }
+        .text-body-medium { font-size: 14.5px !important; line-height: 1.5 !important; font-weight: 600 !important; }
+        .text-label-eyebrow { font-size: 11.5px !important; line-height: 1.2 !important; letter-spacing: 0.18em !important; font-weight: 800 !important; }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
@@ -325,10 +338,10 @@ function renderPage() {
 </div>
 <div class="menu-layout">
   <div class="menu-video-col">
-    <div style="position:relative; overflow:hidden; width:100%;">
-      <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch;" id="cards-row">
+    <div style="position:relative; z-index:60; overflow:hidden; width:100%;">
+      <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;" id="cards-row">
         ${dishesInCategory.map(s => `
-        <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer;">
+        <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
           <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
             ${s.video_url ? `
             <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
@@ -340,10 +353,10 @@ function renderPage() {
         </div>
         `).join('')}
       </div>
-      <button id="car-left" class="carousel-arrows" style="position:absolute; top:0; bottom:24px; left:0; width:56px; display:flex; align-items:center; justify-content:flex-start; padding-left:4px; background:linear-gradient(to right, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
+      <button id="car-left" class="carousel-arrows" style="position:absolute; z-index:60; top:0; bottom:24px; left:0; width:56px; display:flex; align-items:center; justify-content:flex-start; padding-left:4px; background:linear-gradient(to right, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
         <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_left</span></span>
       </button>
-      <button id="car-right" class="carousel-arrows" style="position:absolute; top:0; bottom:24px; right:0; width:56px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; background:linear-gradient(to left, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
+      <button id="car-right" class="carousel-arrows" style="position:absolute; z-index:60; top:0; bottom:24px; right:0; width:56px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; background:linear-gradient(to left, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
         <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_right</span></span>
       </button>
     </div>
@@ -364,10 +377,40 @@ function bindCardEvents() {
   if (row) {
     const isMobile = window.innerWidth <= 900;
     const containerPadding = isMobile ? 48 : 380; // 380 ≈ ancho de la columna de la historia + separación en escritorio
-    row.style.width = Math.max(280, window.innerWidth - containerPadding) + 'px';
+    // La página tiene un ancho máximo real de 1240px (max-w-max-width) —
+    // en monitores anchos, usar window.innerWidth directo se pasaba de
+    // ese límite y le daba al carrusel más espacio del que en verdad
+    // tiene visible, eliminando el desbordamiento necesario para
+    // desplazar. Este límite evita ese error de cálculo.
+    const pageMaxWidth = 1240;
+    const effectiveWidth = Math.min(window.innerWidth, pageMaxWidth);
+    const rawWidth = Math.max(280, effectiveWidth - containerPadding);
+    // Redondear hacia abajo al múltiplo exacto de una tarjeta completa
+    // (220px + 20px de separación = 240px) — así, sin importar el
+    // ancho exacto de la ventana, nunca se corta una tarjeta a la
+    // mitad en el borde derecho del carrusel.
+    const cardUnit = 240;
+    const wholeCards = Math.max(1, Math.floor(rawWidth / cardUnit));
+    row.style.width = (wholeCards * cardUnit - 20) + 'px'; // -20: el último no necesita separación después
   }
   document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
   document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
+
+  // Ocultar cada flecha cuando ya no hay nada más para ese lado — así
+  // nunca tapan visualmente el borde de la primera o última tarjeta
+  // cuando no hacen falta.
+  const leftArrow = document.getElementById('car-left');
+  const rightArrow = document.getElementById('car-right');
+  const updateArrowVisibility = () => {
+    if (!row || !leftArrow || !rightArrow) return;
+    const maxScroll = row.scrollWidth - row.clientWidth;
+    leftArrow.style.display = row.scrollLeft <= 10 ? 'none' : 'flex';
+    rightArrow.style.display = row.scrollLeft >= maxScroll - 10 ? 'none' : 'flex';
+  };
+  if (row) {
+    updateArrowVisibility();
+    row.addEventListener('scroll', updateArrowVisibility);
+  }
 
   // Puntos de posición — solo se ven en móvil, como pista de que hay
   // más platos deslizando el dedo, en vez de depender de las flechas.
