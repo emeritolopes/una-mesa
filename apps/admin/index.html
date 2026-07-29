@@ -493,7 +493,7 @@ async function renderRestaurantDetail(id) {
   main.innerHTML = `<p class="loading-txt">Cargando…</p>`;
 
   const { data: venue, error } = await sb.from('venues')
-    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
+    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access, category_order')
     .eq('id', id).maybeSingle();
 
   if (error || !venue) {
@@ -537,6 +537,12 @@ async function renderRestaurantDetail(id) {
     </div>
 
     <div class="section-card">
+      <div class="section-title">Orden de categorías en el menú</div>
+      <div class="section-sub">Controla en qué orden aparecen las pestañas del menú en video para este restaurante (ej. mover "Rice" junto a "Mains").</div>
+      <div id="category-order-list"></div>
+    </div>
+
+    <div class="section-card">
       <div class="section-title">Menú en video — platos</div>
       <div class="section-sub">${venue.menu_video_access ? 'El servicio está activo. Administra los platos con video aquí.' : 'El servicio de menú en video no está activo — actívalo arriba para que se muestre en la web.'}</div>
       <div id="dishes-list"></div>
@@ -546,6 +552,7 @@ async function renderRestaurantDetail(id) {
   `;
 
   document.getElementById('back-to-list').addEventListener('click', () => navigate('restaurants'));
+  renderCategoryOrder(venue, dishes || []);
 
   document.getElementById('save-basic').addEventListener('click', async () => {
     const name = document.getElementById('ed-name').value.trim();
@@ -571,6 +578,55 @@ async function renderRestaurantDetail(id) {
   renderDishesList(dishes || [], id);
 
   document.getElementById('add-dish-btn').addEventListener('click', () => renderDishForm(id, null));
+}
+
+function renderCategoryOrder(venue, dishes) {
+  const wrap = document.getElementById('category-order-list');
+  const realCats = [...new Set(dishes.map(d => d.category))];
+
+  let order;
+  if (venue.category_order) {
+    const saved = venue.category_order.split(',').map(s => s.trim()).filter(Boolean);
+    const savedThatStillExist = saved.filter(c => realCats.includes(c));
+    const newOnes = realCats.filter(c => !saved.includes(c));
+    order = [...savedThatStillExist, ...newOnes];
+  } else {
+    const standardPresent = STANDARD_CATEGORIES.filter(c => realCats.includes(c));
+    const extras = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
+    order = [...standardPresent, ...extras];
+  }
+
+  const renderList = () => {
+    if (order.length === 0) {
+      wrap.innerHTML = `<p class="page-sub">Agrega platos abajo para poder ordenar sus categorías.</p>`;
+      return;
+    }
+    wrap.innerHTML = order.map((cat, i) => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line);">
+        <span style="font-weight:600; font-size:13.5px;">${cat}</span>
+        <div style="display:flex; gap:4px;">
+          <button class="tbl-action" data-move="up" data-idx="${i}" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button class="tbl-action" data-move="down" data-idx="${i}" ${i === order.length - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('[data-move]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = Number(btn.dataset.idx);
+        const swapWith = btn.dataset.move === 'up' ? idx - 1 : idx + 1;
+        [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+        renderList();
+        await sb.from('venues').update({ category_order: order.join(',') }).eq('id', venue.id);
+      });
+    });
+  };
+
+  renderList();
+  // Guarda el orden inicial detectado si el restaurante todavía no tenía uno guardado.
+  if (!venue.category_order && order.length > 0) {
+    sb.from('venues').update({ category_order: order.join(',') }).eq('id', venue.id);
+  }
 }
 
 function renderDishesList(dishes, venueId) {
