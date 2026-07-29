@@ -607,15 +607,17 @@ function renderDishesList(dishes, venueId) {
 function renderDishForm(venueId, existingDish) {
   const wrap = document.getElementById('dish-form-wrap');
   const d = existingDish || {};
-  const categoryOptions = STANDARD_CATEGORIES.map(c =>
-    `<option value="${c}" ${d.category === c ? 'selected' : ''}>${c}</option>`
-  ).join('');
+  const categoryDatalistOptions = STANDARD_CATEGORIES.map(c => `<option value="${c}">`).join('');
 
   wrap.innerHTML = `
     <div class="form-card">
       <div class="section-title" style="font-size:14px;">${existingDish ? 'Editar plato' : 'Nuevo plato'}</div>
       <div class="form-row" style="margin-bottom:12px;">
-        <div class="form-field"><label>Categoría</label><select id="df-category">${categoryOptions}</select></div>
+        <div class="form-field">
+          <label>Categoría</label>
+          <input type="text" id="df-category" list="df-category-list" value="${(d.category || 'Mains').replace(/"/g, '&quot;')}" placeholder="Ej. Mains, o escribe una propia">
+          <datalist id="df-category-list">${categoryDatalistOptions}</datalist>
+        </div>
         <div class="form-field"><label>Nombre del plato</label><input type="text" id="df-name" value="${(d.dish_name || '').replace(/"/g, '&quot;')}"></div>
         <div class="form-field"><label>Subtítulo</label><input type="text" id="df-subtitle" value="${(d.subtitle || '').replace(/"/g, '&quot;')}" placeholder="Ej. Grade A5 · Kagoshima"></div>
       </div>
@@ -676,7 +678,7 @@ function renderDishForm(venueId, existingDish) {
   document.getElementById('df-save').addEventListener('click', async () => {
     const payload = {
       venue_id: venueId,
-      category: document.getElementById('df-category').value,
+      category: document.getElementById('df-category').value.trim() || 'Mains',
       dish_name: document.getElementById('df-name').value.trim(),
       subtitle: document.getElementById('df-subtitle').value.trim() || null,
       story_quote: document.getElementById('df-quote').value.trim() || null,
