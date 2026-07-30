@@ -13,11 +13,13 @@ Una Mesa is a restaurant reservation platform for Vigo, Spain. The monorepo cont
 
 ## No Build Step
 
-Both frontend apps are zero-build. JSX files are compiled at runtime by Babel Standalone loaded from CDN. There is no `npm install`, no webpack, no tsconfig, no bundler. To develop locally, serve the app directory with any static HTTP server (e.g. `npx serve apps/app`) or open `index.html` directly in a browser.
+Both frontend apps are zero-build in principle — no `npm install`, no webpack, no tsconfig, no bundler. To develop locally, serve the app directory with any static HTTP server (e.g. `npx serve apps/app`) or open `index.html` directly in a browser.
+
+**Exception — `apps/app/` does NOT compile JSX at runtime**, despite the rest of this doc describing that model. `apps/app/index.html` loads no Babel Standalone script at all; instead it loads pre-compiled plain-JS files from `apps/app/app/compiled/*.js` (one per `.jsx` source: `components`, `home`, `results`, `detail`, `booking`, `concierge`, `reserve-auth`, `profile-extras`, `profile`, `app`). **There is no build script in this repo that regenerates `compiled/*.js` from the matching `.jsx`.** If you edit a `.jsx` file under `apps/app/app/`, you must manually re-apply the same change to its `compiled/*.js` counterpart, or the edit has zero effect in the browser — found while investigating a change to `detail.jsx` that turned out to need the same edit in `compiled/detail.js` to actually ship. `apps/backofhouse/` is unaffected — it genuinely loads Babel Standalone from CDN and compiles `.jsx` at runtime, exactly as described below.
 
 ## Frontend Architecture
 
-Both apps use CDN React 18 + Babel Standalone. The `index.html` in each app sets up React globals and loads all `.jsx` and `.js` modules in order via `<script type="text/babel">` tags. **Script order matters** — components must be declared in `index.html` before the files that reference them.
+Both apps use CDN React 18. `apps/backofhouse/` uses Babel Standalone: `index.html` sets up React globals and loads all `.jsx`/`.js` modules in order via `<script type="text/babel">` tags. `apps/app/` loads its React-component modules as plain `<script src="app/compiled/*.js">` (see the "No Build Step" exception above) — only `data.js`/`auth.js` are loaded as-is (they're already plain JS, not JSX). **Script order matters in both apps** — components must be declared in `index.html` before the files that reference them.
 
 **React hook globals:**
 - `apps/app/`: exposes `window.useState`, `window.useEffect`, `window.useRef` only
@@ -129,7 +131,7 @@ Always call `setItems(data || [])` on success — an empty result must update st
 
 **Consumer app** (`apps/app/app/app.jsx`): `route` state object with a `view` string — `'home'`, `'results'`, `'detail'`, `'booking'`, `'concierge'`, `'profile'`. Navigate with `setRoute(...)` helpers (`go`, `openRest`, `search`, etc.). No React Router. Route state is persisted to `sessionStorage` (not localStorage) so it survives same-tab refreshes but resets on new tabs; `'profile'` view is intentionally reset to `'home'` on reload.
 
-**Consumer app script load order** (`apps/app/index.html`): `data.js` → `auth.js` → `components.jsx` → `home.jsx` → `results.jsx` → `detail.jsx` → `booking.jsx` → `concierge.jsx` → `reserve-auth.jsx` → `profile-extras.jsx` → `profile.jsx` → `app.jsx`
+**Consumer app script load order** (`apps/app/index.html`): `data.js` → `auth.js` → `components` → `home` → `results` → `detail` → `booking` → `concierge` → `reserve-auth` → `profile-extras` → `profile` → `app`. Named here by their `.jsx` source for readability, but per the "No Build Step" exception above, the file actually loaded for each is `apps/app/app/compiled/<name>.js` — edit the `.jsx`, then manually mirror the change into `compiled/<name>.js` too.
 
 - `reserve-auth.jsx` — pre-booking auth gate (sign up / guest / sign in flow + `ClaimSpoonsModal`)
 - `profile-extras.jsx` — Pasaporte Gastronómico, Paladar IA, and Mercado de Cucharas tabs inside the profile view

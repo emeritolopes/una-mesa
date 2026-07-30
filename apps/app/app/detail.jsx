@@ -266,7 +266,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
              restaurante no tiene acceso activo */
           r.menuVideoAccess
             ? React.createElement('a', {
-                href:`/menu-video/?venue=${r.id}`,
+                href:`/menu-video/?venue=${r.slug}`,
                 className:'det-bw-cta',
                 style:{ marginTop:12, textDecoration:'none' }
               },

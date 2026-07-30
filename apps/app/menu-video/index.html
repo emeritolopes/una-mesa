@@ -262,10 +262,15 @@ const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
 const qs = new URLSearchParams(window.location.search);
-const venueId = qs.get('venue');
+const venueSlug = qs.get('venue');
 const requestedDishId = qs.get('dish');
 
 let ALL_VIDEOS = [];
+// uuid real del venue — se rellena en init() tras encontrarlo por slug.
+// bookUrl()/profileUrl() y la query de menu_videos necesitan el uuid,
+// nunca el slug (menu_videos.venue_id es FK a venues.id, no hay columna
+// de slug ahí).
+let venueId = null;
 let VENUE = null;
 let currentCategory = null;
 let currentDish = null;
@@ -535,13 +540,15 @@ function selectDish(dishId) {
 }
 
 async function init() {
-  if (!venueId) { renderMessage('Missing restaurant.'); return; }
-  document.getElementById('back-link').href = profileUrl();
+  if (!venueSlug) { renderMessage('Missing restaurant.'); return; }
 
-  const venues = await sbSelect('venues', `id=eq.${venueId}&select=id,name,menu_video_access,category_order`);
+  const venues = await sbSelect('venues', `slug=eq.${venueSlug}&select=id,name,menu_video_access,category_order`);
   if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
   VENUE = venues[0];
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
+
+  venueId = VENUE.id; // a partir de aquí, el resto del archivo sigue usando el uuid real tal cual antes
+  document.getElementById('back-link').href = profileUrl();
 
   document.title = `${VENUE.name} — Video Menu — Una Mesa`;
   document.getElementById('venue-name').textContent = VENUE.name;
