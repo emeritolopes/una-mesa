@@ -279,6 +279,11 @@
     };
   }
 
+  // Esta función arma window.UM_DATA con una lista explícita de campos —
+  // cualquier columna nueva en venues (Supabase) es invisible para el
+  // resto de la app hasta que se añada aquí también a mano. Bug real
+  // detectado el 30 jul 2026: slug existía en la tabla pero faltaba
+  // aquí, causando ?venue=undefined en el botón de video-menú.
   function mapVenue(v) {
     const cuisine = v.cuisine || v.cuisine_type || '';
     return {

@@ -36,7 +36,7 @@ Both apps use CDN React 18. `apps/backofhouse/` uses Babel Standalone: `index.ht
 ```
 
 **Mock data globals:**
-- `window.UM_DATA`, `window.UM_GEOCODE`, `window.loadRestaurants` — consumer app (`data.js`)
+- `window.UM_DATA`, `window.UM_GEOCODE`, `window.loadRestaurants` — consumer app (`data.js`). See comment on `mapVenue()` (`data.js`) about new `venues` columns not reaching `UM_DATA` automatically.
 - `window.DATA` — backofhouse (`data.js`); seeds the Store on first load and after a date change
 
 **Styling:** `apps/backofhouse/` uses Tailwind CSS CDN (`https://cdn.tailwindcss.com`) with a custom config — brand color `#D8552E`, warm gray scale, and `Manrope` as `font-sans`. Dark mode overrides are applied via `[data-theme="noche"]` attribute selectors in `index.html` (not Tailwind's `dark:` variant). The consumer app uses a hand-written CSS file (`app/app.css`) with CSS variables.
