@@ -394,7 +394,7 @@ function DetailScreen({
   /* Menú en video — servicio de pago aparte, deshabilitado si el
      restaurante no tiene acceso activo */
   r.menuVideoAccess ? React.createElement('a', {
-    href: `/menu-video/?venue=${r.id}`,
+    href: `/menu-video/?venue=${r.slug}`,
     className: 'det-bw-cta',
     style: {
       marginTop: 12,
