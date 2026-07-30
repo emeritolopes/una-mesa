@@ -283,6 +283,7 @@
     const cuisine = v.cuisine || v.cuisine_type || '';
     return {
       id:      String(v.id || v.slug || Math.random().toString(36).slice(2)),
+      slug:    v.slug || null,
       name:    v.name || 'Restaurante',
       cuisine,
       price:   v.price || v.price_range || '€€',
