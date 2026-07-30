@@ -14,7 +14,10 @@ import Stripe from 'https://esm.sh/stripe@14?target=deno'
    antemano cuál usar.
 
    Evento principal: payment_intent.amount_capturable_updated — se dispara
-   cuando una autorización con capture_method:'manual' se completa con éxito.
+   cuando una autorización con capture_method:'manual' se completa con éxito
+   (crea la reserva). payment_intent.succeeded es solo una red de
+   reconciliación de deposit_status para capturas que no pasaron por
+   stripe-capture o auto-capture (ver comentario en ese bloque).
 */
 
 const corsHeaders = {
@@ -106,8 +109,51 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ received: true }), { headers: corsHeaders })
   }
 
-  // Solo nos importa este evento (aparte del de arriba); cualquier otro se
-  // reconoce con 200 para que Stripe no lo siga reintentando, pero no
+  // payment_intent.succeeded — red de reconciliación. El flujo normal
+  // (botón "capturar" en stripe-capture, o el cron auto-capture) ya marca
+  // deposit_status='captured' en el mismo request que llama a
+  // stripe.paymentIntents.capture(), así que este handler no es la vía
+  // principal. Existe para el caso en que el PaymentIntent se capture por
+  // fuera de esas dos funciones (a mano desde el Stripe Dashboard, o si el
+  // PATCH de alguna de ellas falla después de que Stripe ya capturó) — sin
+  // esto, deposit_status se queda desincronizado con Stripe silenciosamente.
+  if (event.type === 'payment_intent.succeeded') {
+    const capturedPi = event.data.object as Stripe.PaymentIntent
+    try {
+      // CAS en la propia query — nada de leer el estado en JS y decidir con
+      // eso, porque Stripe no garantiza ni el orden ni la puntualidad de
+      // entrega de webhooks (puede reintentar días después). Si este evento
+      // llega tarde, después de que cancel-reservation ya reembolsó el
+      // depósito (deposit_status='refunded'), un check ingenuo tipo
+      // `!== 'captured'` lo pisaría de vuelta a 'captured' — mismo motivo
+      // por el que cancel-reservation nunca escribe con datos viejos
+      // cuando pierde el lock (ver su comentario ahí). Excluimos el mismo
+      // conjunto de estados terminales/lock que usa try_lock_deposit_capture
+      // y reservations_due_capture en todo el resto del código — incluyendo
+      // el "is null", porque `deposit_status NOT IN (...)` en SQL da UNKNOWN
+      // (no TRUE) cuando la columna es null, y silenciosamente excluiría esa
+      // fila del PATCH.
+      const patchRes = await fetch(
+        `${supabaseUrl}/rest/v1/reservations?payment_intent_id=eq.${capturedPi.id}&or=(deposit_status.is.null,deposit_status.not.in.(capturing,captured,capture_failed,refunded))`,
+        {
+          method: 'PATCH',
+          headers: { ...sbHeaders, Prefer: 'return=representation' },
+          body: JSON.stringify({ deposit_status: 'captured', deposit_amount: capturedPi.amount_received }),
+        }
+      )
+      const updated = await patchRes.json()
+      // Log incondicional (éxito o no) — sin esto, el camino feliz no deja
+      // ningún rastro verificable en los logs de producción.
+      console.log(`[stripe-webhook] RECONCILE_SUCCEEDED pi=${capturedPi.id} amount_received=${capturedPi.amount_received} ok=${patchRes.ok} rows_updated=${Array.isArray(updated) ? updated.length : 0}`)
+      if (!patchRes.ok) {
+        console.warn('[stripe-webhook] payment_intent.succeeded reconciliation failed:', JSON.stringify(updated))
+      }
+    } catch (e) { console.warn('[stripe-webhook] payment_intent.succeeded reconciliation:', e instanceof Error ? e.message : e) }
+    return new Response(JSON.stringify({ received: true }), { headers: corsHeaders })
+  }
+
+  // Solo nos importa este evento (aparte de los de arriba); cualquier otro
+  // se reconoce con 200 para que Stripe no lo siga reintentando, pero no
   // hacemos nada con él.
   if (event.type !== 'payment_intent.amount_capturable_updated') {
     return new Response(JSON.stringify({ received: true, ignored: event.type }), { headers: corsHeaders })
