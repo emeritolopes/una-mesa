@@ -164,6 +164,47 @@
         .text-headline-md { font-size: 34px !important; line-height: 1.1 !important; font-weight: 700 !important; }
         .text-body-medium { font-size: 14.5px !important; line-height: 1.5 !important; font-weight: 600 !important; }
         .text-label-eyebrow { font-size: 11.5px !important; line-height: 1.2 !important; letter-spacing: 0.18em !important; font-weight: 800 !important; }
+
+        /* ── Vista "Reels" — patrón vertical estilo Instagram Reels,
+           adaptado de menu-reels.html (claude.ai). Activa solo por debajo
+           del breakpoint móvil que ya usa el resto de esta página (900px,
+           ver @media (max-width: 900px) arriba) — el carrusel horizontal
+           de #content no se toca ni se reemplaza, solo se oculta con CSS
+           en ese ancho y esta vista ocupa su lugar. ── */
+        #reels-view { display: none; }
+        .reels-category-overlay { background: linear-gradient(to top, rgba(19,19,19,0.92) 0%, rgba(19,19,19,0.45) 100%); }
+        .reels-gradient-overlay { background: linear-gradient(to top, rgba(19,19,19,1) 0%, rgba(19,19,19,0.5) 40%, rgba(19,19,19,0) 100%); }
+
+        .reels-cat-overlay {
+          position: fixed; inset: 0; z-index: 200;
+          display: none;
+          background: var(--surface, #131313);
+          transform: scale(0); transform-origin: center center; opacity: 0;
+          transition: transform .5s cubic-bezier(0.16,1,0.3,1), opacity .35s ease;
+        }
+        .reels-cat-overlay.open { transform: scale(1); opacity: 1; }
+
+        .reels-snap-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: 100%; scrollbar-width: none; }
+        .reels-snap-container::-webkit-scrollbar { display: none; }
+        .reels-snap-item { scroll-snap-align: start; height: 100%; width: 100%; position: relative; overflow: hidden; }
+
+        .reels-progress-bar { height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; overflow: hidden; }
+        .reels-progress-fill { height: 100%; background: #F4EFE6; width: 0%; }
+
+        .reels-empty-state {
+          position: fixed; inset: 0; z-index: 200; display: none;
+          background: var(--surface, #131313);
+          align-items: center; justify-content: center; text-align: center;
+          flex-direction: column; gap: 14px; padding: 0 40px;
+          transform: scale(0); opacity: 0; transform-origin: center center;
+          transition: transform .5s cubic-bezier(0.16,1,0.3,1), opacity .35s ease;
+        }
+        .reels-empty-state.open { transform: scale(1); opacity: 1; }
+
+        @media (max-width: 900px) {
+          #content { display: none; }
+          #reels-view { display: block; }
+        }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
@@ -200,6 +241,7 @@
 <div class="max-w-max-width mx-auto px-container-md lg:px-container-lg py-12" id="content">
 <p class="text-on-surface-variant py-24 text-center">Loading…</p>
 </div>
+<div id="reels-view"></div>
 </main>
 <!-- Footer -->
 <footer class="w-full py-12 bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-white/10 mt-20">
@@ -260,7 +302,14 @@ function bookUrl() { return `https://${appHost()}/#detail/${venueId}`; }
 function profileUrl() { return `https://${appHost()}/#detail/${venueId}`; }
 
 function renderMessage(msg) {
-  document.getElementById('content').innerHTML = `<p class="text-on-surface-variant py-24 text-center">${msg}</p>`;
+  const html = `<p class="text-on-surface-variant py-24 text-center px-5">${msg}</p>`;
+  document.getElementById('content').innerHTML = html;
+  // Espejo en la vista Reels (mobile) — sin esto, un venue sin platos o con
+  // error de carga se quedaría con #reels-view vacío y en blanco en mobile,
+  // ya que #content (donde este mensaje normalmente aparece) está oculto
+  // por CSS en ese ancho.
+  const reels = document.getElementById('reels-view');
+  if (reels) reels.innerHTML = html;
 }
 
 function fmtTime(s) {
@@ -352,7 +401,7 @@ function renderPage() {
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
           <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
             ${s.video_url ? `
-            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
+            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
             <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
             ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
           </div>
@@ -480,6 +529,8 @@ function selectDish(dishId) {
   window.history.replaceState({}, '', url);
   renderCatNav();
   renderPage();
+  renderReelsHome(); // vista mobile — ver bloque REELS más abajo, no toca lo de arriba
+  stripAutoplayOnMobile(); // idem — ver bloque REELS, no toca renderPage() en sí
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -528,5 +579,253 @@ document.addEventListener('mouseup', e => { e.target.closest('a, button')?.class
 document.addEventListener('mouseleave', e => { e.target.closest?.('a, button')?.classList.remove('scale-95'); }, true);
 </script>
 
+<script>
+/* ════ Vista REELS — solo mobile (ver @media (max-width:900px) en <style>) ════
+   Adaptado de menu-reels.html (claude.ai, versión final). Lee los mismos
+   ALL_VIDEOS/VENUE/requestedDishId ya cargados por el script de arriba —
+   no hace fetch propio, no toca renderPage/bindCardEvents/renderCatNav. */
+
+function reelsCategories() {
+  // Misma lógica que renderCatNav() de arriba, duplicada a propósito para
+  // no tocar esa función — ver nota en el bloque de estilos.
+  const realCats = [...new Set(ALL_VIDEOS.map(v => v.category))];
+  if (VENUE && VENUE.category_order) {
+    const saved = VENUE.category_order.split(',').map(s => s.trim()).filter(Boolean);
+    const savedThatStillExist = saved.filter(c => realCats.includes(c));
+    const newOnes = realCats.filter(c => !saved.includes(c));
+    return [...savedThatStillExist, ...newOnes];
+  }
+  const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
+  return [...STANDARD_CATEGORIES, ...extraCats];
+}
+
+function stripAutoplayOnMobile() {
+  // renderPage() (arriba, sin tocar) escribe <video autoplay> para la
+  // categoría actual dentro de #content — autoplay dispara la descarga
+  // sin importar preload ni display:none. En mobile #content está oculto
+  // por CSS y ese carrusel nunca se ve, así que ahí ese autoplay es puro
+  // desperdicio (~19.6MB medidos en un caso real de 4 platos). En
+  // escritorio no se toca nada.
+  if (window.innerWidth > 900) return;
+  document.querySelectorAll('#content video[autoplay]').forEach(v => {
+    v.removeAttribute('autoplay');
+    v.pause();
+  });
+}
+
+function reelsSlug(cat) {
+  return 'reels-cat-' + cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+function reelsVideoTag(url, thumb, cls) {
+  if (!url) return `<div class="absolute inset-0 bg-cover bg-center" style="background-image:url('${thumb || DEMO_HERO_PHOTO}');"></div>`;
+  // preload="none": nada se descarga hasta que el IntersectionObserver
+  // llame a .play() — sin esto, el navegador decide por su cuenta cuánto
+  // precargar de cada plato, incluso los que nunca llegan a verse.
+  return `<video class="${cls}" src="${url}" muted loop playsinline preload="none"${thumb ? ` poster="${thumb}"` : ''}></video>`;
+}
+
+function renderReelsHome() {
+  const view = document.getElementById('reels-view');
+  if (!view || !VENUE || !ALL_VIDEOS.length) return;
+  // En escritorio esta vista nunca se muestra (oculta por CSS) — no
+  // construir sus <video> ahí evita que el navegador dispare peticiones
+  // preload=metadata de más por cada plato, sin ningún beneficio visual.
+  // Mismo criterio de recalcular solo por llamada, no reactivo a resize,
+  // que ya usa bindCardEvents() para el carrusel.
+  if (window.innerWidth > 900) { view.innerHTML = ''; return; }
+  const cats = reelsCategories();
+
+  const cards = cats.map(cat => {
+    const dishes = ALL_VIDEOS.filter(v => v.category === cat);
+    const first = dishes[0];
+    const badge = dishes.length ? `${dishes.length} DISH${dishes.length === 1 ? '' : 'ES'}` : 'COMING SOON';
+    return `
+      <button data-reels-open="${reelsSlug(cat)}" class="group relative block w-full flex-1 min-h-[110px] overflow-hidden rounded-lg transition-all active:scale-[0.98] text-left">
+        ${first ? reelsVideoTag(first.video_url, first.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black reels-card-video') : `<div class="absolute inset-0" style="background:var(--surface-container-high,#2a2a2a);"></div>`}
+        <div class="absolute inset-0 reels-category-overlay"></div>
+        <div class="absolute inset-0 p-4 flex flex-col justify-end">
+          <div class="inline-flex items-center px-2.5 py-0.5 mb-1.5 rounded-full w-fit" style="background:rgba(255,87,51,.2); backdrop-filter:blur(6px); border:1px solid rgba(255,87,51,.3);">
+            <span class="font-label-eyebrow text-label-eyebrow" style="color: rgb(255, 87, 51);">${badge}</span>
+          </div>
+          <h2 class="font-headline-md text-on-surface" style="font-size:19px; font-weight:700;">${cat}</h2>
+        </div>
+      </button>`;
+  }).join('');
+
+  const overlays = cats.map(cat => {
+    const dishes = ALL_VIDEOS.filter(v => v.category === cat);
+    const slug = reelsSlug(cat);
+    if (!dishes.length) {
+      return `
+      <div class="reels-empty-state" id="${slug}">
+        <button data-reels-close="${slug}" class="absolute top-4 left-4 w-10 h-10 flex items-center justify-center rounded-full" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
+          <span class="material-symbols-outlined text-primary" style="color: rgb(255, 87, 51);">arrow_back</span>
+        </button>
+        <span class="material-symbols-outlined" style="font-size:38px; color: rgb(255, 87, 51);">restaurant</span>
+        <h2 class="font-headline-md text-on-surface" style="font-size:21px; font-weight:700;">${cat} — coming soon</h2>
+        <p class="text-on-surface-variant" style="max-width:280px;">No videos in this category yet. They'll be added once filmed.</p>
+      </div>`;
+    }
+    const slides = dishes.map(d => `
+      <section class="reels-snap-item" data-reels-dish="${d.id}">
+        ${reelsVideoTag(d.video_url, d.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black')}
+        <div class="absolute inset-0 reels-gradient-overlay"></div>
+        <div class="absolute bottom-28 left-0 w-full px-5 flex justify-between items-end">
+          <div class="max-w-[70%]">
+            ${d.is_chefs_choice ? `<span class="inline-block px-3 py-1 mb-3 rounded-full font-label-eyebrow text-label-eyebrow text-on-primary" style="background-color: rgb(255,87,51); font-size:10px;">CHEF'S CHOICE</span>` : ''}
+            <h1 class="font-headline-md text-on-surface mb-1" style="font-size:21px; font-weight:700;">${d.dish_name}</h1>
+            ${d.subtitle ? `<p class="font-label-eyebrow" style="color: rgb(255,87,51); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;">${d.subtitle}</p>` : ''}
+            <p class="text-on-surface-variant" style="font-size:14.5px; line-height:1.5; opacity:.85;">${d.story_body || DEMO_STORY_BODY}</p>
+          </div>
+          <div class="flex flex-col gap-5 items-center">
+            <a href="${bookUrl()}" class="w-11 h-11 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
+              <span class="material-symbols-outlined text-white">calendar_today</span>
+            </a>
+            <button data-reels-share="${d.id}" class="w-11 h-11 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
+              <span class="material-symbols-outlined text-white">share</span>
+            </button>
+          </div>
+        </div>
+      </section>`).join('');
+
+    return `
+    <div class="reels-cat-overlay" id="${slug}">
+      <header class="absolute top-0 left-0 z-10 p-4 w-full flex items-center justify-between">
+        <button data-reels-close="${slug}" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
+          <span class="material-symbols-outlined" style="color: rgb(255, 87, 51);">arrow_back</span>
+        </button>
+        <div class="absolute top-6 left-1/2 -translate-x-1/2 w-1/2 flex gap-1.5 reels-progress-rail"></div>
+      </header>
+      <main class="reels-snap-container" data-reels-feed="${slug}">${slides}</main>
+      <div class="absolute bottom-0 left-0 w-full z-10 px-5 pb-8">
+        <a href="${bookUrl()}" class="block w-full h-14 text-on-primary text-center rounded-full shadow-2xl active:scale-95 transition-transform uppercase font-label-eyebrow" style="background-color: rgb(255,87,51); line-height:56px; letter-spacing:.12em; font-size:13px;">Reserve a table</a>
+      </div>
+    </div>`;
+  }).join('');
+
+  view.innerHTML = `
+    <div id="reels-home-inner" class="px-5 pt-6 pb-8 flex flex-col" style="min-height:60vh;">
+      <section class="mb-4">
+        <h1 class="font-headline-lg text-headline-lg text-on-surface" style="font-size:26px;">Video Menu</h1>
+        <p class="text-on-surface-variant" style="font-size:13.5px;">Tap a category to watch the dishes on video.</p>
+      </section>
+      <div class="flex flex-col gap-3 flex-1">${cards}</div>
+    </div>
+    ${overlays}
+  `;
+
+  bindReelsEvents();
+  observeReelsCardVideos();
+
+  if (requestedDishId) {
+    const dish = ALL_VIDEOS.find(v => v.id === requestedDishId);
+    if (dish) openReelsCategory(reelsSlug(dish.category), dish.id);
+  }
+}
+
+function observeReelsCardVideos() {
+  const videos = document.querySelectorAll('.reels-card-video');
+  if (!videos.length) return;
+  if (!('IntersectionObserver' in window)) { videos.forEach(v => v.play().catch(() => {})); return; }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => { entry.isIntersecting ? entry.target.play().catch(() => {}) : entry.target.pause(); });
+  }, { threshold: 0.6 });
+  videos.forEach(v => observer.observe(v));
+}
+
+const reelsFeedCleanup = {};
+
+function updateReelsProgress(rail, activeIdx) {
+  Array.from(rail.children).forEach((bar, i) => {
+    const fill = bar.querySelector('.reels-progress-fill');
+    if (i < activeIdx) { fill.style.transition = 'none'; fill.style.width = '100%'; }
+    else if (i === activeIdx) { fill.style.width = '0%'; void fill.offsetWidth; fill.style.transition = 'width 5s linear'; fill.style.width = '100%'; }
+    else { fill.style.transition = 'none'; fill.style.width = '0%'; }
+  });
+}
+
+function initReelsFeed(feed) {
+  const rail = feed.closest('.reels-cat-overlay').querySelector('.reels-progress-rail');
+  rail.innerHTML = Array.from(feed.children).map(() => `<div class="flex-1 reels-progress-bar"><div class="reels-progress-fill"></div></div>`).join('');
+  let currentIndex = 0;
+  updateReelsProgress(rail, 0);
+
+  const onScroll = () => {
+    const idx = Math.round(feed.scrollTop / feed.clientHeight);
+    if (idx !== currentIndex) { currentIndex = idx; updateReelsProgress(rail, idx); }
+  };
+  feed.addEventListener('scroll', onScroll);
+
+  const videos = feed.querySelectorAll('video');
+  videos.forEach(v => { v.muted = true; });
+  let observer = null;
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { entry.isIntersecting ? entry.target.play().catch(() => {}) : entry.target.pause(); });
+    }, { threshold: 0.6, root: feed });
+    videos.forEach(v => observer.observe(v));
+  } else {
+    videos.forEach(v => v.play().catch(() => {}));
+  }
+
+  return () => {
+    feed.removeEventListener('scroll', onScroll);
+    if (observer) observer.disconnect();
+    videos.forEach(v => v.pause());
+  };
+}
+
+function openReelsCategory(slug, dishId) {
+  const el = document.getElementById(slug);
+  if (!el) return;
+  const isEmpty = el.classList.contains('reels-empty-state');
+  el.style.display = isEmpty ? 'flex' : 'block';
+  void el.offsetWidth;
+  el.classList.add('open');
+  const feed = el.querySelector('[data-reels-feed]');
+  if (feed) {
+    const target = dishId ? feed.querySelector(`[data-reels-dish="${dishId}"]`) : null;
+    feed.scrollTop = target ? target.offsetTop : 0;
+    reelsFeedCleanup[slug] = initReelsFeed(feed);
+  }
+}
+
+function closeReelsCategory(slug) {
+  const el = document.getElementById(slug);
+  if (!el) return;
+  el.classList.remove('open');
+  if (reelsFeedCleanup[slug]) { reelsFeedCleanup[slug](); delete reelsFeedCleanup[slug]; }
+  el.addEventListener('transitionend', function handler(e) {
+    if (e.propertyName === 'transform') { el.style.display = 'none'; el.removeEventListener('transitionend', handler); }
+  });
+}
+
+function shareReelsDish(dish) {
+  const url = new URL(window.location);
+  url.searchParams.set('dish', dish.id);
+  const shareText = `${dish.dish_name} — ${VENUE.name} — Una Mesa`;
+  if (navigator.share) {
+    navigator.share({ title: dish.dish_name, text: shareText, url: url.toString() }).catch(() => {});
+  } else {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + url.toString())}`, '_blank', 'noopener');
+  }
+}
+
+function bindReelsEvents() {
+  document.querySelectorAll('[data-reels-open]').forEach(btn => {
+    btn.addEventListener('click', () => openReelsCategory(btn.dataset.reelsOpen));
+  });
+  document.querySelectorAll('[data-reels-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeReelsCategory(btn.dataset.reelsClose));
+  });
+  document.querySelectorAll('[data-reels-share]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dish = ALL_VIDEOS.find(v => v.id === btn.dataset.reelsShare);
+      if (dish) shareReelsDish(dish);
+    });
+  });
+}
+</script>
 
 </body></html>
