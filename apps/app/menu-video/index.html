@@ -191,6 +191,29 @@
         .reels-progress-bar { height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; overflow: hidden; }
         .reels-progress-fill { height: 100%; background: #F4EFE6; width: 0%; }
 
+        /* ── Disclosure: los clips son generados por IA a partir de fotos,
+           no vídeo filmado real. Un solo estilo compartido entre las tres
+           superficies que muestran vídeo (tarjeta de escritorio, tarjeta
+           de categoría de Reels, slide del feed de Reels) — arriba a la
+           derecha en todas, para no chocar nunca con el badge de "Chef's
+           Choice"/insignia de conteo (abajo-izquierda) ni con el nombre,
+           precio o botones de like/compartir (todos en la mitad inferior
+           o en las esquinas opuestas). */
+        .ai-preview-badge {
+          position: absolute; top: 8px; right: 8px; z-index: 10;
+          padding: 3px 8px; border-radius: 999px;
+          background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+          font-size: 9px; font-weight: 700; letter-spacing: .04em;
+          color: #fff; text-transform: uppercase; white-space: nowrap;
+          pointer-events: none;
+        }
+        /* En el slide del feed Reels, top:8px choca con el riel de
+           progreso (centrado, hasta el 75% del ancho — más ancho de lo
+           que parece a simple vista). Bajarlo lo despeja sin tocar las
+           otras dos superficies (tarjeta de escritorio, tarjeta de
+           categoría), que no tienen ese riel. */
+        .reels-snap-item .ai-preview-badge { top: 34px; }
+
         .reels-empty-state {
           position: fixed; inset: 0; z-index: 200; display: none;
           background: var(--surface, #131313);
@@ -408,6 +431,7 @@ function renderPage() {
             ${s.video_url ? `
             <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
             <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
+            <span class="ai-preview-badge">AI-generated preview</span>
             ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
           </div>
           <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
@@ -651,6 +675,7 @@ function renderReelsHome() {
       <button data-reels-open="${reelsSlug(cat)}" class="group relative block w-full flex-1 min-h-[110px] overflow-hidden rounded-lg transition-all active:scale-[0.98] text-left">
         ${first ? reelsVideoTag(first.video_url, first.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black reels-card-video') : `<div class="absolute inset-0" style="background:var(--surface-container-high,#2a2a2a);"></div>`}
         <div class="absolute inset-0 reels-category-overlay"></div>
+        ${first ? `<span class="ai-preview-badge">AI-generated preview</span>` : ''}
         <div class="absolute inset-0 p-4 flex flex-col justify-end">
           <div class="inline-flex items-center px-2.5 py-0.5 mb-1.5 rounded-full w-fit" style="background:rgba(255,87,51,.2); backdrop-filter:blur(6px); border:1px solid rgba(255,87,51,.3);">
             <span class="font-label-eyebrow text-label-eyebrow" style="color: rgb(255, 87, 51);">${badge}</span>
@@ -678,6 +703,7 @@ function renderReelsHome() {
       <section class="reels-snap-item" data-reels-dish="${d.id}">
         ${reelsVideoTag(d.video_url, d.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black')}
         <div class="absolute inset-0 reels-gradient-overlay"></div>
+        <span class="ai-preview-badge">AI-generated preview</span>
         <div class="absolute bottom-28 left-0 w-full px-5 flex justify-between items-end">
           <div class="max-w-[70%]">
             ${d.is_chefs_choice ? `<span class="inline-block px-3 py-1 mb-3 rounded-full font-label-eyebrow text-label-eyebrow text-on-primary" style="background-color: rgb(255,87,51); font-size:10px;">CHEF'S CHOICE</span>` : ''}
