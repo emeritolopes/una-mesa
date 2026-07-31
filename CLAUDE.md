@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Una Mesa is a restaurant reservation platform for Vigo, Spain. The monorepo contains two independent frontend apps and a Supabase backend with Deno edge functions.
+Una Mesa is a restaurant reservation platform. London, UK is the current primary market (`app.unamesa.co.uk`); Madrid, Spain (`app.unamesa.co`) is the next market being onboarded. The monorepo contains two independent frontend apps and a Supabase backend with Deno edge functions.
 
 - **apps/app/** — Customer-facing booking app (comensal)
 - **apps/backofhouse/** — Restaurant management panel
@@ -137,6 +137,8 @@ Always call `setItems(data || [])` on success — an empty result must update st
 - `profile-extras.jsx` — Pasaporte Gastronómico, Paladar IA, and Mercado de Cucharas tabs inside the profile view
 
 **Unloaded files in consumer app:** `apps/app/app/` contains several files that are **not** referenced in `apps/app/index.html` — they are not active in the consumer app: `ajustes.jsx`, `carta.jsx`, `floorplan.jsx`, `informes.jsx`, `login.jsx`, `modules.jsx`, `panel.jsx`, `shell.jsx`, `stock.jsx`, `store.js`, `ui.jsx`.
+
+**Video menu** (`apps/app/menu-video/index.html`): a standalone page, outside the `route`/`view` state above — not one of the SPA views, its own static HTML file linked from the `'detail'` view (`/menu-video/?venue=<slug>`, looked up against `venues.slug`) and served directly by Vercel, not through `app.jsx`'s routing. Two responsive variants of the same page, split at a 900px breakpoint: a horizontal scroll-snap carousel on desktop, and an Instagram-Reels-style full-screen vertical category feed on mobile — both driven by the same fetched data, no separate mobile fetch.
 
 **Backofhouse** (`apps/backofhouse/app/shell.jsx`): `view` string — `'panel'`, `'reservas'`, `'tpv'`, `'cocina'`, `'carta'`, `'stock'`, `'personal'`, `'informes'`, `'ajustes'`. Persisted to `localStorage` as `'unamesa.view'`. Navigate via `go(viewName)`.
 
