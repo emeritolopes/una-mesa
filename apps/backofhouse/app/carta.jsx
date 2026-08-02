@@ -206,11 +206,13 @@ function Carta() {
                   <span className={`font-['Syne'] text-lg font-black ${s.color}`}>{s.val}</span>
                 </div>
               ))}
-              <div className="bg-amber-50 rounded-xl p-3.5 mt-1">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5 whitespace-nowrap"><i className="ti ti-flame" /> Más vendido</div>
-                <div className="text-sm font-semibold text-gray-900 mt-2">{topSeller.name}</div>
-                <div className="text-[11px] text-gray-500">{topSeller.sold} unidades esta semana</div>
-              </div>
+              {topSeller && (
+                <div className="bg-amber-50 rounded-xl p-3.5 mt-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5 whitespace-nowrap"><i className="ti ti-flame" /> Más vendido</div>
+                  <div className="text-sm font-semibold text-gray-900 mt-2">{topSeller.name}</div>
+                  <div className="text-[11px] text-gray-500">{topSeller.sold} unidades esta semana</div>
+                </div>
+              )}
               <div className="text-[11px] text-gray-400 leading-relaxed flex gap-2 mt-1">
                 <i className="ti ti-info-circle mt-0.5" />
                 <span>Selecciona un plato para editarlo, o cambia su disponibilidad con el interruptor. Los cambios se reflejan al instante en el TPV.</span>
