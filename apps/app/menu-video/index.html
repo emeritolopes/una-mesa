@@ -536,10 +536,16 @@ function bindCardEvents() {
   const videos = document.querySelectorAll('#cards-row video');
   videos.forEach(v => { v.muted = true; });
   if ('IntersectionObserver' in window) {
+    const ratios = new Map();
     const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.play().catch(() => {});
-        else entry.target.pause();
+      entries.forEach(entry => { ratios.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0); });
+      let topVideo = null, topRatio = 0;
+      ratios.forEach((ratio, video) => {
+        if (ratio > topRatio) { topRatio = ratio; topVideo = video; }
+      });
+      videos.forEach(v => {
+        if (v === topVideo && topRatio >= 0.6) v.play().catch(() => {});
+        else v.pause();
       });
     }, { threshold: 0.6 });
     videos.forEach(v => observer.observe(v));
