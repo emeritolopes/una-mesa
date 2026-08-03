@@ -16,8 +16,15 @@ self.addEventListener('fetch', e => {
   // aquí en absoluto, o cualquier fallo real de red en ellas termina
   // mostrando el "Offline" de respaldo pensado para la SPA, no un error
   // real y útil.
-  const path = new URL(e.request.url).pathname;
-  if (path.startsWith('/menu-video/') || path.startsWith('/restaurants/')) return;
+  const url = new URL(e.request.url);
+  if (url.pathname.startsWith('/menu-video/') || url.pathname.startsWith('/restaurants/')) return;
+
+  // Los vídeos del menú viven en otro origen (Supabase Storage) y nunca
+  // coinciden con las exclusiones de pathname de arriba. Como este service
+  // worker nunca los cachea (no hay caches.put), interceptarlos no aporta
+  // nada y solo arriesga devolver el "Offline" de respaldo si la red falla
+  // a medio vídeo.
+  if (url.origin !== self.location.origin) return;
 
   e.respondWith(
     fetch(e.request).catch(async () => {
