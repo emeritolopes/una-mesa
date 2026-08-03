@@ -429,7 +429,7 @@ function renderPage() {
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
           <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
             ${s.video_url ? `
-            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" autoplay muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
+            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
             <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
             <span class="ai-preview-badge">AI-generated preview</span>
             ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
