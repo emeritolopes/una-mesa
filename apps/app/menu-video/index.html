@@ -429,7 +429,12 @@ function renderPage() {
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
           <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
             ${s.video_url ? `
-            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>` : `
+            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
+            <button class="play-overlay-btn" data-play="${s.id}" aria-label="Reproducir video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.18);border:none;cursor:pointer;padding:0;">
+              <span style="width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="font-size:28px;color:#fff;">play_arrow</span>
+              </span>
+            </button>` : `
             <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
             <span class="ai-preview-badge">AI-generated preview</span>
             ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
@@ -527,31 +532,36 @@ function bindCardEvents() {
       renderStoryPanel();
     });
   });
-  // Los navegadores móviles (sobre todo iOS Safari) solo permiten que
-  // pocos videos se reproduzcan a la vez — por eso antes solo uno
-  // arrancaba. Con IntersectionObserver, cada video se reproduce SOLO
-  // cuando está visible en pantalla, y se pausa al salir de vista —
-  // nunca se piden más de uno o dos a la vez, que es lo que el
-  // navegador sí permite de forma confiable.
+  // Nada se reproduce automáticamente: cada tarjeta muestra un botón de
+  // play sobre el poster/miniatura, y el video (preload="none") solo
+  // empieza a descargarse cuando la persona hace click en ese botón. Esto
+  // reduce el cached egress más que limitar a un video a la vez — alguien
+  // que solo hace scroll sin detenerse en un plato nunca descarga ese video.
   const videos = document.querySelectorAll('#cards-row video');
   videos.forEach(v => { v.muted = true; });
-  if ('IntersectionObserver' in window) {
-    const ratios = new Map();
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { ratios.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0); });
-      let topVideo = null, topRatio = 0;
-      ratios.forEach((ratio, video) => {
-        if (ratio > topRatio) { topRatio = ratio; topVideo = video; }
-      });
-      videos.forEach(v => {
-        if (v === topVideo && topRatio >= 0.6) v.play().catch(() => {});
-        else v.pause();
-      });
-    }, { threshold: 0.6 });
-    videos.forEach(v => observer.observe(v));
-  } else {
-    videos.forEach(v => v.play().catch(() => {}));
+
+  function overlayBtnFor(video) {
+    const id = video.id.replace('video-', '');
+    return document.querySelector(`.play-overlay-btn[data-play="${id}"]`);
   }
+
+  videos.forEach(v => {
+    v.addEventListener('play', () => { const b = overlayBtnFor(v); if (b) b.style.display = 'none'; });
+    v.addEventListener('pause', () => { const b = overlayBtnFor(v); if (b) b.style.display = 'flex'; });
+  });
+
+  document.querySelectorAll('.play-overlay-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.play;
+      const video = document.getElementById('video-' + id);
+      if (!video) return;
+      const wasPlaying = !video.paused;
+      videos.forEach(v => { if (v !== video) v.pause(); });
+      if (wasPlaying) video.pause();
+      else video.play().catch(() => {});
+    });
+  });
 }
 
 
