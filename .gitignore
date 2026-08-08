@@ -2,3 +2,9 @@ node_modules/
 .env
 .DS_Store
 *.local
+videos/
+scripts/
+*.csv
+.agents/
+.claude/
+skills-lock.json

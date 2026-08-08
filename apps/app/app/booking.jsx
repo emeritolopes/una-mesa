@@ -1,15 +1,7 @@
 /* ════ UNA MESA · Booking flow · Stitch design system ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function bkMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const BK_LANG = bkMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const BK_LANG = window.UM_LANG;
 const BK_T = {
   es: {
     notFound: 'Restaurante no encontrado.',
@@ -241,7 +233,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
     const booking = {
       id, rid:r.id, name:r.name, cz:r.cz, glyph:r.glyph, area:r.area,
       day:      day ? day.toISOString() : today.toISOString(),
-      dayLabel: day ? (dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)) : 'Hoy',
+      dayLabel: day ? (dows[day.getDay()]+' '+day.getDate()+'/'+(day.getMonth()+1)) : BK_T.today,
       time, party, deposit, status:'up', created:Date.now(), member:!!user, notify,
       paymentIntentId: paymentIntentId || null,
     };

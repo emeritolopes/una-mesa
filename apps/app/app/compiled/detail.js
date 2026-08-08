@@ -1,15 +1,7 @@
 /* ════ UNA MESA · Detail screen · Stitch design system ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function dtMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const DT_LANG = dtMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const DT_LANG = window.UM_LANG;
 const DT_T = {
   es: {
     notFound: 'Restaurante no encontrado.',

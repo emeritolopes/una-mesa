@@ -5,16 +5,8 @@
    3) ClaimSpoonsModal → tras reservar como INVITADO
 */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function raMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const RA_LANG = raMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const RA_LANG = window.UM_LANG;
 const RA_T = {
   es: {
     benefits: [{
@@ -84,7 +76,17 @@ const RA_T = {
     cancelScreenUsed: 'Este enlace ya se usó. Si fue un error, contacta con el restaurante.',
     cancelScreenExpired: 'Este enlace ha expirado — probablemente porque la reserva ya pasó.',
     cancelScreenAlready: 'Esta reserva ya estaba cancelada.',
-    cancelScreenError: 'No se pudo procesar la cancelación. Inténtalo de nuevo o contacta con el restaurante.'
+    cancelScreenError: 'No se pudo procesar la cancelación. Inténtalo de nuevo o contacta con el restaurante.',
+    stripeConnectLoading: 'Cargando…',
+    stripeConnectRedirecting: name => `Llevándote a Stripe para ${name}…`,
+    stripeConnectYourRestaurant: 'tu restaurante',
+    stripeConnectDone: '¡Gracias! Estamos verificando tus datos.',
+    stripeConnectDoneSub: 'Puede tardar unos minutos. Si necesitas completar algo más, te avisaremos por email.',
+    stripeConnectErrExpired: 'Este enlace ha expirado — contacta con Una Mesa para uno nuevo.',
+    stripeConnectAlreadyConnected: name => `${name} ya completó su verificación de pagos.`,
+    stripeConnectThisRestaurant: 'Este restaurante',
+    stripeConnectErrInvalid: 'Este enlace no es válido.',
+    stripeConnectErrGeneric: 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.'
   },
   en: {
     benefits: [{
@@ -154,7 +156,17 @@ const RA_T = {
     cancelScreenUsed: 'This link was already used. If this was a mistake, contact the restaurant.',
     cancelScreenExpired: 'This link has expired — likely because the booking time has already passed.',
     cancelScreenAlready: 'This booking was already cancelled.',
-    cancelScreenError: 'Could not process the cancellation. Please try again or contact the restaurant.'
+    cancelScreenError: 'Could not process the cancellation. Please try again or contact the restaurant.',
+    stripeConnectLoading: 'Loading…',
+    stripeConnectRedirecting: name => `Taking you to Stripe for ${name}…`,
+    stripeConnectYourRestaurant: 'your restaurant',
+    stripeConnectDone: "Thank you! We're verifying your details.",
+    stripeConnectDoneSub: "This can take a few minutes. If you need to complete anything else, we'll email you.",
+    stripeConnectErrExpired: 'This link has expired — contact Una Mesa for a new one.',
+    stripeConnectAlreadyConnected: name => `${name} has already completed their payment verification.`,
+    stripeConnectThisRestaurant: 'This restaurant',
+    stripeConnectErrInvalid: "This link isn't valid.",
+    stripeConnectErrGeneric: 'Could not process this. Please try again or contact Una Mesa.'
   }
 }[RA_LANG];
 const RESERVE_BENEFITS = RA_T.benefits;
@@ -713,13 +725,13 @@ function StripeConnectScreen({
   const errorMsg = () => {
     switch (code) {
       case 'expired':
-        return 'Este enlace ha expirado — contacta con Una Mesa para uno nuevo.';
+        return RA_T.stripeConnectErrExpired;
       case 'already_connected':
-        return `${restaurantName || 'Este restaurante'} ya completó su verificación de pagos.`;
+        return RA_T.stripeConnectAlreadyConnected(restaurantName || RA_T.stripeConnectThisRestaurant);
       case 'invalid':
-        return 'Este enlace no es válido.';
+        return RA_T.stripeConnectErrInvalid;
       default:
-        return 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.';
+        return RA_T.stripeConnectErrGeneric;
     }
   };
   return React.createElement(Modal, {
@@ -727,16 +739,16 @@ function StripeConnectScreen({
     max: 420
   }, React.createElement('div', {
     className: 'rb-head'
-  }, React.createElement('h2', null, state === 'loading' ? 'Cargando…' : state === 'redirecting' ? `Llevándote a Stripe para ${restaurantName || 'tu restaurante'}…` : state === 'done' ? '¡Gracias! Estamos verificando tus datos.' : errorMsg()), state === 'done' ? React.createElement('p', {
+  }, React.createElement('h2', null, state === 'loading' ? RA_T.stripeConnectLoading : state === 'redirecting' ? RA_T.stripeConnectRedirecting(restaurantName || RA_T.stripeConnectYourRestaurant) : state === 'done' ? RA_T.stripeConnectDone : errorMsg()), state === 'done' ? React.createElement('p', {
     style: {
       fontSize: 14,
       color: '#777',
       marginTop: 8
     }
-  }, 'Puede tardar unos minutos. Si necesitas completar algo más, te avisaremos por email.') : null), state === 'error' || state === 'done' ? React.createElement('button', {
+  }, RA_T.stripeConnectDoneSub) : null), state === 'error' || state === 'done' ? React.createElement('button', {
     className: 'btn btn-acc btn-block btn-lg',
     onClick: onDone
-  }, 'Volver al inicio') : null);
+  }, RA_T.resetGoHome) : null);
 }
 
 /* ── pantalla de alta de restaurantes para admin — reemplaza el INSERT de

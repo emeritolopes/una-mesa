@@ -1,4 +1,17 @@
 /* ════ UNA MESA · mock data (Vigo / Galicia) ════ */
+
+/* ── Market/language detection — single source of truth, loaded before every
+   other script (see index.html load order). EN gated by ?market=uk/en or
+   .co.uk hostname. Defaults to ES — Spain production is untouched. ── */
+window.UM_LANG = (function() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('market');
+    if (q === 'uk' || q === 'en') return 'en';
+    if (window.location.hostname.endsWith('.co.uk')) return 'en';
+  } catch (_) {}
+  return 'es';
+})();
+
 (function(){
   // gradient palettes for photo placeholders [from,to]
   const G = {
@@ -327,11 +340,7 @@
       /* Ciudad objetivo según mercado — 'Madrid' es donde están los restaurantes reales
          actuales; cuando se onboarde el primer restaurante de Londres, debe llevar
          city='London' en `venues` para que esta consulta lo encuentre. */
-      let targetCity = 'Madrid';
-      try {
-        const q = new URLSearchParams(window.location.search).get('market');
-        if (q === 'uk' || q === 'en' || window.location.hostname.endsWith('.co.uk')) targetCity = 'London';
-      } catch (_) {}
+      let targetCity = window.UM_LANG === 'en' ? 'London' : 'Madrid';
 
       // Reutiliza el cliente único de auth.js (window.UMAuth.sb) en vez de crear uno nuevo —
       // dos instancias de GoTrueClient en la misma pestaña compiten por la misma sesión

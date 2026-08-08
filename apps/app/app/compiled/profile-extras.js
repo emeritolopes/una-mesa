@@ -8,16 +8,8 @@
    .co.uk. Se agrega el mismo patrón bilingüe usado en el resto de la app.
 */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function pxMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const PX_LANG = pxMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const PX_LANG = window.UM_LANG;
 const PX_T = {
   es: {
     ranks: [{

@@ -1,15 +1,7 @@
 /* ════ UNA MESA · Auth modal + Profile screen ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function prMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const PR_LANG = prMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const PR_LANG = window.UM_LANG;
 const PR_T = {
   es: {
     cuisines: ['Marisco','Asador','Arroces','Japonés','Tapas','Vegetariano','Brunch','Fusión','Italiano','Gallego'],
@@ -56,6 +48,7 @@ const PR_T = {
     days: ['dom','lun','mar','mié','jue','vie','sáb'],
     months: ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
     today: 'Hoy', guestSingular: ' comensal', guestPlural: ' comensales',
+    statusCompleted: 'Completada', statusConfirmed: 'Confirmada',
     bookingLabel: 'Reserva', depositLabelLower: 'depósito',
   },
   en: {
@@ -103,6 +96,7 @@ const PR_T = {
     days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     today: 'Today', guestSingular: ' guest', guestPlural: ' guests',
+    statusCompleted: 'Completed', statusConfirmed: 'Confirmed',
     bookingLabel: 'Booking', depositLabelLower: 'deposit',
   }
 }[PR_LANG];
@@ -372,7 +366,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
       React.createElement('div',{className:'br-meta'}, (b.dayLabel||PR_T.today)+' · '+b.time+' · '+b.party+(b.party===1?PR_T.guestSingular:PR_T.guestPlural)),
       React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+(b.deposit*(b.party||1)))),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
-      React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?'Completada':'Confirmada'),
+      React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?PR_T.statusCompleted:PR_T.statusConfirmed),
       React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?PR_T.bookAgain:PR_T.viewRestaurant),
       !isPast && b.isCancellable
         ? React.createElement('button',{
