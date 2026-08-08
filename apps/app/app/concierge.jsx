@@ -1,15 +1,7 @@
 /* ════ UNA MESA · Conserje IA (interactive chat) ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function ccMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const CC_LANG = ccMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const CC_LANG = window.UM_LANG;
 const CC_T = {
   es: {
     greeting: '¡Hola! Soy tu conserje de Una Mesa. Dime qué te apetece — por ejemplo, "una mesa para 5 personas, algo vegano y con terraza" — y te busco la mesa perfecta.',

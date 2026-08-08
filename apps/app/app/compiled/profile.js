@@ -1,15 +1,7 @@
 /* ════ UNA MESA · Auth modal + Profile screen ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function prMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const PR_LANG = prMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const PR_LANG = window.UM_LANG;
 const PR_T = {
   es: {
     cuisines: ['Marisco', 'Asador', 'Arroces', 'Japonés', 'Tapas', 'Vegetariano', 'Brunch', 'Fusión', 'Italiano', 'Gallego'],
@@ -78,6 +70,8 @@ const PR_T = {
     today: 'Hoy',
     guestSingular: ' comensal',
     guestPlural: ' comensales',
+    statusCompleted: 'Completada',
+    statusConfirmed: 'Confirmada',
     bookingLabel: 'Reserva',
     depositLabelLower: 'depósito'
   },
@@ -148,6 +142,8 @@ const PR_T = {
     today: 'Today',
     guestSingular: ' guest',
     guestPlural: ' guests',
+    statusCompleted: 'Completed',
+    statusConfirmed: 'Confirmed',
     bookingLabel: 'Booking',
     depositLabelLower: 'deposit'
   }
@@ -552,7 +548,7 @@ function ProfileScreen({
       }
     }, React.createElement('span', {
       className: 'br-status ' + (isPast ? 'st-past' : 'st-up')
-    }, isPast ? 'Completada' : 'Confirmada'), React.createElement('button', {
+    }, isPast ? PR_T.statusCompleted : PR_T.statusConfirmed), React.createElement('button', {
       className: 'btn btn-soft btn-sm',
       onClick: () => openRest(b.rid)
     }, isPast ? PR_T.bookAgain : PR_T.viewRestaurant), !isPast && b.isCancellable ? React.createElement('button', {

@@ -1,15 +1,7 @@
 /* ════ UNA MESA · App root (state + routing) ════ */
 
-/* ── Market detection (self-contained copy — see home.jsx for canonical version) ── */
-function apMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const AP_LANG = apMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const AP_LANG = window.UM_LANG;
 
 /* Convierte el hash de la URL (ej. "#detail/abc123") en un objeto de ruta
    — antes, la navegación nunca leía ni escribía la URL en absoluto, así

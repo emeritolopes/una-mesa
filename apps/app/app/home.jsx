@@ -1,15 +1,7 @@
 /* ════ UNA MESA · RestaurantCard + Home screen ════ */
 
-/* ── Market detection: EN gated by ?market=uk or .co.uk hostname. Defaults to ES — Spain production is untouched. ── */
-function umMarket() {
-  try {
-    const q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en') return 'en';
-    if (window.location.hostname.endsWith('.co.uk')) return 'en';
-  } catch (_) {}
-  return 'es';
-}
-const UM_LANG = umMarket();
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const UM_LANG = window.UM_LANG;
 const UM_T = {
   es: {
     save: 'Guardar', noSlotsToday: 'Sin horarios hoy',
