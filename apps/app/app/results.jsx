@@ -1,5 +1,48 @@
 /* ════ UNA MESA · Results screen · Stitch design system ════ */
 
+/* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
+const RS_LANG = window.UM_LANG;
+const RS_T = {
+  es: {
+    eyebrow: 'Explorar',
+    titleNear: area => 'Restaurantes en ' + area,
+    yourArea: 'tu zona',
+    countSuffix: n => n + ' sitios',
+    aiEyebrow: 'Conserje IA',
+    aiSubQuery: q => 'Coincidencias para “' + q + '” — ordenadas por afinidad.',
+    aiSubDefault: 'Resultados ordenados por afinidad con tu gusto, presupuesto y franja habitual.',
+    clearFilters: 'Limpiar filtros',
+    filterCuisine: 'Cocina',
+    filterPrice: 'Precio',
+    filterAmbiance: 'Ambiente',
+    sortMatch: 'Afinidad IA',
+    sortRating: 'Mejor valorados',
+    sortPriceLo: 'Precio: bajo',
+    sortPriceHi: 'Precio: alto',
+    emptyMsg: 'No encontramos sitios con esos filtros.',
+    removeFilters: 'Quitar filtros',
+  },
+  en: {
+    eyebrow: 'Explore',
+    titleNear: area => 'Restaurants in ' + area,
+    yourArea: 'your area',
+    countSuffix: n => n + ' places',
+    aiEyebrow: 'AI Concierge',
+    aiSubQuery: q => 'Matches for “' + q + '” — sorted by relevance.',
+    aiSubDefault: "Results sorted by how well they match your taste, budget, and usual time slot.",
+    clearFilters: 'Clear filters',
+    filterCuisine: 'Cuisine',
+    filterPrice: 'Price',
+    filterAmbiance: 'Atmosphere',
+    sortMatch: 'AI match',
+    sortRating: 'Top rated',
+    sortPriceLo: 'Price: low',
+    sortPriceHi: 'Price: high',
+    emptyMsg: "We couldn't find any places with those filters.",
+    removeFilters: 'Remove filters',
+  }
+}[RS_LANG];
+
 function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, geo }) {
   const data = window.UM_DATA;
   const [q, setQ] = useState(query || '');
@@ -121,13 +164,13 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
       React.createElement('div', { className:'wrap' },
         React.createElement('div', { className:'res-hero-inner' },
 
-          React.createElement('span', { className:'res-eyebrow' }, 'Explorar'),
+          React.createElement('span', { className:'res-eyebrow' }, RS_T.eyebrow),
 
           React.createElement('div', { className:'res-hero-row' },
             React.createElement('h1', { className:'res-h1 display' },
-              q ? '”'+q+'”' : 'Restaurantes en ' + (geoLabel || 'tu zona')
+              q ? '”'+q+'”' : RS_T.titleNear(geoLabel || RS_T.yourArea)
             ),
-            React.createElement('span', { className:'res-count-pill' }, list.length+' sitios')
+            React.createElement('span', { className:'res-count-pill' }, RS_T.countSuffix(list.length))
           ),
 
           /* AI panel */
@@ -137,17 +180,17 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
                 React.createElement(Icon, { name:'sparkle', fill:'currentColor' })
               ),
               React.createElement('div', { className:'res-ai-body' },
-                React.createElement('p', { className:'res-ai-label' }, 'Conserje IA'),
+                React.createElement('p', { className:'res-ai-label' }, RS_T.aiEyebrow),
                 React.createElement('p', { className:'res-ai-sub' },
                   q
-                    ? 'Coincidencias para “'+q+'” — ordenadas por afinidad.'
-                    : 'Resultados ordenados por afinidad con tu gusto, presupuesto y franja habitual.'
+                    ? RS_T.aiSubQuery(q)
+                    : RS_T.aiSubDefault
                 )
               )
             ),
             React.createElement('button', {
               type:'button', className:'res-clear-btn', onClick:clearAll
-            }, 'Limpiar filtros')
+            }, RS_T.clearFilters)
           )
         )
       )
@@ -161,21 +204,21 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
         React.createElement('aside', { className:'filters' },
 
           React.createElement('div', { className:'res-fgroup' },
-            React.createElement('p', { className:'res-flabel' }, 'Cocina'),
+            React.createElement('p', { className:'res-flabel' }, RS_T.filterCuisine),
             React.createElement('div', { className:'res-fpills' },
               allCuisines.map(c => React.createElement(React.Fragment,{key:c}, FPill(c,cuisines,setCuisines)))
             )
           ),
 
           React.createElement('div', { className:'res-fgroup' },
-            React.createElement('p', { className:'res-flabel' }, 'Precio'),
+            React.createElement('p', { className:'res-flabel' }, RS_T.filterPrice),
             React.createElement('div', { className:'res-fpills' },
               ['€€','€€€'].map(p => React.createElement(React.Fragment,{key:p}, FPill(p,prices,setPrices)))
             )
           ),
 
           React.createElement('div', { className:'res-fgroup' },
-            React.createElement('p', { className:'res-flabel' }, 'Ambiente'),
+            React.createElement('p', { className:'res-flabel' }, RS_T.filterAmbiance),
             React.createElement('div', { className:'res-fpills res-fpills-wrap' },
               allTags.map(t => React.createElement(React.Fragment,{key:t}, FPill(t,tags,setTags)))
             )
@@ -186,10 +229,10 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
         React.createElement('div', null,
 
           React.createElement('div', { className:'res-sort-wrap' },
-            SortPill('match',    'Afinidad IA'),
-            SortPill('rating',   'Mejor valorados'),
-            SortPill('price-lo', 'Precio: bajo'),
-            SortPill('price-hi', 'Precio: alto')
+            SortPill('match',    RS_T.sortMatch),
+            SortPill('rating',   RS_T.sortRating),
+            SortPill('price-lo', RS_T.sortPriceLo),
+            SortPill('price-hi', RS_T.sortPriceHi)
           ),
 
           list.length
@@ -210,12 +253,12 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
                   React.createElement(Icon, { name:'search' })
                 ),
                 React.createElement('p', { className:'res-empty-msg' },
-                  'No encontramos sitios con esos filtros.'
+                  RS_T.emptyMsg
                 ),
                 React.createElement('button', {
                   type:'button', className:'btn btn-acc',
                   style:{ marginTop:'20px' }, onClick:clearAll
-                }, 'Quitar filtros')
+                }, RS_T.removeFilters)
               )
         ),
 
