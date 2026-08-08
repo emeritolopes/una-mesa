@@ -5,10 +5,7 @@ window.formatName = function(user) {
   if (user && user.name) return user.name;
   var email = (user && user.email) || '';
   var fallback = 'Comensal';
-  try {
-    var q = new URLSearchParams(window.location.search).get('market');
-    if (q === 'uk' || q === 'en' || window.location.hostname.endsWith('.co.uk')) fallback = 'Guest';
-  } catch (e) {}
+  if (window.UM_LANG === 'en') fallback = 'Guest';
   return email.split('@')[0]
     .split('.')
     .map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); })
