@@ -229,6 +229,49 @@
           #reels-view { display: block; }
         }
     </style>
+<!-- Reproducción HLS (Cloudflare Stream). hls.js para navegadores sin HLS
+     nativo; Safari lo reproduce solo. -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+/* Los videos de plato se migraron de Supabase Storage (.mp4 servido
+   directo) a Cloudflare Stream (HLS, .m3u8) — ver
+   scripts/migrate-videos-to-stream.mjs y la migración 040.
+
+   Para no perder el ahorro de egress (commits #189–191), cada <video> se
+   crea SIN src, solo con data-src, y nada de la red se toca hasta que algo
+   llama a umLoadVideo(el) — exactamente en el mismo momento en que antes se
+   llamaba a .play() sobre un <video preload="none">. */
+window.umLoadVideo = function (video) {
+  if (!video || video.dataset.umLoaded) return;
+  var src = video.dataset.src;
+  if (!src) return;
+  video.dataset.umLoaded = '1';
+  var isHls = /\.m3u8($|\?)/i.test(src);
+  // .mp4 heredado, o Safari (HLS nativo): src directo y listo.
+  if (!isHls || video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = src;
+    return;
+  }
+  if (window.Hls && window.Hls.isSupported()) {
+    var hls = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 12 });
+    hls.on(window.Hls.Events.ERROR, function (_e, data) {
+      if (data && data.fatal) { try { hls.destroy(); } catch (_) {} }
+    });
+    // Si el <video> ya estaba en pantalla cuando se llamó a umLoadVideo
+    // (el IntersectionObserver o el botón de play ya dispararon), arrancá
+    // en cuanto el manifiesto esté listo — el .play() del caller puede
+    // haber corrido antes de que hubiera buffer.
+    hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
+      video.play().catch(function () {});
+    });
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    video._hls = hls;
+  } else {
+    video.src = src; // último recurso
+  }
+};
+</script>
 <script type="application/ld+json" id="uma-venue-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Video Menu | Una Mesa","url":"https://app.unamesa.co.uk/menu-video/"}</script>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
@@ -430,7 +473,7 @@ function renderPage() {
         <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
           <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
             ${s.video_url ? `
-            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
+            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" data-src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
             <button class="play-overlay-btn" data-play="${s.id}" aria-label="Reproducir video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.18);border:none;cursor:pointer;padding:0;">
               <span style="width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;">
                 <span class="material-symbols-outlined" style="font-size:28px;color:#fff;">play_arrow</span>
@@ -560,7 +603,7 @@ function bindCardEvents() {
       const wasPlaying = !video.paused;
       videos.forEach(v => { if (v !== video) v.pause(); });
       if (wasPlaying) video.pause();
-      else video.play().catch(() => {});
+      else { window.umLoadVideo(video); video.play().catch(() => {}); }
     });
   });
 }
@@ -693,7 +736,7 @@ function reelsVideoTag(url, thumb, cls) {
   // preload="none": nada se descarga hasta que el IntersectionObserver
   // llame a .play() — sin esto, el navegador decide por su cuenta cuánto
   // precargar de cada plato, incluso los que nunca llegan a verse.
-  return `<video class="${cls}" src="${url}" muted loop playsinline preload="none"${thumb ? ` poster="${thumb}"` : ''}></video>`;
+  return `<video class="${cls}" data-src="${url}" muted loop playsinline preload="none"${thumb ? ` poster="${thumb}"` : ''}></video>`;
 }
 
 function renderReelsHome() {
@@ -800,9 +843,12 @@ function renderReelsHome() {
 function observeReelsCardVideos() {
   const videos = document.querySelectorAll('.reels-card-video');
   if (!videos.length) return;
-  if (!('IntersectionObserver' in window)) { videos.forEach(v => v.play().catch(() => {})); return; }
+  if (!('IntersectionObserver' in window)) { videos.forEach(v => { window.umLoadVideo(v); v.play().catch(() => {}); }); return; }
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => { entry.isIntersecting ? entry.target.play().catch(() => {}) : entry.target.pause(); });
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { window.umLoadVideo(entry.target); entry.target.play().catch(() => {}); }
+      else entry.target.pause();
+    });
   }, { threshold: 0.6 });
   videos.forEach(v => observer.observe(v));
 }
@@ -835,17 +881,23 @@ function initReelsFeed(feed) {
   let observer = null;
   if ('IntersectionObserver' in window) {
     observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { entry.isIntersecting ? entry.target.play().catch(() => {}) : entry.target.pause(); });
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { window.umLoadVideo(entry.target); entry.target.play().catch(() => {}); }
+        else entry.target.pause();
+      });
     }, { threshold: 0.6, root: feed });
     videos.forEach(v => observer.observe(v));
   } else {
-    videos.forEach(v => v.play().catch(() => {}));
+    videos.forEach(v => { window.umLoadVideo(v); v.play().catch(() => {}); });
   }
 
   return () => {
     feed.removeEventListener('scroll', onScroll);
     if (observer) observer.disconnect();
-    videos.forEach(v => v.pause());
+    videos.forEach(v => {
+      v.pause();
+      if (v._hls) { try { v._hls.destroy(); } catch (_) {} v._hls = null; delete v.dataset.umLoaded; }
+    });
   };
 }
 
