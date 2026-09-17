@@ -13,22 +13,28 @@
       "permanent": false
     },
     {
-      "source": "/((?!portfolio).*)",
+      "source": "/((?!portfolio).+)",
       "has": [{ "type": "host", "value": "unamesa.co" }],
       "destination": "https://app.unamesa.co/$1",
       "permanent": false
-    }
-  ],
-  "rewrites": [
+    },
     {
-      "source": "/",
-      "has": [{ "type": "host", "value": "unamesa.co.uk" }],
-      "destination": "/index-uk.html"
+      "source": "/((?!portfolio).+)",
+      "has": [{ "type": "host", "value": "www.unamesa.co" }],
+      "destination": "https://app.unamesa.co/$1",
+      "permanent": false
     },
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "www.unamesa.co.uk" }],
-      "destination": "/index-uk.html"
+      "has": [{ "type": "host", "value": "unamesa.co" }],
+      "destination": "/index-madrid.html",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.unamesa.co" }],
+      "destination": "/index-madrid.html",
+      "permanent": false
     }
   ]
 }
