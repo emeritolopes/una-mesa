@@ -229,6 +229,7 @@
           #reels-view { display: block; }
         }
     </style>
+<script type="application/ld+json" id="uma-venue-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Video Menu | Una Mesa","url":"https://app.unamesa.co.uk/menu-video/"}</script>
 </head>
 <body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
 <!-- TopNavBar -->
@@ -579,13 +580,36 @@ function selectDish(dishId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function updateVenueSchema(venue) {
+  const pageUrl = `https://app.unamesa.co.uk/menu-video/?venue=${venue.slug}`;
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "WebPage", "name": `${venue.name} — Video Menu | Una Mesa`, "url": pageUrl, "description": `Watch video clips of every dish at ${venue.name} before you visit.` },
+      { "@type": "FoodEstablishment", "name": venue.name, "url": pageUrl, "servesCuisine": venue.cuisine || "International", "address": { "@type": "PostalAddress", "addressLocality": venue.city || "London", "addressCountry": "GB" }, "hasMenu": pageUrl }
+    ]
+  };
+  const el = document.getElementById("uma-venue-schema");
+  if (el) el.textContent = JSON.stringify(schema);
+}
+
+function updatePageMeta(venue) {
+  document.title = `${venue.name} — Video Menu | Una Mesa`;
+  let desc = document.querySelector('meta[name="description"]');
+  if (!desc) { desc = document.createElement("meta"); desc.name = "description"; document.head.appendChild(desc); }
+  desc.content = `Watch video clips of every dish at ${venue.name} before you visit. Book your table on Una Mesa.`;
+}
+
 async function init() {
   if (!venueSlug) { renderMessage('Missing restaurant.'); return; }
 
-  const venues = await sbSelect('venues', `slug=eq.${venueSlug}&select=id,name,menu_video_access,category_order`);
+  const venues = await sbSelect('venues', `slug=eq.${venueSlug}&select=id,name,slug,menu_video_access,category_order`);
   if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
   VENUE = venues[0];
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
+
+  updateVenueSchema(VENUE);
+  updatePageMeta(VENUE);
 
   venueId = VENUE.id; // a partir de aquí, el resto del archivo sigue usando el uuid real tal cual antes
   document.getElementById('back-link').href = profileUrl();
