@@ -13,5 +13,17 @@
       "permanent": false
     },
     { "source": "/((?!portfolio).*)", "destination": "https://app.unamesa.co/$1", "permanent": false }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "unamesa.co.uk" }],
+      "destination": "/index-uk.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.unamesa.co.uk" }],
+      "destination": "/index-uk.html"
+    }
   ]
 }
