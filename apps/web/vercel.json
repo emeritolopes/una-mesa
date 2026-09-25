@@ -13,13 +13,13 @@
       "permanent": false
     },
     {
-      "source": "/((?!portfolio|index-madrid\\.html).+)",
+      "source": "/((?!portfolio).+)",
       "has": [{ "type": "host", "value": "unamesa.co" }],
       "destination": "https://app.unamesa.co/$1",
       "permanent": false
     },
     {
-      "source": "/((?!portfolio|index-madrid\\.html).+)",
+      "source": "/((?!portfolio).+)",
       "has": [{ "type": "host", "value": "www.unamesa.co" }],
       "destination": "https://app.unamesa.co/$1",
       "permanent": false
