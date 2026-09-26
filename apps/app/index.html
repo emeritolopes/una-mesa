@@ -9,7 +9,8 @@
     var back = false;
     try {
       var act = navigation.activation;
-      back = act.navigationType === 'traverse' || (location.pathname === '/' && act.from && new URL(act.from.url).pathname !== '/');
+      var home = location.pathname === '/' && (location.hash === '' || location.hash === '#home');
+      back = act.navigationType === 'traverse' || (home && act.from && new URL(act.from.url).pathname !== '/');
     } catch (err) {}
     document.documentElement.dataset.navDir = back ? 'back' : 'forward';
   });

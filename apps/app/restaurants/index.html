@@ -9,7 +9,8 @@
     var back = false;
     try {
       var act = navigation.activation;
-      back = act.navigationType === 'traverse' || (location.pathname === '/' && act.from && new URL(act.from.url).pathname !== '/');
+      var home = location.pathname === '/' && (location.hash === '' || location.hash === '#home');
+      back = act.navigationType === 'traverse' || (home && act.from && new URL(act.from.url).pathname !== '/');
     } catch (err) {}
     document.documentElement.dataset.navDir = back ? 'back' : 'forward';
   });
@@ -130,9 +131,9 @@ html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45
 <!-- NAV (same as the landing) -->
 <header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
   <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-    <a id="logo-link" class="font-headline text-headline-md text-on-surface tracking-tight" href="https://unamesa.co.uk">UnaMesa</a>
+    <a id="logo-link" class="font-headline text-headline-md text-on-surface tracking-tight" href="/">UnaMesa</a>
     <div class="hidden md:flex items-center space-x-8">
-      <a id="nav-discover" class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://unamesa.co.uk" data-i18n="navDiscover">Discover</a>
+      <a id="nav-discover" class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/" data-i18n="navDiscover">Discover</a>
       <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/#results" data-i18n="navExplore">Explore</a>
       <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors flex items-center gap-1.5" href="/#concierge">
         <span class="material-symbols-outlined text-primary text-[18px]">auto_awesome</span><span data-i18n="navConcierge">AI Concierge</span>
@@ -340,7 +341,7 @@ html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45
 <footer class="w-full bg-inverse-surface border-t border-outline/20">
   <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
     <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-      <a id="footer-link" class="font-headline text-headline-md text-inverse-on-surface tracking-tight" href="https://unamesa.co.uk">UnaMesa</a>
+      <a id="footer-link" class="font-headline text-headline-md text-inverse-on-surface tracking-tight" href="/">UnaMesa</a>
       <span class="text-surface-dim text-body-sm" data-i18n="footerCopy">© 2026 Una Mesa Ltd. All rights reserved.</span>
     </div>
     <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
@@ -495,10 +496,11 @@ var I18N = {
   }
 
 
-  var domain = lang === 'en' ? 'unamesa.co.uk' : 'unamesa.co';
-  document.getElementById('logo-link').href = 'https://' + domain;
-  document.getElementById('footer-link').href = 'https://' + domain;
-  document.getElementById('nav-discover').href = 'https://' + domain;
+  // logo / Discover / footer wordmark go to the app's main page on this same site
+  // (no cross-site hop, and the back transition can play)
+  document.getElementById('logo-link').href = '/';
+  document.getElementById('footer-link').href = '/';
+  document.getElementById('nav-discover').href = '/';
   document.getElementById('contact-link').href = lang === 'en' ? 'mailto:hello@unamesa.co.uk' : 'mailto:hola@unamesa.co';
 
   document.getElementById('lead-form').addEventListener('submit', async function(e) {
