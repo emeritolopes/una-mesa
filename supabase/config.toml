@@ -521,3 +521,7 @@ verify_jwt = true
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/submit-restaurant-lead/index.ts"
+
+[functions.monthly-report]
+enabled = true
+verify_jwt = true
