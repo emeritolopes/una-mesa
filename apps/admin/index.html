@@ -7,6 +7,9 @@
 <link rel="icon" type="image/png" href="/restaurants/icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- hls.js: reproducción de las previsualizaciones de video (.m3u8 de
+     Cloudflare Stream) en navegadores sin HLS nativo. -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 <style>
   :root {
     --coral: #D8552E;
@@ -175,8 +178,32 @@
 const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const FUNCTIONS_URL = SUPABASE_URL + '/functions/v1';
 
 let CURRENT_VIEW = 'overview';
+
+/* Reproducción HLS para las previsualizaciones de video. Los videos de
+   plato viven en Cloudflare Stream (.m3u8): Safari los reproduce nativo,
+   el resto necesita hls.js. Mismo helper que apps/app/menu-video/index.html.
+   El <video> se crea con data-src (no src) y no toca la red hasta que se
+   llama a umLoadVideo(el). */
+function umLoadVideo(video) {
+  if (!video || video.dataset.umLoaded) return;
+  const src = video.dataset.src;
+  if (!src) return;
+  video.dataset.umLoaded = '1';
+  const isHls = /\.m3u8($|\?)/i.test(src);
+  if (!isHls || video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
+  if (window.Hls && window.Hls.isSupported()) {
+    const hls = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 10 });
+    hls.on(window.Hls.Events.ERROR, (_e, data) => { if (data && data.fatal) { try { hls.destroy(); } catch (_) {} } });
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    video._hls = hls;
+  } else {
+    video.src = src;
+  }
+}
 
 /* ── Auth ── */
 document.getElementById('google-btn').addEventListener('click', async () => {
@@ -644,9 +671,11 @@ function renderDishesList(dishes, venueId) {
           <button class="btn-danger" data-delete="${d.id}">Eliminar</button>
         </div>
       </div>
-      ${d.video_url ? `<video src="${d.video_url}" muted style="width:120px; border-radius:6px; display:block;" preload="metadata"></video>` : '<span class="page-sub">Sin video</span>'}
+      ${d.video_url ? `<video data-src="${d.video_url}" muted playsinline style="width:120px; border-radius:6px; display:block;" preload="none"></video>` : '<span class="page-sub">Sin video</span>'}
     </div>
   `).join('');
+
+  wrap.querySelectorAll('video[data-src]').forEach(umLoadVideo);
 
   wrap.querySelectorAll('[data-edit]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -703,6 +732,8 @@ function renderDishForm(venueId, existingDish) {
         <input type="file" id="df-video-file" accept="video/mp4,video/quicktime" style="display:none;">
         <div class="progress-bar-wrap" id="df-progress-wrap" style="display:none;"><div class="progress-bar-fill" id="df-progress-fill"></div></div>
         <input type="hidden" id="df-video-url" value="${d.video_url || ''}">
+        <input type="hidden" id="df-stream-uid" value="${d.stream_uid || ''}">
+        <input type="hidden" id="df-thumbnail" value="${(d.thumbnail_url || '').replace(/"/g, '&quot;')}">
       </div>
       <div style="display:flex; gap:8px;">
         <button class="btn-primary" id="df-save">${existingDish ? 'Guardar cambios' : 'Crear plato'}</button>
@@ -735,20 +766,90 @@ function renderDishForm(venueId, existingDish) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if (!file) return;
-    dropZone.textContent = 'Subiendo…';
-    document.getElementById('df-progress-wrap').style.display = 'block';
-    const path = `${venueId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    const { error: upErr } = await sb.storage.from('menu-videos').upload(path, file, { upsert: false });
-    if (upErr) {
-      dropZone.textContent = 'Error al subir: ' + upErr.message;
-      document.getElementById('df-progress-wrap').style.display = 'none';
-      return;
+
+    const errEl = document.getElementById('df-error');
+    const progWrap = document.getElementById('df-progress-wrap');
+    const progFill = document.getElementById('df-progress-fill');
+    const setProg = (pct) => { progFill.style.width = pct + '%'; };
+    errEl.textContent = '';
+    progWrap.style.display = 'block';
+    setProg(0);
+    dropZone.textContent = 'Preparando subida…';
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('No hay sesión iniciada.');
+
+      const authHeaders = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+      // 1 · Pedir una URL de subida directa a Cloudflare Stream. El token
+      //     de Cloudflare vive solo en la edge function, nunca en el navegador.
+      const createRes = await fetch(`${FUNCTIONS_URL}/menu-video-upload`, {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          action: 'create',
+          dish_name: document.getElementById('df-name').value.trim(),
+          category: document.getElementById('df-category').value.trim(),
+          venue_id: venueId,
+        }),
+      });
+      const created = await createRes.json();
+      if (!createRes.ok || !created.uploadURL) throw new Error(created.error || 'No se pudo iniciar la subida.');
+
+      // 2 · Subir el archivo directo a Cloudflare con esa URL de un solo uso
+      //     (browser → Cloudflare, sin pasar por nuestro servidor).
+      dropZone.textContent = 'Subiendo a Cloudflare…';
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', created.uploadURL);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setProg(Math.round((e.loaded / e.total) * 90));
+        };
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300
+          ? resolve()
+          : reject(new Error('Cloudflare rechazó la subida (HTTP ' + xhr.status + ').')));
+        xhr.onerror = () => reject(new Error('Fallo de red al subir a Cloudflare.'));
+        const fd = new FormData();
+        fd.append('file', file);
+        xhr.send(fd);
+      });
+
+      // 3 · Esperar a que Cloudflare termine de procesar el video.
+      dropZone.textContent = 'Procesando en Cloudflare…';
+      setProg(95);
+      const deadline = Date.now() + 10 * 60_000;
+      let ready = null;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 5000));
+        const stRes = await fetch(`${FUNCTIONS_URL}/menu-video-upload`, {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({ action: 'status', uid: created.uid }),
+        });
+        const st = await stRes.json();
+        if (!stRes.ok) throw new Error(st.error || 'Error consultando el estado del video.');
+        if (st.state === 'error') throw new Error('Cloudflare no pudo procesar el video: ' + (st.errorReason || 'sin detalle'));
+        if (st.readyToStream && st.hls) { ready = st; break; }
+      }
+      if (!ready) throw new Error('El video sigue procesándose. Vuelve a intentarlo en unos minutos.');
+
+      // 4 · Guardar en los campos ocultos — se persisten al pulsar "Guardar".
+      document.getElementById('df-video-url').value = ready.hls;
+      document.getElementById('df-stream-uid').value = created.uid;
+      if (ready.thumbnail) document.getElementById('df-thumbnail').value = ready.thumbnail;
+      setProg(100);
+      dropZone.textContent = '✓ Video en Cloudflare Stream';
+      dropZone.classList.add('has-video');
+    } catch (err) {
+      setProg(0);
+      progWrap.style.display = 'none';
+      dropZone.textContent = 'Error al subir — inténtalo de nuevo';
+      errEl.textContent = err.message;
+    } finally {
+      fileInput.value = '';
     }
-    const { data: pub } = sb.storage.from('menu-videos').getPublicUrl(path);
-    document.getElementById('df-video-url').value = pub.publicUrl;
-    dropZone.textContent = '✓ Video subido correctamente';
-    dropZone.classList.add('has-video');
-    document.getElementById('df-progress-fill').style.width = '100%';
   });
 
   document.getElementById('df-save').addEventListener('click', async () => {
@@ -764,6 +865,8 @@ function renderDishForm(venueId, existingDish) {
       sort_order: Number(document.getElementById('df-sort').value) || 1,
       is_chefs_choice: document.getElementById('df-chefschoice').checked,
       video_url: document.getElementById('df-video-url').value || null,
+      stream_uid: document.getElementById('df-stream-uid').value || null,
+      thumbnail_url: document.getElementById('df-thumbnail').value || null,
     };
     if (!payload.dish_name) { document.getElementById('df-error').textContent = 'El nombre del plato es obligatorio.'; return; }
 

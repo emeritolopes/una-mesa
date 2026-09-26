@@ -70,8 +70,11 @@ Functions live in `supabase/functions/` and run on Deno. Each function is a stan
 | `vapi-availability` | Vapi tool webhook — checks hardcoded lunch/dinner slots; no DB calls (avoids Vapi's 20s timeout) |
 | `vapi-reservation` | Vapi tool webhook — creates reservation, calls `upsert-customer`, optionally sends payment link + email |
 | `concierge` | Agentic AI concierge (Anthropic Claude); tools: `check_availability`, `create_reservation`, `start_reservation` |
+| `menu-video-upload` | Admin-only. Mints a Cloudflare Stream **direct creator upload** URL (`action: 'create'`) and polls processing status (`action: 'status'`) so the admin browser uploads dish videos straight to Cloudflare — the `CLOUDFLARE_API_TOKEN` never reaches the client. Needs `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` secrets. |
 
-All edge functions run with `verify_jwt = false` — they accept unauthenticated requests and rely on input validation instead.
+Most edge functions run with `verify_jwt = false` and rely on input validation; a few (`upload-venue-photo`, `menu-video-upload`, the Stripe/venue admin functions) set `verify_jwt = true` in `config.toml` **and** re-check the caller against the `admins` table.
+
+**Dish videos — Cloudflare Stream:** `menu_videos.video_url` holds a Cloudflare **HLS** URL (`.m3u8`) and `menu_videos.stream_uid` the Stream UID (migration `040`; `legacy_storage_url` keeps the pre-migration Supabase Storage URL). One-off backfill: `scripts/migrate-videos-to-stream.mjs` (gitignored, reads `.env.local`). Playback in `apps/app/menu-video/index.html` and the `apps/admin/` previews uses `hls.js` (CDN) with a shared `umLoadVideo()` helper — Safari plays HLS natively. The `menu-videos` Supabase Storage bucket still exists but new uploads no longer go there.
 
 **Vapi webhook security:** `vapi-availability` and `vapi-reservation` verify an `x-vapi-secret` header against the `VAPI_WEBHOOK_SECRET` env var. The guard is `if (expectedSecret && secret !== expectedSecret)` — a no-op until the secret is set, so it's safe to deploy before configuring Vapi.
 

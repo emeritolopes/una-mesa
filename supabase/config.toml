@@ -505,6 +505,10 @@ verify_jwt = true
 enabled = true
 verify_jwt = true
 
+[functions.menu-video-upload]
+enabled = true
+verify_jwt = true
+
 [functions.health-check]
 enabled = true
 verify_jwt = true
