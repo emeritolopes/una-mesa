@@ -1,9 +1,12 @@
 <!DOCTYPE html><html class="dark" lang="en" style="overflow-x:hidden;"><head>
+<script>
+  try { if (localStorage.getItem('um-theme') !== 'noche') { document.documentElement.classList.add('light-mode'); document.documentElement.classList.remove('dark'); } } catch (e) {}
+</script>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Una Mesa | Digital Menu</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&amp;family=Manrope:wght@400;600;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
@@ -19,22 +22,22 @@
                     "secondary-fixed": "#ffe08f",
                     "on-surface-variant": "#e4beb6",
                     "on-tertiary-container": "#302925",
-                    "on-background": "#e5e2e1",
+                    "on-background": "#f3efe8",
                     "surface-tint": "#ffb4a4",
-                    "surface-bright": "#3a3939",
+                    "surface-bright": "#3a342f",
                     "on-tertiary-fixed": "#211a17",
                     "on-primary-fixed": "#3d0600",
                     "tertiary-fixed-dim": "#d0c4bf",
-                    "surface-container-highest": "#353534",
+                    "surface-container-highest": "#342f2a",
                     "inverse-primary": "#b72301",
-                    "surface-container": "#201f1f",
+                    "surface-container": "#221f1b",
                     "outline-variant": "#5b403a",
-                    "surface-variant": "#353534",
+                    "surface-variant": "#342f2a",
                     "tertiary": "#d0c4bf",
                     "on-secondary-fixed-variant": "#584400",
                     "on-error-container": "#ffdad6",
                     "on-primary-fixed-variant": "#8c1800",
-                    "on-surface": "#e5e2e1",
+                    "on-surface": "#f3efe8",
                     "tertiary-container": "#9a8f8a",
                     "secondary-fixed-dim": "#e6c364",
                     "primary-fixed-dim": "#ffb4a4",
@@ -43,22 +46,22 @@
                     "error-container": "#93000a",
                     "secondary-container": "#785d00",
                     "on-tertiary-fixed-variant": "#4d4541",
-                    "primary": "#ffb4a4",
-                    "surface-container-low": "#1c1b1b",
-                    "primary-container": "#ff5733",
+                    "primary": "#f0916f",
+                    "surface-container-low": "#191714",
+                    "primary-container": "#e0714b",
                     "inverse-on-surface": "#313030",
-                    "surface-dim": "#131313",
+                    "surface-dim": "#141210",
                     "on-secondary-container": "#fdd977",
-                    "inverse-surface": "#e5e2e1",
+                    "inverse-surface": "#f3efe8",
                     "tertiary-fixed": "#ede0da",
                     "on-primary-container": "#580c00",
-                    "surface-container-lowest": "#0e0e0e",
-                    "surface": "#131313",
+                    "surface-container-lowest": "#0f0d0b",
+                    "surface": "#141210",
                     "primary-fixed": "#ffdad3",
-                    "background": "#131313",
-                    "surface-container-high": "#2a2a2a",
+                    "background": "#141210",
+                    "surface-container-high": "#2a2622",
                     "on-tertiary": "#362f2b",
-                    "on-primary": "#630e00"
+                    "on-primary": "#ffffff"
             },
             "borderRadius": {
                     "DEFAULT": "1rem",
@@ -76,14 +79,14 @@
                     "unit": "4px"
             },
             "fontFamily": {
-                    "headline-lg-mobile": ["Playfair Display"],
-                    "headline-md": ["Playfair Display"],
-                    "body-medium": ["Manrope"],
-                    "display-hero": ["Playfair Display"],
-                    "title-section": ["Manrope"],
-                    "label-eyebrow": ["Manrope"],
-                    "headline-lg": ["Playfair Display"],
-                    "body-base": ["Manrope"]
+                    "headline-lg-mobile": ["Newsreader"],
+                    "headline-md": ["Newsreader"],
+                    "body-medium": ["Plus Jakarta Sans"],
+                    "display-hero": ["Newsreader"],
+                    "title-section": ["Plus Jakarta Sans"],
+                    "label-eyebrow": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Newsreader"],
+                    "body-base": ["Plus Jakarta Sans"]
             },
             "fontSize": {
                     "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
@@ -100,13 +103,16 @@
       }
     </script>
 <style>
+        /* accent: light tint on the dark theme, deep terracotta on light (matches unamesa.co.uk) */
+        :root { --um-accent-rgb: 224, 113, 75; }
+        html.light-mode { --um-accent-rgb: 151, 51, 18; }
         .glass-panel {
-            background: rgba(19, 19, 19, 0.7);
+            background: rgba(20, 18, 16, 0.7);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .coral-glow:hover {
-            box-shadow: 0 0 20px rgba(255, 87, 51, 0.3);
+            box-shadow: 0 0 20px rgba(var(--um-accent-rgb), 0.3);
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -116,21 +122,21 @@
            esta es una construida a propósito, usando el mismo tono crema
            que ya usa el resto de la plataforma en modo claro, para que se
            sienta parte de la misma marca, no algo inventado sin relación. */
-        html.light-mode body { background: #FAF6F0 !important; }
-        html.light-mode .bg-background { background-color: #FAF6F0 !important; }
+        html.light-mode body { background: #FCF9F3 !important; }
+        html.light-mode .bg-background { background-color: #FCF9F3 !important; }
         html.light-mode .text-on-background,
         html.light-mode .text-on-surface,
-        html.light-mode .text-on-surface-variant { color: #1A1411 !important; }
-        html.light-mode header.bg-surface\/80 { background-color: rgba(250, 246, 240, 0.85) !important; }
+        html.light-mode .text-on-surface-variant { color: #1C1C18 !important; }
+        html.light-mode header.bg-surface\/80 { background-color: rgba(252, 249, 243, 0.85) !important; }
         html.light-mode .bg-surface-container-lowest,
-        html.light-mode .bg-surface-container-high { background-color: #F4EFE6 !important; }
+        html.light-mode .bg-surface-container-high { background-color: #F0EEE8 !important; }
         html.light-mode .border-white\/10,
         html.light-mode .border-white\/20 { border-color: rgba(26, 20, 17, 0.12) !important; }
         html.light-mode .glass-panel {
             background: rgba(255, 255, 255, 0.75) !important;
             border-color: rgba(26, 20, 17, 0.10) !important;
         }
-        html.light-mode .text-outline { color: #8a7868 !important; }
+        html.light-mode .text-outline { color: #8B716A !important; }
         html.light-mode .hover\:bg-white\/5:hover,
         html.light-mode .hover\:bg-white\/10:hover,
         html.light-mode .hover\:bg-white\/20:hover { background-color: rgba(26, 20, 17, 0.06) !important; }
@@ -141,7 +147,7 @@
         .menu-story-col { width: 340px; flex-shrink: 0; }
         .carousel-dots { display: none; gap: 6px; justify-content: center; margin-top: 4px; }
         .carousel-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.25); transition: background .2s, transform .2s; }
-        .carousel-dot.active { background: rgb(255, 87, 51); transform: scale(1.3); }
+        .carousel-dot.active { background: rgb(var(--um-accent-rgb)); transform: scale(1.3); }
 
         @media (max-width: 900px) {
           .menu-layout { flex-direction: column; }
@@ -158,8 +164,8 @@
            siempre las resuelve de forma confiable. Esto lo garantiza
            con CSS normal, sin depender de eso, para que coincida
            siempre con la tipografía real del resto de la plataforma. */
-        .font-headline-lg, .font-headline-md { font-family: 'Playfair Display', Georgia, serif !important; }
-        .font-body-base, .font-body-medium, .font-label-eyebrow { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+        .font-headline-lg, .font-headline-md { font-family: 'Newsreader', Georgia, serif !important; }
+        .font-body-base, .font-body-medium, .font-label-eyebrow { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
         .text-headline-lg { font-size: 48px !important; line-height: 1.05 !important; letter-spacing: -0.01em !important; font-weight: 700 !important; }
         .text-headline-md { font-size: 34px !important; line-height: 1.1 !important; font-weight: 700 !important; }
         .text-body-medium { font-size: 14.5px !important; line-height: 1.5 !important; font-weight: 600 !important; }
@@ -172,8 +178,19 @@
            de #content no se toca ni se reemplaza, solo se oculta con CSS
            en ese ancho y esta vista ocupa su lugar. ── */
         #reels-view { display: none; }
-        .reels-category-overlay { background: linear-gradient(to top, rgba(19,19,19,0.92) 0%, rgba(19,19,19,0.45) 100%); }
-        .reels-gradient-overlay { background: linear-gradient(to top, rgba(19,19,19,1) 0%, rgba(19,19,19,0.5) 40%, rgba(19,19,19,0) 100%); }
+        /* the Reels view always sits on dark video: keep it dark even in light mode */
+        html.light-mode #reels-view { --um-accent-rgb: 224, 113, 75; }
+        html.light-mode #reels-view .text-on-background,
+        html.light-mode #reels-view .text-on-surface,
+        html.light-mode #reels-view .text-on-surface-variant { color: #F3EFE8 !important; }
+        html.light-mode #reels-view .bg-background { background-color: #141210 !important; }
+        html.light-mode #reels-view .bg-surface-container-lowest,
+        html.light-mode #reels-view .bg-surface-container-high { background-color: #2A2622 !important; }
+        html.light-mode #reels-view .glass-panel { background: rgba(20, 18, 16, 0.7) !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+        html.light-mode #reels-view .border-white\/10,
+        html.light-mode #reels-view .border-white\/20 { border-color: rgba(255, 255, 255, 0.15) !important; }
+        .reels-category-overlay { background: linear-gradient(to top, rgba(20,18,16,0.92) 0%, rgba(20,18,16,0.45) 100%); }
+        .reels-gradient-overlay { background: linear-gradient(to top, rgba(20,18,16,1) 0%, rgba(20,18,16,0.5) 40%, rgba(20,18,16,0) 100%); }
 
         .reels-cat-overlay {
           position: fixed; inset: 0; z-index: 200;
@@ -189,7 +206,7 @@
         .reels-snap-item { scroll-snap-align: start; height: 100%; width: 100%; position: relative; overflow: hidden; }
 
         .reels-progress-bar { height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; overflow: hidden; }
-        .reels-progress-fill { height: 100%; background: #F4EFE6; width: 0%; }
+        .reels-progress-fill { height: 100%; background: #F0EEE8; width: 0%; }
 
         /* ── Disclosure: los clips son generados por IA a partir de fotos,
            no vídeo filmado real. Un solo estilo compartido entre las tres
@@ -284,7 +301,7 @@ window.umLoadVideo = function (video) {
 </a>
 <a href="https://unamesa.co.uk" class="flex items-center gap-2">
 <img src="/restaurants/icon.png" alt="Una Mesa" class="w-8 h-8 rounded-lg">
-<span style="font-family: 'Playfair Display', serif; font-weight: 800; font-size: 20px; line-height: 1;"><span class="text-on-surface dark:text-on-surface">Una</span> <span style="color: rgb(255, 87, 51);">Mesa</span></span>
+<span style="font-family: 'Newsreader', serif; font-weight: 800; font-size: 20px; line-height: 1;"><span class="text-on-surface dark:text-on-surface">Una</span> <span style="color: rgb(var(--um-accent-rgb));">Mesa</span></span>
 </a>
 <div class="hidden md:flex items-center gap-6" id="cat-nav"></div>
 </div>
@@ -315,12 +332,12 @@ window.umLoadVideo = function (video) {
 <div class="max-w-max-width mx-auto px-container-lg flex flex-col md:flex-row justify-between items-center gap-8">
 <div class="flex flex-col items-center md:items-start">
 <span class="font-headline-md text-headline-md text-on-surface font-bold">Una Mesa</span>
-<p class="text-on-surface-variant font-body-base mt-2" style="color: rgb(255, 87, 51);">© 2024 Una Mesa Hospitality Group</p>
+<p class="text-on-surface-variant font-body-base mt-2" style="color: rgb(var(--um-accent-rgb));">© 2024 Una Mesa Hospitality Group</p>
 </div>
 <div class="flex gap-8">
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Privacy Policy</a>
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Terms of Service</a>
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(255, 87, 51);">Contact Us</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Contact Us</a>
 </div>
 </div>
 </footer>
@@ -406,7 +423,7 @@ function renderCatNav() {
   }
   const nav = document.getElementById('cat-nav');
   nav.innerHTML = cats.map(c => `
-    <a href="#" data-cat="${c}" class="${c === currentCategory ? '' : 'text-on-surface-variant dark:text-on-surface-variant'} font-body-medium text-body-medium hover:text-primary transition-colors duration-300" style="${c === currentCategory ? 'color: rgb(255, 87, 51); font-weight:700;' : ''}">${c}</a>
+    <a href="#" data-cat="${c}" class="${c === currentCategory ? '' : 'text-on-surface-variant dark:text-on-surface-variant'} font-body-medium text-body-medium hover:text-primary transition-colors duration-300" style="${c === currentCategory ? 'color: rgb(var(--um-accent-rgb)); font-weight:700;' : ''}">${c}</a>
   `).join('');
   nav.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', e => {
@@ -444,12 +461,12 @@ function renderStoryPanel() {
       <blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">"${v.story_quote || DEMO_STORY_QUOTE}"</blockquote>
       <p class="text-on-surface-variant text-sm leading-relaxed opacity-80 mb-4">${v.story_body || DEMO_STORY_BODY}</p>
       <div class="grid grid-cols-3 gap-2 mb-4">
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">${v.carbs_g != null ? v.carbs_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(255, 87, 51);">${v.fats_g != null ? v.fats_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Fats</span></div>
+        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(var(--um-accent-rgb));">${v.carbs_g != null ? v.carbs_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>
+        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(var(--um-accent-rgb));">${v.fats_g != null ? v.fats_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Fats</span></div>
         <div class="flex items-center justify-center"><button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">menu_book</span><span class="text-[10px] font-label-eyebrow uppercase tracking-widest">Recipe</span></button></div>
       </div>
       <div class="flex gap-3 flex-wrap">
-        <a href="${bookUrl()}" class="h-12 px-6 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 hover:-translate-y-1 transition-all coral-glow" style="background-color: rgb(255, 87, 51);"><span class="material-symbols-outlined">calendar_today</span>Book a Table</a>
+        <a href="${bookUrl()}" class="h-12 px-6 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 hover:-translate-y-1 transition-all coral-glow" style="background-color: rgb(var(--um-accent-rgb));"><span class="material-symbols-outlined">calendar_today</span>Book a Table</a>
         <button id="share-btn" class="h-12 px-6 glass-panel rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><span class="material-symbols-outlined">share</span>Share</button>
       </div>
     </div>
@@ -462,7 +479,7 @@ function renderPage() {
 
   document.getElementById('content').innerHTML = `
 <div class="mb-6">
-  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(255, 87, 51);">Video Menu</h2>
+  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(var(--um-accent-rgb));">Video Menu</h2>
   <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
 </div>
 <div class="menu-layout">
@@ -481,10 +498,10 @@ function renderPage() {
             </button>` : `
             <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
             <span class="ai-preview-badge">AI-generated preview</span>
-            ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(255, 87, 51);">Chef's Choice</span></div>` : ''}
+            ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(var(--um-accent-rgb));">Chef's Choice</span></div>` : ''}
           </div>
           <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
-          ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(255, 87, 51); font-size:11px;">${s.subtitle}</p>` : ''}
+          ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(var(--um-accent-rgb)); font-size:11px;">${s.subtitle}</p>` : ''}
         </div>
         `).join('')}
       </div>
@@ -674,17 +691,20 @@ init().catch(() => renderMessage('Something went wrong loading this page — ple
 (function initTheme() {
   const themeToggle = document.getElementById('theme-toggle');
   const themeIcon = document.getElementById('theme-icon');
+  // Same key/values as the rest of the site ('um-theme': 'crema' | 'noche'); light by default.
+  const isLightNow = () => { try { return localStorage.getItem('um-theme') !== 'noche'; } catch (e) { return true; } };
   const applyTheme = () => {
-    const isLight = localStorage.getItem('una-mesa-theme') === 'light';
+    const isLight = isLightNow();
     document.documentElement.classList.toggle('light-mode', isLight);
+    document.documentElement.classList.toggle('dark', !isLight);
     themeIcon.textContent = isLight ? 'dark_mode' : 'light_mode';
   };
   applyTheme();
   themeToggle.addEventListener('click', () => {
-    const current = localStorage.getItem('una-mesa-theme') === 'light' ? 'dark' : 'light';
-    localStorage.setItem('una-mesa-theme', current);
+    try { localStorage.setItem('um-theme', isLightNow() ? 'noche' : 'crema'); } catch (e) {}
     applyTheme();
   });
+  window.addEventListener('storage', e => { if (e.key === 'um-theme') applyTheme(); });
 })();
 
 // Micro-interactions — con delegación de eventos, ya que el contenido se genera dinámicamente.
@@ -760,8 +780,8 @@ function renderReelsHome() {
         <div class="absolute inset-0 reels-category-overlay"></div>
         ${first ? `<span class="ai-preview-badge">AI-generated preview</span>` : ''}
         <div class="absolute inset-0 p-4 flex flex-col justify-end">
-          <div class="inline-flex items-center px-2.5 py-0.5 mb-1.5 rounded-full w-fit" style="background:rgba(255,87,51,.2); backdrop-filter:blur(6px); border:1px solid rgba(255,87,51,.3);">
-            <span class="font-label-eyebrow text-label-eyebrow" style="color: rgb(255, 87, 51);">${badge}</span>
+          <div class="inline-flex items-center px-2.5 py-0.5 mb-1.5 rounded-full w-fit" style="background:rgba(var(--um-accent-rgb),.2); backdrop-filter:blur(6px); border:1px solid rgba(var(--um-accent-rgb),.3);">
+            <span class="font-label-eyebrow text-label-eyebrow" style="color: rgb(var(--um-accent-rgb));">${badge}</span>
           </div>
           <h2 class="font-headline-md text-on-surface" style="font-size:19px; font-weight:700;">${cat}</h2>
         </div>
@@ -775,9 +795,9 @@ function renderReelsHome() {
       return `
       <div class="reels-empty-state" id="${slug}">
         <button data-reels-close="${slug}" class="absolute top-4 left-4 w-10 h-10 flex items-center justify-center rounded-full" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-          <span class="material-symbols-outlined text-primary" style="color: rgb(255, 87, 51);">arrow_back</span>
+          <span class="material-symbols-outlined text-primary" style="color: rgb(var(--um-accent-rgb));">arrow_back</span>
         </button>
-        <span class="material-symbols-outlined" style="font-size:38px; color: rgb(255, 87, 51);">restaurant</span>
+        <span class="material-symbols-outlined" style="font-size:38px; color: rgb(var(--um-accent-rgb));">restaurant</span>
         <h2 class="font-headline-md text-on-surface" style="font-size:21px; font-weight:700;">${cat} — coming soon</h2>
         <p class="text-on-surface-variant" style="max-width:280px;">No videos in this category yet. They'll be added once filmed.</p>
       </div>`;
@@ -789,9 +809,9 @@ function renderReelsHome() {
         <span class="ai-preview-badge">AI-generated preview</span>
         <div class="absolute bottom-28 left-0 w-full px-5 flex justify-between items-end">
           <div class="max-w-[70%]">
-            ${d.is_chefs_choice ? `<span class="inline-block px-3 py-1 mb-3 rounded-full font-label-eyebrow text-label-eyebrow text-on-primary" style="background-color: rgb(255,87,51); font-size:10px;">CHEF'S CHOICE</span>` : ''}
+            ${d.is_chefs_choice ? `<span class="inline-block px-3 py-1 mb-3 rounded-full font-label-eyebrow text-label-eyebrow text-on-primary" style="background-color: rgb(var(--um-accent-rgb)); font-size:10px;">CHEF'S CHOICE</span>` : ''}
             <h1 class="font-headline-md text-on-surface mb-1" style="font-size:21px; font-weight:700;">${d.dish_name}</h1>
-            ${d.subtitle ? `<p class="font-label-eyebrow" style="color: rgb(255,87,51); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;">${d.subtitle}</p>` : ''}
+            ${d.subtitle ? `<p class="font-label-eyebrow" style="color: rgb(var(--um-accent-rgb)); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;">${d.subtitle}</p>` : ''}
             <p class="text-on-surface-variant" style="font-size:14.5px; line-height:1.5; opacity:.85;">${d.story_body || DEMO_STORY_BODY}</p>
           </div>
           <div class="flex flex-col gap-5 items-center">
@@ -809,13 +829,13 @@ function renderReelsHome() {
     <div class="reels-cat-overlay" id="${slug}">
       <header class="absolute top-0 left-0 z-10 p-4 w-full flex items-center justify-between">
         <button data-reels-close="${slug}" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-          <span class="material-symbols-outlined" style="color: rgb(255, 87, 51);">arrow_back</span>
+          <span class="material-symbols-outlined" style="color: rgb(var(--um-accent-rgb));">arrow_back</span>
         </button>
         <div class="absolute top-6 left-1/2 -translate-x-1/2 w-1/2 flex gap-1.5 reels-progress-rail"></div>
       </header>
       <main class="reels-snap-container" data-reels-feed="${slug}">${slides}</main>
       <div class="absolute bottom-0 left-0 w-full z-10 px-5 pb-8">
-        <a href="${bookUrl()}" class="block w-full h-14 text-on-primary text-center rounded-full shadow-2xl active:scale-95 transition-transform uppercase font-label-eyebrow" style="background-color: rgb(255,87,51); line-height:56px; letter-spacing:.12em; font-size:13px;">Reserve a table</a>
+        <a href="${bookUrl()}" class="block w-full h-14 text-on-primary text-center rounded-full shadow-2xl active:scale-95 transition-transform uppercase font-label-eyebrow" style="background-color: rgb(var(--um-accent-rgb)); line-height:56px; letter-spacing:.12em; font-size:13px;">Reserve a table</a>
       </div>
     </div>`;
   }).join('');

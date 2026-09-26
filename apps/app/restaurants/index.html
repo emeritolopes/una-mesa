@@ -11,36 +11,67 @@
 <meta id="og-title" property="og:title" content="Una Mesa for Restaurants">
 <meta id="og-description" property="og:description" content="No membership fee. £1 per diner. Deposits paid straight to your account. Stop losing money to no-shows.">
 <meta property="og:type" content="website">
+<script>
+  try { document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') === 'noche' ? 'noche' : 'crema'); } catch (e) {}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* same palette as unamesa.co.uk — light 'crema' by default, dark 'noche' via the toggle */
   :root {
-    --coral: #D8552E;
-    --coral-dark: #B8431F;
-    --cream: #FAF6F0;
-    --cream-2: #F4EFE6;
-    --ink: #1A130D;
-    --muted: #6B6259;
-    --line: #E8E0D4;
+    --coral: #973312;
+    --coral-dark: #842504;
+    --cream: #FCF9F3;
+    --cream-2: #F0EEE8;
+    --ink: #1C1C18;
+    --muted: #6F5A53;
+    --line: #DEC0B8;
+    --card: #FFFFFF;
+    --on-coral: #FFFFFF;
+    --us-tint: #FFDBD1;
+    --ok: #2E7D52;
+    --shadow: rgba(28,28,24,0.10);
+    color-scheme: light;
   }
+  :root[data-theme="noche"] {
+    --coral: #E0714B;
+    --coral-dark: #F0916F;
+    --cream: #141210;
+    --cream-2: #1C1A17;
+    --ink: #F3EFE8;
+    --muted: #B9AAA1;
+    --line: #3F3531;
+    --card: #221F1B;
+    --on-coral: #FFFFFF;
+    --us-tint: rgba(224,113,75,0.16);
+    --ok: #5FC08F;
+    --shadow: rgba(0,0,0,0.45);
+    color-scheme: dark;
+  }
+  html { transition: background-color .3s ease; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; line-height:1; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .theme-btn { width: 40px; height: 40px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .2s; }
+  .theme-btn:hover { background: var(--cream-2); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     background: var(--cream);
     color: var(--ink);
     line-height: 1.5;
   }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-  h1, h2, .display { font-family: 'Playfair Display', serif; font-weight: 800; letter-spacing: -0.02em; }
+  h1, h2, .display { font-family: 'Newsreader', Georgia, serif; font-weight: 500; letter-spacing: -0.01em; }
 
   /* ── Nav ── */
   nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px; max-width: 1080px; margin: 0 auto; box-sizing: border-box; }
   .logo { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; height: 32px; }
   .logo img { height: 32px; width: 32px; border-radius: 9px; display: block; }
-  .logo span { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 20px; line-height: 1; }
+  .logo span { font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 20px; line-height: 1; }
   .logo span .light { color: var(--ink); }
   .logo span .accent { color: var(--coral); }
-  .nav-cta { background: var(--coral); color: #fff; padding: 0 22px; height: 40px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; box-sizing: border-box; }
+  .nav-cta { background: var(--coral); color: var(--on-coral); padding: 0 22px; height: 40px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; box-sizing: border-box; }
 
   /* ── Hero ── */
   .hero { padding: 72px 0 64px; text-align: center; }
@@ -48,25 +79,25 @@
   .hero .accent { color: var(--coral); }
   .hero p { font-size: 19px; color: var(--muted); max-width: 560px; margin: 0 auto 36px; }
   .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--coral); color: #fff; padding: 15px 30px; border-radius: 999px; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; }
+  .btn-primary { background: var(--coral); color: var(--on-coral); padding: 15px 30px; border-radius: 999px; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; }
   .btn-secondary { background: transparent; color: var(--ink); padding: 15px 30px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 16px; border: 1.5px solid var(--line); }
 
   /* ── Signature: the receipt ── */
   .receipt-section { padding: 40px 0 80px; }
   .receipt {
     max-width: 380px; margin: 0 auto;
-    background: #fff; border-radius: 4px;
-    box-shadow: 0 12px 40px rgba(26,19,13,0.10);
+    background: var(--card); border-radius: 4px;
+    box-shadow: 0 12px 40px var(--shadow);
     padding: 32px 28px;
     position: relative;
     transform: rotate(-1.2deg);
   }
   .receipt::before {
     content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 16px;
-    background: repeating-linear-gradient(-45deg, #fff 0 6px, var(--cream) 6px 12px);
+    background: repeating-linear-gradient(-45deg, var(--card) 0 6px, var(--cream) 6px 12px);
     border-radius: 4px 4px 0 0;
   }
-  .receipt-title { font-family: 'Manrope'; font-weight: 800; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 20px; }
+  .receipt-title { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 20px; }
   .receipt-row { display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
   .receipt-row.total { border-bottom: none; border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 14px; font-weight: 800; font-size: 17px; }
   .receipt-row .label { color: var(--muted); }
@@ -77,16 +108,16 @@
   /* ── Value props ── */
   .values { padding: 20px 0 80px; }
   .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-  .value-card h3 { font-size: 19px; margin-bottom: 8px; font-family: 'Manrope'; font-weight: 800; }
+  .value-card h3 { font-size: 19px; margin-bottom: 8px; font-family: 'Plus Jakarta Sans'; font-weight: 800; }
   .value-card p { color: var(--muted); font-size: 15px; }
-  .value-num { font-family: 'Playfair Display'; font-size: 15px; color: var(--coral); font-weight: 800; margin-bottom: 10px; display: block; }
+  .value-num { font-family: 'Newsreader'; font-size: 15px; color: var(--coral); font-weight: 800; margin-bottom: 10px; display: block; }
 
   /* ── How it works ── */
   .how { background: var(--cream-2); padding: 80px 0; }
   .how h2 { text-align: center; font-size: 34px; margin-bottom: 48px; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 900px; margin: 0 auto; }
   .step { text-align: center; }
-  .step-num { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Playfair Display'; margin: 0 auto 16px; }
+  .step-num { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--cream); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Newsreader'; margin: 0 auto 16px; }
   .step h3 { font-size: 17px; margin-bottom: 8px; }
   .step p { color: var(--muted); font-size: 14.5px; }
 
@@ -97,11 +128,11 @@
   .form-inner > p { color: var(--muted); margin-bottom: 32px; }
   form { text-align: left; display: flex; flex-direction: column; gap: 14px; }
   label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; display: block; }
-  input, textarea { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1.5px solid var(--line); font-family: 'Manrope'; font-size: 15px; background: #fff; }
+  input, textarea { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1.5px solid var(--line); font-family: 'Plus Jakarta Sans'; font-size: 15px; background: var(--card); color: var(--ink); }
   input:focus, textarea:focus { outline: 2px solid var(--coral); outline-offset: 1px; border-color: var(--coral); }
   .submit-btn { margin-top: 8px; }
   #form-status { margin-top: 16px; font-size: 14px; font-weight: 600; }
-  #form-status.ok { color: #2e7d32; }
+  #form-status.ok { color: var(--ok); }
   #form-status.err { color: var(--coral-dark); }
 
   /* ── Comparison table ── */
@@ -109,12 +140,12 @@
   .compare h2 { text-align: center; font-size: 32px; margin-bottom: 12px; }
   .compare-sub { text-align: center; color: var(--muted); font-size: 15px; max-width: 620px; margin: 0 auto 40px; }
   .compare-table-wrap { overflow-x: auto; }
-  table.compare-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; min-width: 640px; }
+  table.compare-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; min-width: 640px; }
   table.compare-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; padding: 14px 18px; border-bottom: 1.5px solid var(--line); }
   table.compare-table td { padding: 14px 18px; font-size: 14.5px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  table.compare-table tr.us td { background: #FBEDE6; font-weight: 700; }
+  table.compare-table tr.us td { background: var(--us-tint); font-weight: 700; }
   table.compare-table td.category { color: var(--muted); font-size: 12.5px; }
-  table.compare-table td .yes { color: #2e7d32; font-weight: 700; }
+  table.compare-table td .yes { color: var(--ok); font-weight: 700; }
   table.compare-table td .no { color: var(--coral-dark); font-weight: 700; }
   .compare-footnote { font-size: 12.5px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
   @media (max-width: 720px) {
@@ -137,7 +168,10 @@
     <img src="/restaurants/icon.png" alt="Una Mesa">
     <span><span class="light">Una</span> <span class="accent">Mesa</span></span>
   </a>
-  <a class="nav-cta" href="#join" data-i18n="navCta">List your restaurant</a>
+  <div class="nav-right">
+    <button class="theme-btn" id="theme-toggle" type="button" aria-label="Dark mode" onclick="umToggleTheme()"><span class="material-symbols-outlined" id="theme-icon">dark_mode</span></button>
+    <a class="nav-cta" href="#join" data-i18n="navCta">List your restaurant</a>
+  </div>
 </nav>
 
 <section class="hero wrap">
@@ -312,6 +346,21 @@
 </footer>
 
 <script>
+function umSyncTheme() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'noche';
+  document.getElementById('theme-icon').textContent = dark ? 'light_mode' : 'dark_mode';
+  document.getElementById('theme-toggle').setAttribute('aria-label', dark ? 'Light mode' : 'Dark mode');
+}
+function umToggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'noche' ? 'crema' : 'noche';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('um-theme', next); } catch (e) {}
+  umSyncTheme();
+}
+window.addEventListener('storage', e => {
+  if (e.key === 'um-theme') { document.documentElement.setAttribute('data-theme', e.newValue === 'noche' ? 'noche' : 'crema'); umSyncTheme(); }
+});
+umSyncTheme();
 var I18N = {
   en: {
     pageTitle: 'Una Mesa for Restaurants — Stop losing money to no-shows',
