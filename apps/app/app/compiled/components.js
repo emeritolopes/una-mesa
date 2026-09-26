@@ -314,7 +314,7 @@ function Header({
       setMenuOpen(false);
     }
   }, React.createElement('img', {
-    src: './una-mesa-logo.svg',
+    src: 'https://app.unamesa.co.uk/una-mesa-logo.svg',
     alt: 'Una Mesa',
     style: {
       height: '36px',

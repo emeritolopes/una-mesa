@@ -302,8 +302,8 @@ function HomeScreen({
   const aiSuggestions = UM_T.aiSuggestions;
 
   /* fotos reales por sección (posición fija) */
-  const PICKS_IMGS = ['chris-liverani-oCsaxvGCehM-unsplash.jpg', 'clem-onojeghuo-zlABb6Gke24-unsplash.jpg', 'igor-rand-wfM1Fi-kMaY-unsplash.jpg'];
-  const NEARBY_IMGS = ['k8-sWEpcc0Rm0U-unsplash.jpg', 'nick-karvounis-Ciqxn7FE4vE-unsplash.jpg', 'pablo-merchan-montes-Orz90t6o0e4-unsplash.jpg', 'simon-karemann-p85-MG66GRY-unsplash.jpg'];
+  const PICKS_IMGS = ['https://app.unamesa.co.uk/chris-liverani-oCsaxvGCehM-unsplash.jpg', 'https://app.unamesa.co.uk/clem-onojeghuo-zlABb6Gke24-unsplash.jpg', 'https://app.unamesa.co.uk/igor-rand-wfM1Fi-kMaY-unsplash.jpg'];
+  const NEARBY_IMGS = ['https://app.unamesa.co.uk/k8-sWEpcc0Rm0U-unsplash.jpg', 'https://app.unamesa.co.uk/nick-karvounis-Ciqxn7FE4vE-unsplash.jpg', 'https://app.unamesa.co.uk/pablo-merchan-montes-Orz90t6o0e4-unsplash.jpg', 'https://app.unamesa.co.uk/simon-karemann-p85-MG66GRY-unsplash.jpg'];
   const submit = e => {
     e.preventDefault();
     search(q);
@@ -568,12 +568,12 @@ function HomeScreen({
     r: byRating[0],
     big: true,
     onOpen: openRest,
-    img: 'dish.jpg'
+    img: 'https://app.unamesa.co.uk/dish.jpg'
   }), byRating[1] ? React.createElement(BentoCard, {
     r: byRating[1],
     big: false,
     onOpen: openRest,
-    img: 'albert-YYZU0Lo1uXE-unsplash.jpg'
+    img: 'https://app.unamesa.co.uk/albert-YYZU0Lo1uXE-unsplash.jpg'
   }) : null))) : null,
   /* ═══════════════════════════════════════
      3. DESTACADO  —  info restaurante + foto plato + widget reserva
@@ -620,7 +620,7 @@ function HomeScreen({
   React.createElement('div', {
     className: 'detail-food-ph'
   }, React.createElement('img', {
-    src: './dish.jpg',
+    src: 'https://app.unamesa.co.uk/dish.jpg',
     style: {
       width: '100%',
       height: '100%',
