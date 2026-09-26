@@ -13,21 +13,36 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus. Diners watch short videos of every dish before visiting, and book with a fully refundable deposit to secure their table.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free for diners. Restaurants pay a monthly listing fee."},"featureList":["Video menu — watch every dish before you visit","Table reservation with refundable deposit","London restaurant listings","QR code video menus for restaurant tables"],"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk"},"areaServed":{"@type":"City","name":"London","addressCountry":"GB"}}
 </script>
+<script>
+  try { document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') === 'noche' ? 'noche' : 'crema'); } catch (e) {}
+</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          "primary": "#973312", "primary-container": "#b84a28", "on-primary": "#ffffff",
-          "secondary-fixed": "#cee8dd",
-          "tertiary": "#794900", "tertiary-container": "#9b5f01",
-          "background": "#fcf9f3", "surface": "#fcf9f3", "surface-bright": "#fcf9f3", "surface-dim": "#dcdad4",
-          "surface-container-lowest": "#ffffff", "surface-container-low": "#f6f3ed", "surface-container": "#f0eee8",
-          "surface-container-high": "#ebe8e2", "surface-container-highest": "#e5e2dc",
-          "on-surface": "#1c1c18", "on-surface-variant": "#57423c",
-          "inverse-surface": "#31312d", "inverse-on-surface": "#f3f0ea",
-          "outline": "#8b716a", "outline-variant": "#dec0b8"
+          "primary": "rgb(var(--c-primary) / <alpha-value>)",
+          "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+          "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+          "secondary-fixed": "rgb(var(--c-secondary-fixed) / <alpha-value>)",
+          "tertiary": "rgb(var(--c-tertiary) / <alpha-value>)",
+          "tertiary-container": "rgb(var(--c-tertiary-container) / <alpha-value>)",
+          "background": "rgb(var(--c-background) / <alpha-value>)",
+          "surface": "rgb(var(--c-surface) / <alpha-value>)",
+          "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
+          "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
+          "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
+          "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
+          "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
+          "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
+          "surface-container-highest": "rgb(var(--c-surface-container-highest) / <alpha-value>)",
+          "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
+          "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
+          "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
+          "inverse-on-surface": "rgb(var(--c-inverse-on-surface) / <alpha-value>)",
+          "outline": "rgb(var(--c-outline) / <alpha-value>)",
+          "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)"
         },
         fontFamily: {
           "headline": ["Newsreader", "Georgia", "serif"],
@@ -52,6 +67,9 @@
   }
 </script>
 <style>
+  :root { --c-primary:151 51 18; --c-primary-container:184 74 40; --c-on-primary:255 255 255; --c-secondary-fixed:206 232 221; --c-tertiary:121 73 0; --c-tertiary-container:155 95 1; --c-background:252 249 243; --c-surface:252 249 243; --c-surface-bright:252 249 243; --c-surface-dim:220 218 212; --c-surface-container-lowest:255 255 255; --c-surface-container-low:246 243 237; --c-surface-container:240 238 232; --c-surface-container-high:235 232 226; --c-surface-container-highest:229 226 220; --c-on-surface:28 28 24; --c-on-surface-variant:87 66 60; --c-inverse-surface:49 49 45; --c-inverse-on-surface:243 240 234; --c-outline:139 113 106; --c-outline-variant:222 192 184; color-scheme: light; }
+  :root[data-theme="noche"] { --c-primary:224 113 75; --c-primary-container:200 90 53; --c-on-primary:255 255 255; --c-secondary-fixed:178 204 193; --c-tertiary:255 184 102; --c-tertiary-container:255 184 102; --c-background:20 18 16; --c-surface:20 18 16; --c-surface-bright:255 255 255; --c-surface-dim:168 163 155; --c-surface-container-lowest:28 26 23; --c-surface-container-low:25 23 20; --c-surface-container:34 31 27; --c-surface-container-high:42 38 34; --c-surface-container-highest:52 47 42; --c-on-surface:243 239 232; --c-on-surface-variant:211 196 187; --c-inverse-surface:12 11 9; --c-inverse-on-surface:243 240 234; --c-outline:168 148 139; --c-outline-variant:74 63 58; color-scheme: dark; }
+  html { transition: background-color .3s ease; }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; vertical-align:middle; line-height:1; }
   .fill { font-variation-settings:'FILL' 1; }
   body { animation: umIn .35s ease both; }
@@ -79,6 +97,9 @@
       <button aria-label="Search" type="button" onclick="focusSearch()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
         <span class="material-symbols-outlined text-[22px]">search</span>
       </button>
+      <button id="theme-toggle" type="button" aria-label="Switch to dark mode" onclick="toggleTheme()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
+        <span class="material-symbols-outlined text-[22px]" id="theme-icon">dark_mode</span>
+      </button>
       <a aria-label="Saved restaurants" href="https://app.unamesa.co.uk/#profile" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
         <span class="material-symbols-outlined text-[22px]">favorite</span>
       </a>
@@ -88,7 +109,7 @@
 </header>
 
 <!-- HERO -->
-<section class="relative min-h-[620px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-on-surface">
+<section class="relative min-h-[620px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-[#141210]">
   <div class="absolute inset-0 z-0">
     <div class="w-full h-full bg-cover bg-center" style="background-image:url('https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110543_2a51e290-0934-4a45-a5f2-7916884c9998.png')"></div>
     <div class="absolute inset-0 bg-gradient-to-t from-[#141210] via-black/40 to-black/60"></div>
@@ -368,6 +389,23 @@ window.addEventListener('pageshow', () => {
   document.body.style.transform = '';
 });
 
+/* ── Theme (light 'crema' by default, dark 'noche' on request) ── */
+function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'noche' ? 'noche' : 'crema'; }
+function syncThemeButton() {
+  const dark = currentTheme() === 'noche';
+  document.getElementById('theme-icon').textContent = dark ? 'light_mode' : 'dark_mode';
+  document.getElementById('theme-toggle').setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+}
+function toggleTheme() {
+  const next = currentTheme() === 'noche' ? 'crema' : 'noche';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('um-theme', next); } catch (e) {}
+  syncThemeButton();
+}
+window.addEventListener('storage', e => {
+  if (e.key === 'um-theme') { document.documentElement.setAttribute('data-theme', e.newValue === 'noche' ? 'noche' : 'crema'); syncThemeButton(); }
+});
+
 /* ── Helpers ── */
 function escapeHtml(s) {
   const d = document.createElement('div');
@@ -484,6 +522,7 @@ function renderReels() {
 }
 
 async function init() {
+  syncThemeButton();
   setTimeOfDay();
   setDefaultDate();
   renderReels();
