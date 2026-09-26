@@ -105,8 +105,8 @@ function App() {
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('um-theme');
-      return (saved && saved !== 'dark') ? saved : 'noche';
-    } catch(e) { return 'noche'; }
+      return (saved && saved !== 'dark') ? saved : 'crema';
+    } catch(e) { return 'crema'; }
   });
   const [user, setUser] = useState(null);
   const [favs, setFavs] = useState([]);

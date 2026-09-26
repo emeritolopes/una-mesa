@@ -385,7 +385,7 @@ function HomeScreen({
   }, React.createElement('span', {
     className: 'eyebrow',
     style: {
-      color: 'rgba(255,87,51,.85)',
+      color: 'rgba(151,51,18,.85)',
       marginBottom: '18px',
       display: 'block'
     }
@@ -526,7 +526,7 @@ function HomeScreen({
     }
   }, React.createElement('h2', {
     style: {
-      fontFamily: 'Playfair Display',
+      fontFamily: 'Newsreader',
       fontSize: 24,
       marginBottom: 8
     }

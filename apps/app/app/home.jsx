@@ -243,7 +243,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
         React.createElement('div', { style:{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px)', backgroundSize:'18px 18px', zIndex:0 } })
       ),
       React.createElement('div', { className:'stitch-hero-content' },
-        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(255,87,51,.85)', marginBottom:'18px', display:'block' } }, heroEyebrow),
+        React.createElement('span', { className:'eyebrow', style:{ color:'rgba(151,51,18,.85)', marginBottom:'18px', display:'block' } }, heroEyebrow),
         React.createElement('h1', {
           className:'display',
           style:{ fontSize:'clamp(52px,8vw,88px)', color:'#FAFAFA', marginBottom:'40px', letterSpacing:'-.02em', lineHeight:1.02 }
@@ -293,7 +293,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     ),
 
     noRealRestaurants ? React.createElement('section', { style:{ padding:'60px 24px', textAlign:'center' } },
-      React.createElement('h2', { style:{ fontFamily:'Playfair Display', fontSize:24, marginBottom:8 } }, UM_T.noRestaurantsYetTitle),
+      React.createElement('h2', { style:{ fontFamily:'Newsreader', fontSize:24, marginBottom:8 } }, UM_T.noRestaurantsYetTitle),
       React.createElement('p', { style:{ color:'var(--muted)', fontSize:15 } }, UM_T.noRestaurantsYetBody)
     ) : null,
 

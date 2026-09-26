@@ -151,9 +151,9 @@ function App() {
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('um-theme');
-      return saved && saved !== 'dark' ? saved : 'noche';
+      return saved && saved !== 'dark' ? saved : 'crema';
     } catch (e) {
-      return 'noche';
+      return 'crema';
     }
   });
   const [user, setUser] = useState(null);

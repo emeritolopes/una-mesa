@@ -177,11 +177,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
         style: {
           base: {
             fontSize: '15px',
-            fontFamily: '"Manrope", sans-serif',
+            fontFamily: '"Plus Jakarta Sans", sans-serif',
             color: isDark ? '#FAFAFA' : '#121212',
             '::placeholder': { color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(18,18,18,.35)' },
           },
-          invalid: { color: '#FF5733' },
+          invalid: { color: '#973312' },
         },
       };
       const cardNumber = elements.create('cardNumber', stripeStyle);
@@ -541,7 +541,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             style:{
               flex:'1 1 0', minWidth:0, padding:'12px 14px',
               border:'1.5px solid var(--bdr)', borderRadius:'10px', background:'var(--surface)',
-              color:'var(--ink)', font:'15px "Manrope",sans-serif', outline:'none', boxSizing:'border-box',
+              color:'var(--ink)', font:'15px "Plus Jakarta Sans",sans-serif', outline:'none', boxSizing:'border-box',
             }
           })
         )
@@ -549,7 +549,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
 
       /* Payment error */
       payError ? React.createElement('p', {
-        style:{ color:'var(--coral,#FF5733)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 }
+        style:{ color:'var(--coral,#973312)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 }
       }, payError) : null,
 
       React.createElement('div',{className:'bk-actions'},
@@ -642,7 +642,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
             stripeConfirm();
           },
           style: {
-            padding: '14px', borderRadius: 12, background: '#D8552E',
+            padding: '14px', borderRadius: 12, background: '#973312',
             color: '#fff', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', marginTop: 4
           }
         }, BK_T.confirmBooking),

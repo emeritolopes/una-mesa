@@ -415,7 +415,7 @@ function Header({
       border: 'none',
       cursor: 'pointer',
       fontSize: 14,
-      color: '#D8552E'
+      color: '#973312'
     },
     onClick: () => {
       setAvatarOpen(false);

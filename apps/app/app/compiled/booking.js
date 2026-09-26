@@ -262,14 +262,14 @@ function BookingScreen({
         style: {
           base: {
             fontSize: '15px',
-            fontFamily: '"Manrope", sans-serif',
+            fontFamily: '"Plus Jakarta Sans", sans-serif',
             color: isDark ? '#FAFAFA' : '#121212',
             '::placeholder': {
               color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(18,18,18,.35)'
             }
           },
           invalid: {
-            color: '#FF5733'
+            color: '#973312'
           }
         }
       };
@@ -777,14 +777,14 @@ function BookingScreen({
         borderRadius: '10px',
         background: 'var(--surface)',
         color: 'var(--ink)',
-        font: '15px "Manrope",sans-serif',
+        font: '15px "Plus Jakarta Sans",sans-serif',
         outline: 'none',
         boxSizing: 'border-box'
       }
     }))) : null, /* Payment error */
     payError ? React.createElement('p', {
       style: {
-        color: 'var(--coral,#FF5733)',
+        color: 'var(--coral,#973312)',
         fontSize: '13px',
         margin: '10px 0 0',
         lineHeight: 1.4
@@ -960,7 +960,7 @@ function BookingScreen({
     style: {
       padding: '14px',
       borderRadius: 12,
-      background: '#D8552E',
+      background: '#973312',
       color: '#fff',
       fontWeight: 700,
       fontSize: 14,

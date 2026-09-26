@@ -332,7 +332,7 @@ function AuthModal({
     style: {
       background: 'none',
       border: 'none',
-      color: '#D8552E',
+      color: '#973312',
       fontSize: 13,
       cursor: 'pointer',
       marginTop: 8,
@@ -590,7 +590,7 @@ function ProfileScreen({
     }
   }, React.createElement('h3', {
     style: {
-      fontFamily: 'Playfair Display',
+      fontFamily: 'Newsreader',
       marginBottom: 12
     }
   }, PR_T.cancelModalTitle), React.createElement('p', {
@@ -623,7 +623,7 @@ function ProfileScreen({
       padding: '10px 24px',
       borderRadius: 8,
       border: 'none',
-      background: '#FF5733',
+      background: '#973312',
       color: 'white',
       cursor: 'pointer'
     }

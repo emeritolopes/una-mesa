@@ -251,7 +251,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
                   }, CM_T.myProfile),
                   React.createElement('div', { style:{ height:1, background:'var(--line)', margin:'0 12px' } }),
                   React.createElement('button', {
-                    style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D8552E' },
+                    style:{ width:'100%', padding:'12px 16px', textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#973312' },
                     onClick: () => { setAvatarOpen(false); onLogout(); }
                   }, CM_T.logout)
                 )

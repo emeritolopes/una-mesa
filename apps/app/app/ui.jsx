@@ -174,7 +174,7 @@ function useMounted(delay = 40) {
 }
 
 /* Vertical bar chart — bars grow from 0 on mount */
-function BarChart({ data, height = 120, accent = '#D8552E', soft = '#F6E3DB', valueFmt = eur0, highlightLast = true, animate = true }) {
+function BarChart({ data, height = 120, accent = '#973312', soft = '#F6E3DB', valueFmt = eur0, highlightLast = true, animate = true }) {
   const max = Math.max(...data.map(d => d.value), 1);
   const [hover, setHover] = useState(-1);
   const grown = useMounted(60);
@@ -208,7 +208,7 @@ function BarChart({ data, height = 120, accent = '#D8552E', soft = '#F6E3DB', va
 }
 
 /* Horizontal labelled progress bars — widths grow from 0 on mount */
-function HBars({ rows, accent = '#D8552E', animate = true }) {
+function HBars({ rows, accent = '#973312', animate = true }) {
   const max = Math.max(...rows.map(r => r.value), 1);
   const grown = useMounted(60);
   return (

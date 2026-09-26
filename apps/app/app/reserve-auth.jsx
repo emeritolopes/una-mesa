@@ -254,7 +254,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
   };
 
   const ErrMsg = error
-    ? React.createElement('p', { style:{ color:'var(--coral,#FF5733)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 } }, error)
+    ? React.createElement('p', { style:{ color:'var(--coral,#973312)', fontSize:'13px', margin:'10px 0 0', lineHeight:1.4 } }, error)
     : null;
 
   /* ---- INTRO ---- */
@@ -307,7 +307,7 @@ function ReserveAuthModal({ onClose, onAccount, onGuest }){
           loading ? RA_T.signingIn : RA_T.signIn),
         React.createElement('button', {
           type:'button', onClick:resetPassword,
-          style:{ background:'none', border:'none', color:'#D8552E', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
+          style:{ background:'none', border:'none', color:'#973312', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
         }, RA_T.forgotPassword))
     );
 

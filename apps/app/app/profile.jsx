@@ -205,7 +205,7 @@ function AuthModal({ onClose, onAuth, initialMode, geoLabel }) {
         loading ? (isSignup?PR_T.creatingAccount:PR_T.signingIn) : (isSignup?PR_T.createProfileBtn:PR_T.enterBtn)),
       !isSignup ? React.createElement('button', {
         type:'button', onClick:resetPassword,
-        style:{ background:'none', border:'none', color:'#D8552E', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
+        style:{ background:'none', border:'none', color:'#973312', fontSize:13, cursor:'pointer', marginTop:8, textDecoration:'underline', padding:0 }
       }, PR_T.forgotPassword) : null)
   );
 }
@@ -391,7 +391,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         maxWidth: 400, width: '90%', textAlign: 'center'
       }
     },
-      React.createElement('h3', { style: { fontFamily: 'Playfair Display', marginBottom: 12 } }, PR_T.cancelModalTitle),
+      React.createElement('h3', { style: { fontFamily: 'Newsreader', marginBottom: 12 } }, PR_T.cancelModalTitle),
       React.createElement('p', { style: { color: '#666', marginBottom: 24, fontSize: 14 } },
         PR_T.cancelModalBody
       ),
@@ -402,7 +402,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         }, PR_T.goBack),
         React.createElement('button', {
           onClick: () => { doCancel(cancelTarget); setCancelTarget(null); },
-          style: { padding: '10px 24px', borderRadius: 8, border: 'none', background: '#FF5733', color: 'white', cursor: 'pointer' }
+          style: { padding: '10px 24px', borderRadius: 8, border: 'none', background: '#973312', color: 'white', cursor: 'pointer' }
         }, PR_T.yesCancel)
       )
     )

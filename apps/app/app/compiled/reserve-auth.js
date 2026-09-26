@@ -287,7 +287,7 @@ function ReserveAuthModal({
   };
   const ErrMsg = error ? React.createElement('p', {
     style: {
-      color: 'var(--coral,#FF5733)',
+      color: 'var(--coral,#973312)',
       fontSize: '13px',
       margin: '10px 0 0',
       lineHeight: 1.4
@@ -418,7 +418,7 @@ function ReserveAuthModal({
     style: {
       background: 'none',
       border: 'none',
-      color: '#D8552E',
+      color: '#973312',
       fontSize: 13,
       cursor: 'pointer',
       marginTop: 8,
