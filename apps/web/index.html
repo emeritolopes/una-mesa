@@ -6,265 +6,178 @@
 <title>Una Mesa — Reserve Your Table at London's Best Restaurants</title>
 <meta name="description" content="Browse video menus and reserve your table at London's best independent restaurants. Fully refundable deposit.">
 <link rel="canonical" href="https://unamesa.co.uk/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Una Mesa">
-<meta property="og:title" content="Una Mesa — Reserve Your Table">
-<meta property="og:description" content="Browse video menus and reserve your table at London's best independent restaurants. Fully refundable deposit.">
-<meta property="og:image" content="https://app.unamesa.co.uk/og-image.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Una Mesa — Reserve Your Table">
-<meta name="twitter:description" content="Browse video menus and reserve your table at London's best independent restaurants. Fully refundable deposit.">
-<meta name="twitter:image" content="https://app.unamesa.co.uk/og-image.jpg">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk"},"areaServed":{"@type":"City","name":"London","addressCountry":"GB"}}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,600;0,700;0,800;0,900;1,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="https://app.unamesa.co.uk/una-mesa-logo.svg">
-<link rel="shortcut icon" href="https://app.unamesa.co.uk/una-mesa-logo.svg">
-<meta name="theme-color" content="#D8552E">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Una Mesa">
-<link rel="apple-touch-icon" href="https://app.unamesa.co.uk/icon-192.png">
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-<!-- App CSS — loaded from deployed app, then we override the theme below -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus. Diners watch short videos of every dish before visiting, and book with a fully refundable deposit to secure their table.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free for diners. Restaurants pay a monthly listing fee."},"featureList":["Video menu — watch every dish before you visit","Table reservation with refundable deposit","London restaurant listings","QR code video menus for restaurant tables"],"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk"},"areaServed":{"@type":"City","name":"London","addressCountry":"GB"}}
+</script>
 <link rel="stylesheet" href="https://app.unamesa.co.uk/app/app.css">
-
 <style>
-/* ── DARK THEME OVERRIDE — make noche the canonical look ── */
-/* Force dark as the default (html[data-theme="noche"] rules from app.css apply) */
-/* Additional brand overrides for the premium dark shell */
-:root, [data-theme="noche"] {
-  --accent: #D8552E;
-  --accent-2: #e06840;
-  --accent-soft: rgba(216,85,46,0.14);
-  --accent-line: rgba(216,85,46,0.32);
-  --on-accent: #fff;
-  --glow: rgba(216,85,46,0.22);
-  --glow-2: rgba(216,85,46,0.09);
-}
+  #um-hero-shell {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0d0c0b;
+    display: flex; flex-direction: column;
+    transition: opacity 0.4s ease;
+  }
+  #um-hero-shell.hidden { opacity: 0; pointer-events: none; }
 
-/* ── HERO SECTION — premium marketing shell ── */
-.um-hero {
-  position: relative;
-  min-height: 680px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.um-hero-bg {
-  position: absolute;
-  inset: 0;
-  background: url('https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110543_2a51e290-0934-4a45-a5f2-7916884c9998.png') center/cover no-repeat;
-}
-.um-hero-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(10,9,8,0.45) 0%, rgba(10,9,8,0.28) 40%, rgba(10,9,8,0.94) 100%);
-}
-.um-hero-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding: 100px 24px 80px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-.um-hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 999px;
-  padding: 6px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 28px;
-}
-.um-hero-eyebrow .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-.um-hero h1 {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(42px, 7vw, 82px);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 20px;
-}
-.um-hero h1 em { font-style: italic; }
-.um-hero p.um-sub {
-  color: rgba(255,255,255,0.68);
-  font-size: 17px;
-  line-height: 1.65;
-  max-width: 500px;
-  margin: 0 auto 40px;
-  font-weight: 400;
-}
+  .um-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px;
+    background: rgba(13,12,11,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    position: relative; z-index: 2;
+  }
+  .um-brand {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800; font-size: 20px;
+    color: #F4EFE6; letter-spacing: -0.01em;
+  }
+  .um-brand span { color: #D8552E; }
+  .um-nav-links { display: flex; gap: 28px; align-items: center; }
+  .um-nav-links a {
+    color: rgba(244,239,230,0.7);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none; transition: color 0.2s;
+  }
+  .um-nav-links a:hover { color: #F4EFE6; }
+  .um-btn-outline {
+    border: 1px solid rgba(244,239,230,0.3) !important;
+    border-radius: 999px; padding: 8px 20px;
+    color: #F4EFE6 !important; font-size: 13px !important;
+  }
+  .um-btn-solid {
+    background: #D8552E; color: #fff !important;
+    border-radius: 999px; padding: 8px 20px;
+    font-size: 13px !important; font-weight: 700 !important;
+  }
 
-/* ── HERO SEARCH (glassmorphism) ── */
-.um-search-block {
-  background: rgba(255,255,255,0.97);
-  border-radius: 16px;
-  padding: 6px;
-  display: flex;
-  align-items: center;
-  max-width: 860px;
-  margin: 0 auto 20px;
-  box-shadow: 0 16px 60px rgba(0,0,0,0.5);
-}
-.um-search-field {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-right: 1px solid rgba(0,0,0,0.1);
-  color: #1a1714;
-}
-.um-search-field.grow { flex: 2; }
-.um-search-field.fixed { flex: 1; min-width: 130px; }
-.um-search-field:last-of-type { border-right: none; }
-.um-search-field svg { flex-shrink: 0; color: #888; }
-.um-search-field input,
-.um-search-field select {
-  background: none;
-  border: none;
-  outline: none;
-  font-family: 'Manrope', sans-serif;
-  font-size: 14px;
-  color: #1a1714;
-  width: 100%;
-  cursor: pointer;
-}
-.um-search-field input::placeholder { color: #999; }
-.um-search-submit {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 24px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background .15s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.um-search-submit:hover { background: #b8431e; }
-.um-filter-pills {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-.um-pill {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.85);
-  cursor: pointer;
-  transition: background .15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Manrope', sans-serif;
-  border: none;
-}
-.um-pill:hover { background: rgba(255,255,255,0.2); }
+  .um-hero-bg { flex: 1; position: relative; overflow: hidden; }
+  .um-hero-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80') center/cover no-repeat;
+    animation: heroZoom 8s ease-out forwards;
+  }
+  @keyframes heroZoom {
+    from { transform: scale(1.04); }
+    to   { transform: scale(1.00); }
+  }
+  .um-hero-bg::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(13,12,11,0.35) 0%, rgba(13,12,11,0.6) 60%, rgba(13,12,11,0.92) 100%);
+  }
 
-/* ── APP SHELL — hide hero once React mounts ── */
-#um-hero-shell { transition: opacity 0.3s ease; }
-#um-hero-shell.hidden { display: none; }
+  .um-hero-content {
+    position: absolute; inset: 0; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 24px 60px; text-align: center;
+  }
+  .um-eyebrow {
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #D8552E; margin-bottom: 18px;
+  }
+  .um-hero-h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 700; line-height: 1.05;
+    color: #F4EFE6; letter-spacing: -0.02em;
+  }
+  .um-hero-h1 em { font-style: italic; color: #D8552E; }
 
-/* ── Adjust React app to sit below (no hero) ── */
-#root { min-height: 100vh; }
-#root .hdr { position: sticky; top: 0; }
+  .um-search-wrap { width: 100%; max-width: 600px; margin-top: 36px; }
+  .um-search-bar {
+    display: flex; align-items: center;
+    background: rgba(244,239,230,0.10);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(244,239,230,0.2);
+    border-radius: 999px;
+    padding: 6px 6px 6px 22px; gap: 8px;
+  }
+  .um-search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px; color: #F4EFE6; padding: 10px 0;
+  }
+  .um-search-bar input::placeholder { color: rgba(244,239,230,0.5); }
+  .um-search-bar button {
+    background: #D8552E; color: #fff;
+    border: none; border-radius: 999px;
+    padding: 11px 24px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .um-search-bar button:hover { opacity: 0.88; }
 
-/* ── Mobile responsive ── */
-@media (max-width: 768px) {
-  .um-search-block { flex-direction: column; border-radius: 12px; }
-  .um-search-field { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.08); width: 100%; }
-  .um-search-field:last-of-type { border-bottom: none; }
-  .um-search-submit { width: 100%; justify-content: center; border-radius: 8px; }
-  .um-hero-content { padding: 80px 20px 60px; }
-  .um-filter-pills { gap: 6px; }
-}
+  .um-pills {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    justify-content: center; margin-top: 16px;
+  }
+  .um-pill {
+    background: rgba(244,239,230,0.08);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(244,239,230,0.15);
+    border-radius: 999px; padding: 7px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: rgba(244,239,230,0.85);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .um-pill:hover {
+    background: rgba(216,85,46,0.2);
+    border-color: rgba(216,85,46,0.5);
+    color: #F4EFE6;
+  }
+
+  @media (max-width: 640px) {
+    .um-nav { padding: 14px 20px; }
+    .um-nav-links { gap: 12px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- HERO SHELL — visible before React boots, hidden after -->
 <div id="um-hero-shell">
-  <div class="um-hero">
-    <div class="um-hero-bg"></div>
+  <nav class="um-nav">
+    <span class="um-brand">Una <span>Mesa</span></span>
+    <div class="um-nav-links">
+      <a href="#" onclick="umPillSearch('');return false;">Discover</a>
+      <a href="#" onclick="umNav('concierge');return false;">AI Concierge</a>
+      <a href="#" class="um-btn-outline" onclick="umNav('signin');return false;">Sign in</a>
+      <a href="#" class="um-btn-solid" onclick="umNav('signup');return false;">Create profile</a>
+    </div>
+  </nav>
+  <div class="um-hero-bg">
     <div class="um-hero-content">
-      <div class="um-hero-eyebrow">
-        <span class="dot"></span>
-        Exclusive Gastronomic Platform · London
-      </div>
-      <h1>Discover. Choose. <em>Reserve.</em></h1>
-      <p class="um-sub">Real restaurants, authentic stories and direct reservations. Experience London's gastronomy differently.</p>
-
-      <form class="um-search-block" onsubmit="umHeroSearch(event)">
-        <div class="um-search-field grow">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="um-search-input" placeholder="Where do you want to eat?" aria-label="Search restaurants">
+      <p class="um-eyebrow">Book near you</p>
+      <h1 class="um-hero-h1">The table that <em>awaits</em><br>you.</h1>
+      <div class="um-search-wrap">
+        <form class="um-search-bar" onsubmit="umHeroSearch(event)">
+          <input id="um-search-input" type="text" placeholder="Restaurant, cuisine, area…" autocomplete="off">
+          <button type="submit">Search</button>
+        </form>
+        <div class="um-pills">
+          <button class="um-pill" onclick="umPillSearch('Outdoor seating')">Outdoor seating</button>
+          <button class="um-pill" onclick="umPillSearch('Romantic')">Romantic</button>
+          <button class="um-pill" onclick="umPillSearch('Seafood')">Seafood</button>
+          <button class="um-pill" onclick="umPillSearch('Groups')">Groups</button>
+          <button class="um-pill" onclick="umPillSearch('Brunch')">Brunch</button>
+          <button class="um-pill" onclick="umPillSearch('Vegetarian')">Vegetarian</button>
         </div>
-        <div class="um-search-field fixed">
-          <span style="font-size:14px">📅</span>
-          <input type="text" placeholder="Date" readonly onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="min-width:0">
-        </div>
-        <div class="um-search-field fixed">
-          <span style="font-size:14px">👥</span>
-          <select style="min-width:0"><option>2 guests</option><option>1 guest</option><option>3 guests</option><option>4 guests</option><option>5+ guests</option></select>
-        </div>
-        <div class="um-search-field fixed">
-          <span style="font-size:14px">🍽️</span>
-          <select style="min-width:0"><option>All cuisines</option><option>Italian</option><option>Japanese</option><option>Mediterranean</option><option>Turkish</option><option>Modern British</option></select>
-        </div>
-        <button type="submit" class="um-search-submit">Explore restaurants →</button>
-      </form>
-
-      <div class="um-filter-pills">
-        <button class="um-pill" onclick="umPillSearch('romantic')">Romantic</button>
-        <button class="um-pill" onclick="umPillSearch('outdoor terrace')">Outdoor terrace</button>
-        <button class="um-pill" onclick="umPillSearch('tasting menu')">Tasting menu</button>
-        <button class="um-pill" onclick="umPillSearch('sunday brunch')">Sunday Brunch</button>
-        <button class="um-pill" onclick="umPillSearch('hidden gem')">Hidden gem</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- REACT APP ROOT -->
 <div id="root"></div>
 
-<!-- DEPENDENCIES — same order as apps/app/index.html -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -272,8 +185,6 @@
 <script src="https://app.unamesa.co.uk/image-slot.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Una Mesa app modules — loaded from deployed app -->
 <script src="https://app.unamesa.co.uk/app/data.js"></script>
 <script src="https://app.unamesa.co.uk/app/auth.js"></script>
 <script src="https://app.unamesa.co.uk/app/compiled/components.js"></script>
@@ -288,51 +199,38 @@
 <script src="https://app.unamesa.co.uk/app/compiled/app.js"></script>
 
 <script>
-// ── HERO SEARCH HANDLERS ──
-// The React app uses URL hash routing (#search/query, #concierge, etc.)
-// We set the hash and hide the hero — React picks it up via its hashchange listener.
+  if (!localStorage.getItem('um-theme')) localStorage.setItem('um-theme', 'noche');
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') || 'noche');
 
-function umHeroSearch(e) {
-  e.preventDefault();
-  const q = document.getElementById('um-search-input').value.trim();
-  hideHeroShell();
-  if (q) {
-    window.location.hash = '#search/' + encodeURIComponent(q);
+  function hideHeroShell() {
+    var shell = document.getElementById('um-hero-shell');
+    if (shell) shell.classList.add('hidden');
   }
-}
+  function umHeroSearch(e) {
+    e.preventDefault();
+    var q = document.getElementById('um-search-input').value.trim();
+    hideHeroShell();
+    window.location.hash = q ? '#search/' + encodeURIComponent(q) : '#home';
+  }
+  function umPillSearch(q) {
+    hideHeroShell();
+    window.location.hash = q ? '#search/' + encodeURIComponent(q) : '#home';
+  }
+  function umNav(view) {
+    hideHeroShell();
+    window.location.hash = '#' + view;
+  }
 
-function umPillSearch(q) {
-  hideHeroShell();
-  window.location.hash = '#search/' + encodeURIComponent(q);
-}
-
-function hideHeroShell() {
-  const shell = document.getElementById('um-hero-shell');
-  if (shell) shell.classList.add('hidden');
-}
-
-// ── WAIT FOR REACT APP TO BOOT, THEN HIDE HERO ──
-(function() {
-  let attempts = 0;
-  const checkMounted = setInterval(() => {
+  var attempts = 0;
+  var checkMounted = setInterval(function() {
     attempts++;
-    const root = document.getElementById('root');
-    // React has rendered when it has child elements
+    var root = document.getElementById('root');
     if (root && root.children.length > 0) {
       clearInterval(checkMounted);
-      // Small delay so the home view is painted before hero disappears
       setTimeout(hideHeroShell, 250);
     }
-    if (attempts > 80) clearInterval(checkMounted); // give up after 4s
+    if (attempts > 80) { clearInterval(checkMounted); hideHeroShell(); }
   }, 50);
-})();
-
-// ── SERVICE WORKER (optional) ──
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Don't register SW here to avoid caching cross-origin app scripts
-  });
-}
 </script>
 </body>
 </html>
