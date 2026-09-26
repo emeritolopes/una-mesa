@@ -245,7 +245,15 @@
           #content { display: none; }
           #reels-view { display: block; }
         }
-    </style>
+    
+/* page transition — same as the booking app */
+@view-transition{navigation:auto}
+html:not([data-nav-dir])::view-transition-old(root){animation:umOldFade .42s cubic-bezier(.22,.61,.36,1) both}
+html:not([data-nav-dir])::view-transition-new(root){animation:umNewRise .42s cubic-bezier(.22,.61,.36,1) both}
+@keyframes umOldFade{to{opacity:0;transform:scale(.985)}}
+@keyframes umNewRise{from{opacity:0;transform:translateY(48px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none!important}}
+</style>
 <!-- Reproducción HLS (Cloudflare Stream). hls.js para navegadores sin HLS
      nativo; Safari lo reproduce solo. -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>

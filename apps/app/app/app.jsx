@@ -7,6 +7,20 @@ const AP_LANG = window.UM_LANG;
    — antes, la navegación nunca leía ni escribía la URL en absoluto, así
    que un enlace compartido como #detail/{id} nunca funcionaba para
    alguien que entra por primera vez (sin sessionStorage previo). */
+/* ── Page transitions (View Transitions API) ──
+   forward: the new page fades in rising from below; back: the current page
+   slides off to the right while the previous one slides in from the left.
+   Browsers without the API (or with reduced motion) just swap instantly. */
+function umNavigate(setter, next, dir) {
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduced) { setter(next); return; }
+  document.documentElement.dataset.navDir = dir === 'back' ? 'back' : 'forward';
+  document.startViewTransition(() => {
+    ReactDOM.flushSync(() => setter(next));
+    window.scrollTo(0, 0);
+  });
+}
+
 function parseRouteFromHash() {
   const hash = (window.location.hash || '').replace(/^#/, '');
   const slash = hash.indexOf('/');
@@ -92,7 +106,7 @@ function animateThemeTo(t){
 
 function App() {
   const [restaurants, setRestaurants] = useState(window.UM_DATA);
-  const [route, setRoute] = useState(() => {
+  const [route, setRouteRaw] = useState(() => {
     const fromHash = parseRouteFromHash();
     if (fromHash) return fromHash;
     try {
@@ -102,6 +116,7 @@ function App() {
       return parsed || { view:'home', rid:null, query:'', presetTime:null };
     } catch(e) { return { view:'home', rid:null, query:'', presetTime:null }; }
   });
+  const setRoute = (next, dir) => umNavigate(setRouteRaw, next, dir);
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('um-theme');
@@ -257,9 +272,9 @@ function App() {
   useEffect(() => {
     const onPopState = (e) => {
       if (e.state?.route) {
-        setRoute(e.state.route);
+        setRoute(e.state.route, 'back');
       } else {
-        setRoute({ view: 'home', rid: null, query: '', presetTime: null });
+        setRoute({ view: 'home', rid: null, query: '', presetTime: null }, 'back');
       }
     };
     window.addEventListener('popstate', onPopState);
@@ -268,9 +283,9 @@ function App() {
   }, []);
 
   const toggleTheme = () => { const next = theme==='noche'?'crema':'noche'; animateThemeTo(next); try{localStorage.setItem('um-theme',next);}catch(e){} setTheme(next); };
-  const go = (view, params={}) => {
+  const go = (view, params={}, dir) => {
     const newRoute = { view, rid:null, query:'', presetTime:null, ...params };
-    setRoute(newRoute);
+    setRoute(newRoute, dir);
     try { sessionStorage.setItem('um-route', JSON.stringify(newRoute)); } catch(e) {}
     window.history.pushState({ route: newRoute }, '', `#${view}`);
   };
@@ -335,9 +350,9 @@ function App() {
   else if (route.view==='results')
     screen = React.createElement(window.ResultsScreen, { query:route.query, openRest, favs, toggleFav, startBook, geoLabel: geo.label && geo.label !== AP_T.currentLocationSentinel ? geo.label : AP_T.yourArea, geo });
   else if (route.view==='detail')
-    screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results'), favs, toggleFav, startBook });
+    screen = React.createElement(window.DetailScreen, { rid:route.rid, back:()=>go('results', {}, 'back'), favs, toggleFav, startBook });
   else if (route.view==='booking')
-    screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, presetDate:route.presetDate, back:()=>go('home'), user, requireAuth, onConfirm });
+    screen = React.createElement(window.BookingScreen, { rid:route.rid, presetTime:route.presetTime, presetParty:route.presetParty, presetDate:route.presetDate, back:()=>go('home', {}, 'back'), user, requireAuth, onConfirm });
   else if (route.view==='profile') {
     if (!user) { go('home'); screen = null; }
     else screen = React.createElement(window.ProfileScreen, { user, bookings, favs, data: restaurants, openRest, toggleFav, startBook, go: goWithGuard, spoons, onRedeem:redeemReward });
