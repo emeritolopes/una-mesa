@@ -281,6 +281,92 @@ const HX_REELS = [
 ];
 const MS = (name, extra) => React.createElement('span', { className: 'msym' + (extra ? ' ' + extra : '') }, name);
 
+/* Live dish videos for the home reel (Cloudflare Stream HLS from menu_videos).
+   Falls back to the photo tiles when the city has no videos yet. */
+let HX_hlsLoader = null;
+function hxLoadHls() {
+  if (window.Hls) return Promise.resolve(window.Hls);
+  if (!HX_hlsLoader) HX_hlsLoader = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js';
+    s.onload = () => resolve(window.Hls);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return HX_hlsLoader;
+}
+async function hxAttach(video) {
+  if (video.dataset.ready) return;
+  video.dataset.ready = '1';
+  const src = video.dataset.src;
+  if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
+  try {
+    const Hls = await hxLoadHls();
+    if (Hls && Hls.isSupported()) {
+      const hls = new Hls({ capLevelToPlayerSize: true, startLevel: 0, maxBufferLength: 10 });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+    }
+  } catch (e) {}
+}
+function hxPlay(v) { v.muted = true; v.setAttribute('muted', ''); hxAttach(v).then(() => { const p = v.play(); if (p && p.catch) p.catch(() => {}); v.parentNode.classList.add('is-playing'); }); }
+function hxPause(v) { v.pause(); v.parentNode.classList.remove('is-playing'); }
+function hxPick(rows, n) {
+  const byVenue = {};
+  rows.sort((a, b) => (b.is_chefs_choice === true) - (a.is_chefs_choice === true) || (a.sort_order || 0) - (b.sort_order || 0))
+    .forEach(r => { (byVenue[r.venue_id] = byVenue[r.venue_id] || []).push(r); });
+  const lists = Object.values(byVenue);
+  const out = [];
+  for (let i = 0; out.length < n && lists.some(l => l.length > i); i++) lists.forEach(l => { if (l[i] && out.length < n) out.push(l[i]); });
+  return out;
+}
+function LiveReels({ city, fallback }) {
+  const [vids, setVids] = useState(null);
+  const ref = useRef(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const sb = window.UMAuth && window.UMAuth.sb;
+        if (!sb) return;
+        const { data, error } = await sb.from('menu_videos')
+          .select('id,dish_name,video_url,thumbnail_url,is_chefs_choice,sort_order,venue_id,venues!inner(slug,name,city,archived)')
+          .not('stream_uid', 'is', null).eq('venues.city', city).eq('venues.archived', false);
+        if (alive && !error && data && data.length) setVids(hxPick(data, 6));
+      } catch (e) {}
+    })();
+    return () => { alive = false; };
+  }, [city]);
+  useEffect(() => {
+    const box = ref.current;
+    if (!box || !vids) return;
+    const videos = [...box.querySelectorAll('video')];
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !('IntersectionObserver' in window)) {
+      const offs = videos.map(v => {
+        const on = () => hxPlay(v), off = () => hxPause(v);
+        v.parentNode.addEventListener('mouseenter', on); v.parentNode.addEventListener('mouseleave', off);
+        return () => { v.parentNode.removeEventListener('mouseenter', on); v.parentNode.removeEventListener('mouseleave', off); };
+      });
+      return () => offs.forEach(f => f());
+    }
+    const io = new IntersectionObserver(es => es.forEach(e => videos.forEach(v => e.isIntersecting ? hxPlay(v) : hxPause(v))), { threshold: 0.25 });
+    io.observe(box);
+    return () => { io.disconnect(); videos.forEach(v => v.pause()); };
+  }, [vids]);
+  if (!vids) return fallback;
+  return React.createElement('div', { className: 'lx-reels', ref },
+    vids.map(v => React.createElement('a', { key: v.id, className: 'lx-reel',
+        href: '/menu-video/?venue=' + encodeURIComponent(v.venues.slug) + '&dish=' + encodeURIComponent(v.id) },
+      React.createElement('video', { muted: true, loop: true, playsInline: true, preload: 'none',
+        poster: v.thumbnail_url ? v.thumbnail_url + (/cloudflarestream\.com/.test(v.thumbnail_url) ? '?time=1s&height=640' : '') : undefined, 'data-src': v.video_url }),
+      React.createElement('span', { className: 'lx-reel-shade' }),
+      React.createElement('span', { className: 'lx-play' }, MS('play_arrow', 'fill')),
+      React.createElement('span', { className: 'lx-reel-cap' },
+        React.createElement('span', { className: 'lx-reel-t' }, v.dish_name),
+        React.createElement('span', { className: 'lx-reel-v' }, MS('restaurant'), v.venues.name)))));
+}
+
 function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, startBook, geo, setManualLocation, noRealRestaurants }) {
   const T = HX[UM_LANG] || HX.en;
   const [q, setQ] = useState('');
@@ -353,14 +439,14 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     React.createElement('section', { className: 'lx-sec alt' },
       React.createElement('div', { className: 'lx-wrap' },
         sec(T.vidEyebrow, T.vidTitle, T.vidMore, () => go('results')),
-        React.createElement('div', { className: 'lx-reels' },
+        React.createElement(LiveReels, { city: T.city, fallback: React.createElement('div', { className: 'lx-reels' },
           HX_REELS.map(([img, views], i) => React.createElement('button', { key: i, type: 'button', className: 'lx-reel', onClick: () => T.reelQ[i] ? search(T.reelQ[i]) : go('results') },
             React.createElement('img', { src: HX_IMG + img, alt: '', loading: 'lazy' }),
             React.createElement('span', { className: 'lx-reel-shade' }),
             React.createElement('span', { className: 'lx-play' }, MS('play_arrow', 'fill')),
             React.createElement('span', { className: 'lx-reel-cap' },
               React.createElement('span', { className: 'lx-reel-t' }, T.reels[i]),
-              React.createElement('span', { className: 'lx-reel-v' }, MS('visibility'), views))))))),
+              React.createElement('span', { className: 'lx-reel-v' }, MS('visibility'), views))))) }))),
 
     /* 4. AI CONCIERGE */
     React.createElement('section', { className: 'lx-sec' },

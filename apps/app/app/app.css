@@ -2004,3 +2004,9 @@ input,select,textarea{font-family:inherit}
 .booking-row .btn-soft{background:var(--accent);color:#fff;border-radius:12px}
 .booking-row .btn-soft:hover{background:var(--accent-2)}
 @media (max-width:767px){ .prof-hero{padding:48px 0 40px} }
+/* live video tiles in the home reel */
+.lx-reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+a.lx-reel{display:block;text-decoration:none}
+.lx-play{transition:opacity .3s,transform .2s}
+.lx-reel.is-playing .lx-play{opacity:0}
+.lx-reel-v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

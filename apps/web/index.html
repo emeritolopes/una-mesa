@@ -76,6 +76,7 @@
   @keyframes umIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
   input[type="date"]::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
   .um-select { appearance:none; background-image:none; }
+  a.is-playing .reel-play { opacity:0; }
 </style>
 </head>
 <body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
@@ -343,6 +344,7 @@
 </footer>
 
 <script>
+const CITY = 'London';
 const APP = 'https://app.unamesa.co.uk/';
 const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
@@ -521,11 +523,104 @@ function renderReels() {
     </a>`).join('');
 }
 
+/* ── Live dish videos (Cloudflare Stream HLS from menu_videos) ──
+   Replaces the photo reel when the city has real videos; plays muted in a loop
+   while the section is on screen, and opens that dish in the video menu on tap. */
+const REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let hlsLoader = null;
+function loadHls() {
+  if (window.Hls) return Promise.resolve(window.Hls);
+  if (!hlsLoader) hlsLoader = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js';
+    s.onload = () => resolve(window.Hls);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return hlsLoader;
+}
+async function attachVideo(video) {
+  if (video.dataset.ready) return;
+  video.dataset.ready = '1';
+  const src = video.dataset.src;
+  if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
+  try {
+    const Hls = await loadHls();
+    if (Hls && Hls.isSupported()) {
+      const hls = new Hls({ capLevelToPlayerSize: true, startLevel: 0, maxBufferLength: 10 });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+    }
+  } catch (e) {}
+}
+function playVideo(video) {
+  attachVideo(video).then(() => {
+    const p = video.play();
+    if (p && p.catch) p.catch(() => {});
+    video.closest('a').classList.add('is-playing');
+  });
+}
+function pauseVideo(video) {
+  video.pause();
+  video.closest('a').classList.remove('is-playing');
+}
+function pickVideos(rows, n) {
+  // chef's choice first, then round-robin across restaurants so one venue doesn't fill the row
+  const byVenue = {};
+  rows.sort((a, b) => (b.is_chefs_choice === true) - (a.is_chefs_choice === true) || (a.sort_order || 0) - (b.sort_order || 0))
+    .forEach(r => { (byVenue[r.venue_id] = byVenue[r.venue_id] || []).push(r); });
+  const lists = Object.values(byVenue);
+  const out = [];
+  for (let i = 0; out.length < n && lists.some(l => l.length > i); i++) lists.forEach(l => { if (l[i] && out.length < n) out.push(l[i]); });
+  return out;
+}
+async function renderLiveReels() {
+  const rows = await sbSelect('menu_videos',
+    'select=id,dish_name,video_url,thumbnail_url,is_chefs_choice,sort_order,venue_id,venues!inner(slug,name,city,archived)' +
+    '&stream_uid=not.is.null&venues.city=eq.' + encodeURIComponent(CITY) + '&venues.archived=eq.false');
+  if (!Array.isArray(rows) || rows.length < 1) return; // keep the photo reel
+  const picks = pickVideos(rows, 6);
+  const reel = document.getElementById('video-reel');
+  reel.innerHTML = picks.map(v => {
+    const href = APP + 'menu-video/?venue=' + encodeURIComponent(v.venues.slug) + '&dish=' + encodeURIComponent(v.id);
+    const poster = v.thumbnail_url ? v.thumbnail_url + (/cloudflarestream\.com/.test(v.thumbnail_url) ? '?time=1s&height=640' : '') : '';
+    return `
+    <a href="${href}" class="group relative rounded-2xl overflow-hidden aspect-[9/16] shadow-md block bg-[#1c1a17]">
+      <video class="absolute inset-0 w-full h-full object-cover" muted loop playsinline preload="none" poster="${escapeHtml(poster)}" data-src="${escapeHtml(v.video_url)}"></video>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10"></div>
+      <div class="reel-play absolute inset-0 flex items-center justify-center transition-opacity duration-300">
+        <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined fill text-white text-[24px]">play_arrow</span>
+        </div>
+      </div>
+      <div class="absolute bottom-0 inset-x-0 p-3 text-white">
+        <p class="text-[13px] leading-tight font-semibold line-clamp-2">${escapeHtml(v.dish_name)}</p>
+        <div class="mt-2 flex items-center gap-1.5 text-white/80 text-[11px] font-semibold">
+          <span class="material-symbols-outlined text-[14px]">restaurant</span><span class="truncate">${escapeHtml(v.venues.name)}</span>
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+  const videos = [...reel.querySelectorAll('video')];
+  if (REDUCED_MOTION || !('IntersectionObserver' in window)) {
+    videos.forEach(v => {
+      const a = v.closest('a');
+      a.addEventListener('mouseenter', () => playVideo(v));
+      a.addEventListener('mouseleave', () => pauseVideo(v));
+    });
+    return;
+  }
+  new IntersectionObserver(entries => entries.forEach(e => {
+    videos.forEach(v => e.isIntersecting ? playVideo(v) : pauseVideo(v));
+  }), { threshold: 0.25 }).observe(reel);
+}
+
 async function init() {
   syncThemeButton();
   setTimeOfDay();
   setDefaultDate();
   renderReels();
+  renderLiveReels();
   const venues = await sbSelect('venues', 'city=eq.London&archived=eq.false&select=*&order=rating.desc.nullslast&limit=8');
   renderVenues(venues);
 }
