@@ -18,6 +18,23 @@ window.UM_LANG = (function() {
 window.umIsNew = r => !(r && r.reviews > 0);
 window.umRating = r => window.umIsNew(r) ? (window.UM_LANG === 'en' ? 'New' : 'Nuevo') : Number(r.rating || 0).toFixed(1);
 
+/* Funnel tracking (venue_events, migration 041): 'video_view' and 'booking_start'.
+   Anonymous — just the venue, the event and a random per-tab session id.
+   Demo venues (non-uuid ids) aren't in the database, so they're skipped. */
+window.umSessionId = (function () {
+  try {
+    let sid = sessionStorage.getItem('um-sid');
+    if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('um-sid', sid); }
+    return sid;
+  } catch (e) { return null; }
+})();
+window.umTrack = function (venueId, event, dishId) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(venueId || ''))) return;
+  const sb = window.UMAuth && window.UMAuth.sb;
+  if (!sb) return;
+  sb.from('venue_events').insert({ venue_id: venueId, event, session_id: window.umSessionId, dish_id: dishId || null }).then(() => {}, () => {});
+};
+
 (function(){
   // gradient palettes for photo placeholders [from,to]
   const G = {

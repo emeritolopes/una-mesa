@@ -110,6 +110,8 @@ const todayMadrid = `${nowMadrid.getFullYear()}-${String(nowMadrid.getMonth()+1)
 const todayStr = todayMadrid;
 
 function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, requireAuth, onConfirm }) {
+  // funnel: the diner opened the booking screen for this restaurant
+  React.useEffect(() => { if (window.umTrack) window.umTrack(rid, 'booking_start'); }, [rid]);
   const data = window.UM_DATA;
   const r = data.find(x=>x.id===rid);
 

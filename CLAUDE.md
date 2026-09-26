@@ -76,6 +76,8 @@ Most edge functions run with `verify_jwt = false` and rely on input validation; 
 
 **Dish videos — Cloudflare Stream:** `menu_videos.video_url` holds a Cloudflare **HLS** URL (`.m3u8`) and `menu_videos.stream_uid` the Stream UID (migration `040`; `legacy_storage_url` keeps the pre-migration Supabase Storage URL). One-off backfill: `scripts/migrate-videos-to-stream.mjs` (gitignored, reads `.env.local`). Playback in `apps/app/menu-video/index.html` and the `apps/admin/` previews uses `hls.js` (CDN) with a shared `umLoadVideo()` helper — Safari plays HLS natively. The `menu-videos` Supabase Storage bucket still exists but new uploads no longer go there.
 
+**Restaurant funnel (migration `041`):** restaurant-page visits go to `venue_page_views`; the two in-between steps go to `venue_events` (`event` = `'video_view'` from `apps/app/menu-video/` after 2 s of playback, `'booking_start'` when `BookingScreen` mounts, via `window.umTrack()` in `data.js`; anonymous, with a per-tab `sessionStorage` id `um-sid`). `venue_funnel(venue_id, from, to)` (security definer, admin or that venue's `restaurant_users` only) returns views → video views → booking starts → bookings → covers → attended covers → no-shows, counting only non-`phone_agent` reservations by reservation date.
+
 **Vapi webhook security:** `vapi-availability` and `vapi-reservation` verify an `x-vapi-secret` header against the `VAPI_WEBHOOK_SECRET` env var. The guard is `if (expectedSecret && secret !== expectedSecret)` — a no-op until the secret is set, so it's safe to deploy before configuring Vapi.
 
 ```bash

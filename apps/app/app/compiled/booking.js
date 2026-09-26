@@ -184,6 +184,8 @@ function BookingScreen({
   requireAuth,
   onConfirm
 }) {
+  // funnel: the diner opened the booking screen for this restaurant
+  React.useEffect(() => { if (window.umTrack) window.umTrack(rid, 'booking_start'); }, [rid]);
   const data = window.UM_DATA;
   const r = data.find(x => x.id === rid);
   const startStep = presetTime && presetParty ? 3 : presetTime ? 2 : 0;

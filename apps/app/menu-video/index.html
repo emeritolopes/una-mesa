@@ -385,6 +385,31 @@ const venueSlug = qs.get('venue');
 const requestedDishId = qs.get('dish');
 
 let ALL_VIDEOS = [];
+/* Funnel tracking (venue_events, migration 041): a dish counts as watched once
+   its video has actually played for 2 seconds, once per dish per page. */
+const UM_WATCHED = new Set();
+function umSid() {
+  try {
+    let sid = sessionStorage.getItem('um-sid');
+    if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('um-sid', sid); }
+    return sid;
+  } catch (e) { return null; }
+}
+document.addEventListener('timeupdate', e => {
+  const v = e.target;
+  if (!(v instanceof HTMLVideoElement) || v.currentTime < 2 || !VENUE) return;
+  const fromId = (v.id || '').startsWith('video-') ? v.id.slice(6) : null;
+  const src = v.dataset.src || '';
+  const dish = ALL_VIDEOS.find(d => d.id === fromId) || ALL_VIDEOS.find(d => d.video_url && d.video_url === src);
+  const key = dish ? dish.id : src;
+  if (!key || UM_WATCHED.has(key)) return;
+  UM_WATCHED.add(key);
+  fetch(`${SUPABASE_URL}/rest/v1/venue_events`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({ venue_id: VENUE.id, event: 'video_view', session_id: umSid(), dish_id: dish ? dish.id : null })
+  }).catch(() => {});
+}, true);
 // uuid real del venue — se rellena en init() tras encontrarlo por slug.
 // bookUrl()/profileUrl() y la query de menu_videos necesitan el uuid,
 // nunca el slug (menu_videos.venue_id es FK a venues.id, no hay columna
