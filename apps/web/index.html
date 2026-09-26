@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://unamesa.co.uk/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus. Diners watch short videos of every dish before visiting, and book with a fully refundable deposit to secure their table.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free for diners. Restaurants pay a monthly listing fee."},"featureList":["Video menu — watch every dish before you visit","Table reservation with refundable deposit","London restaurant listings","QR code video menus for restaurant tables"],"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk"},"areaServed":{"@type":"City","name":"London","addressCountry":"GB"}}
 </script>
@@ -19,12 +19,15 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
     --accent: #D8552E;
-    --bg: #0f0f0f;
-    --bg-raised: #1a1a1a;
-    --bg-card: #181818;
+    --accent-dark: #b8431e;
+    --bg: #0d0c0b;
+    --bg-raised: #181614;
+    --bg-card: #161412;
+    --bg-section: #111009;
     --text: #F4EFE6;
-    --text-dim: #a89f96;
-    --border: rgba(255,255,255,0.08);
+    --text-dim: #9a9089;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(216,85,46,0.35);
   }
   body {
     background: var(--bg);
@@ -32,217 +35,587 @@
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, .brand {
-    font-family: 'Playfair Display', Georgia, serif;
-  }
+  h1, h2, h3, .brand { font-family: 'Playfair Display', Georgia, serif; }
   a { color: inherit; text-decoration: none; }
 
+  /* ── NAV ── */
   header.top {
-    position: sticky; top: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px 24px;
-    background: rgba(15,15,15,0.85);
-    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    height: 68px;
+    background: rgba(13,12,11,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
   }
-  .brand {
-    font-weight: 800; font-size: 20px;
-  }
+  .brand { font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
   .brand span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a {
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    letter-spacing: 0.01em; transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .btn-ghost {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dim);
+    background: none; border: none; cursor: pointer;
+    transition: color .15s;
+    padding: 8px 0;
+  }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-primary {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    border: none; cursor: pointer;
+    border-radius: 999px;
+    padding: 10px 20px;
+    transition: background .15s, transform .1s;
+  }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-primary:active { transform: scale(0.97); }
 
-  .hero {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 96px 24px 56px;
+  /* ── HERO ── */
+  .hero-wrap {
+    position: relative;
+    min-height: 620px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: url('https://i.ibb.co/tM7cvL4c/Screenshot-2026-09-25-at-21-38-58.png') center/cover no-repeat;
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(13,12,11,0.55) 0%, rgba(13,12,11,0.35) 40%, rgba(13,12,11,0.85) 100%);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
     text-align: center;
+    padding: 80px 24px 72px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 24px;
+  }
+  .hero-eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
   }
   .hero h1 {
-    font-size: clamp(36px, 5vw, 68px);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    font-weight: 700;
-    margin-bottom: 16px;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
   }
+  .hero h1 em { font-style: italic; color: rgba(255,255,255,0.75); }
   .hero p.sub {
-    color: var(--text-dim);
-    font-size: 17px;
-    line-height: 1.5;
-    max-width: 540px;
-    margin: 0 auto;
+    color: rgba(255,255,255,0.7);
+    font-size: 17px; line-height: 1.6;
+    max-width: 480px; margin: 0 auto 36px;
+    font-weight: 400;
   }
+  .hero-actions {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .hero-actions .btn-primary {
+    font-size: 15px; padding: 14px 28px;
+    box-shadow: 0 4px 24px rgba(216,85,46,0.35);
+  }
+  .hero-actions .btn-outline {
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    padding: 14px 28px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background .15s;
+  }
+  .hero-actions .btn-outline:hover { background: rgba(255,255,255,0.14); }
 
-  .searchbar {
+  /* ── SEARCH ── */
+  .searchbar-wrap {
     max-width: 640px;
-    margin: 32px auto 0;
+    margin: -28px auto 0;
     padding: 0 24px;
+    position: relative; z-index: 10;
   }
   .searchbar-inner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 8px;
     background: var(--bg-raised);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 999px;
-    padding: 6px 6px 6px 20px;
+    padding: 6px 6px 6px 22px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
   }
   .searchbar-inner input {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
+    flex: 1; background: none; border: none; outline: none;
     color: var(--text);
-    font-family: 'Manrope', sans-serif;
-    font-size: 15px;
+    font-family: 'Manrope', sans-serif; font-size: 15px;
     padding: 12px 0;
   }
   .searchbar-inner input::placeholder { color: var(--text-dim); }
   .searchbar-inner button {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 12px 22px;
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 999px; padding: 12px 24px;
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 14px;
+    cursor: pointer; white-space: nowrap;
+    transition: background .15s;
   }
+  .searchbar-inner button:hover { background: var(--accent-dark); }
 
+  /* ── RESTAURANT GRID ── */
   main.grid-wrap {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 64px 32px 100px;
+    max-width: 1280px; margin: 0 auto; padding: 72px 32px 80px;
   }
-  .grid-heading {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-weight: 800;
-    color: var(--accent);
-    margin-bottom: 24px;
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 32px; gap: 16px;
   }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 600; letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .see-all {
+    font-size: 13px; font-weight: 700; color: var(--text-dim);
+    white-space: nowrap; transition: color .15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .see-all:hover { color: var(--accent); }
+  .see-all::after { content: ' →'; }
+
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 24px;
   }
-
   .card {
-    display: block;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
+    display: block; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 20px;
     overflow: hidden;
-    transition: transform .2s ease, border-color .2s ease;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
-  .card:hover { transform: translateY(-3px); border-color: rgba(216,85,46,0.4); }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-hover);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
   .card-photo {
     aspect-ratio: 4 / 3;
-    background: #262220 no-repeat center / cover;
+    background: #1e1a18 no-repeat center / cover;
     position: relative;
   }
+  .card-cuisine {
+    position: absolute; bottom: 12px; left: 12px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    color: #fff; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 6px;
+  }
   .card-price {
-    position: absolute; top: 10px; right: 10px;
+    position: absolute; top: 12px; right: 12px;
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px);
-    color: #fff;
-    font-size: 12px; font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 999px;
+    color: #fff; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px;
   }
-  .card-body { padding: 16px 18px 18px; }
+  .card-body { padding: 18px 20px 20px; }
   .card-name {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 21px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 20px; font-weight: 700; margin-bottom: 4px;
+    letter-spacing: -0.01em;
   }
   .card-meta {
-    color: var(--text-dim);
-    font-size: 13px;
-    margin-bottom: 10px;
-    text-transform: capitalize;
+    color: var(--text-dim); font-size: 13px;
+    margin-bottom: 12px; text-transform: capitalize;
+    display: flex; align-items: center; gap: 6px;
   }
+  .card-meta .pin { font-size: 13px; }
   .card-rating {
     display: flex; align-items: center; gap: 5px;
     font-size: 13px; font-weight: 700;
   }
   .card-rating .star { color: var(--accent); }
   .card-rating .count { color: var(--text-dim); font-weight: 400; }
-
+  .card-reserve {
+    display: block; width: 100%; margin-top: 16px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 12px;
+    padding: 12px; text-align: center;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .card-reserve:hover { background: var(--accent-dark); }
   .state-msg {
-    text-align: center;
-    color: var(--text-dim);
-    padding: 60px 24px;
-    grid-column: 1 / -1;
+    text-align: center; color: var(--text-dim);
+    padding: 60px 24px; grid-column: 1 / -1;
   }
 
+  /* ── VALUE RIBBON ── */
+  .ribbon {
+    background: #0a1610;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 32px 32px;
+  }
+  .ribbon-in {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+  }
+  .ribbon-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 8px 32px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .ribbon-item:first-child { padding-left: 0; }
+  .ribbon-item:last-child { border-right: none; }
+  .ribbon-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(216,85,46,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .ribbon-label { font-size: 15px; font-weight: 700; color: var(--text); }
+  .ribbon-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── FOR RESTAURANTS ── */
+  .for-rest {
+    padding: 96px 32px;
+    border-top: 1px solid var(--border);
+  }
+  .for-rest-in {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  .for-rest-visual {
+    position: relative; border-radius: 24px;
+    overflow: hidden; aspect-ratio: 4/3;
+  }
+  .for-rest-visual img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+  .metrics-card {
+    position: absolute; bottom: 24px; left: 24px;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px; padding: 16px 20px;
+    min-width: 220px;
+  }
+  .metrics-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .metrics-label { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; }
+  .metrics-badge {
+    background: #1a4d31; color: #4ade80;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 6px;
+  }
+  .sparkline {
+    display: flex; align-items: flex-end; gap: 4px;
+    height: 32px; margin-bottom: 14px;
+  }
+  .sparkline span {
+    flex: 1; border-radius: 3px 3px 0 0;
+    background: rgba(255,255,255,0.15);
+    transition: background .2s;
+  }
+  .sparkline span:last-child { background: var(--accent); }
+  .metrics-row {
+    display: flex; justify-content: space-between;
+    font-size: 12px; margin-bottom: 6px;
+  }
+  .metrics-row:last-child { margin-bottom: 0; }
+  .metrics-row .mkey { color: rgba(255,255,255,0.5); }
+  .metrics-row .mval { color: #fff; font-weight: 700; }
+
+  .for-rest-copy .section-eyebrow { margin-bottom: 12px; }
+  .for-rest-copy h2 {
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 600; letter-spacing: -0.02em;
+    line-height: 1.1; margin-bottom: 16px;
+  }
+  .for-rest-copy p.lead {
+    font-size: 16px; line-height: 1.7;
+    color: var(--text-dim); margin-bottom: 40px; font-weight: 400;
+  }
+  .features-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px; margin-bottom: 40px;
+  }
+  .feature-item { display: flex; gap: 14px; }
+  .feature-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .feature-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .feature-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .for-rest-ctas { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .btn-large {
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px; font-weight: 700; color: #fff;
+    background: var(--accent); border: none;
+    border-radius: 999px; padding: 14px 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(216,85,46,0.3);
+    transition: background .15s, transform .1s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-large:hover { background: var(--accent-dark); }
+  .btn-large:active { transform: scale(0.97); }
+  .link-cta {
+    font-size: 14px; font-weight: 700; color: var(--text-dim);
+    transition: color .15s; display: flex; align-items: center; gap: 4px;
+  }
+  .link-cta:hover { color: var(--accent); }
+  .link-cta::after { content: ' →'; }
+
+  /* ── FOOTER ── */
   footer.foot {
     border-top: 1px solid var(--border);
-    padding: 40px 24px;
+    padding: 40px 32px;
   }
   .foot-in {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    color: var(--text-dim);
-    font-size: 13px;
+    max-width: 1280px; margin: 0 auto;
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between;
+    gap: 16px; color: var(--text-dim); font-size: 13px;
   }
-  .foot-links { display: flex; gap: 24px; }
+  .foot-links { display: flex; gap: 24px; flex-wrap: wrap; }
   .foot-links a:hover { color: var(--accent); }
 
-  @media (min-width: 1200px) {
-    .hero { padding: 120px 32px 72px; }
-    .grid { grid-template-columns: repeat(4, 1fr); gap: 32px; }
-    .card-name { font-size: 22px; }
+  /* ── RESPONSIVE ── */
+  @media (min-width: 1100px) {
+    .grid { grid-template-columns: repeat(4, 1fr); gap: 28px; }
   }
-
-  @media (min-width: 900px) and (max-width: 1199px) {
+  @media (min-width: 768px) and (max-width: 1099px) {
     .grid { grid-template-columns: repeat(3, 1fr); }
   }
-
+  @media (max-width: 900px) {
+    .for-rest-in { grid-template-columns: 1fr; gap: 48px; }
+    .ribbon-in { grid-template-columns: 1fr; }
+    .ribbon-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 16px 0; }
+    .ribbon-item:last-child { border-bottom: none; }
+    .nav-links { display: none; }
+  }
   @media (max-width: 640px) {
-    .hero { padding: 56px 20px 32px; }
-    main.grid-wrap { padding: 40px 20px 60px; }
+    header.top { padding: 0 20px; }
+    main.grid-wrap { padding: 48px 20px 60px; }
+    .for-rest { padding: 64px 20px; }
+    .ribbon { padding: 24px 20px; }
+    .foot { padding: 32px 20px; }
     .foot-in { flex-direction: column; align-items: flex-start; }
+    .features-grid { grid-template-columns: 1fr; }
+    .searchbar-wrap { margin-top: -20px; }
+    .hero-content { padding: 60px 20px 56px; }
   }
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <header class="top">
-  <span class="brand">Una <span>Mesa</span></span>
+  <a href="#" class="brand">Una <span>Mesa</span></a>
+  <nav class="nav-links">
+    <a href="#restaurants">Restaurants</a>
+    <a href="#for-restaurants">For Restaurants</a>
+    <a href="https://app.unamesa.co.uk">Open App</a>
+  </nav>
+  <div class="nav-cta">
+    <button class="btn-ghost" onclick="window.location='https://app.unamesa.co.uk'">Sign in</button>
+    <button class="btn-primary" onclick="window.location='https://app.unamesa.co.uk'">Reserve a table</button>
+  </div>
 </header>
 
-<section class="hero">
-  <h1>The table that awaits you.</h1>
-  <p class="sub">Reserve at London's best independent restaurants.</p>
+<!-- HERO -->
+<section class="hero-wrap">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      London's independent restaurant platform
+    </div>
+    <h1>The table that <em>awaits</em> you.</h1>
+    <p class="sub">Watch the dishes. Choose your table. Reserve with a fully refundable deposit.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="window.location='https://app.unamesa.co.uk'">Browse restaurants</button>
+      <button class="btn-outline" onclick="document.getElementById('for-restaurants').scrollIntoView({behavior:'smooth'})">For restaurants →</button>
+    </div>
+  </div>
 </section>
 
-<div class="searchbar">
-  <form class="searchbar-inner" onsubmit="return false;">
-    <input type="text" placeholder="Restaurant, cuisine or area…" aria-label="Search restaurants">
+<!-- SEARCH -->
+<div class="searchbar-wrap">
+  <form class="searchbar-inner" onsubmit="handleSearch(event)">
+    <input type="text" id="search-input" placeholder="Restaurant, cuisine or area…" aria-label="Search restaurants">
     <button type="submit">Search</button>
   </form>
 </div>
 
-<main class="grid-wrap">
-  <div class="grid-heading">London restaurants</div>
+<!-- RESTAURANT GRID -->
+<main class="grid-wrap" id="restaurants">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">London restaurants</div>
+      <h2 class="section-title">Discover where to eat tonight</h2>
+    </div>
+    <a href="https://app.unamesa.co.uk" class="see-all">See all restaurants</a>
+  </div>
   <div class="grid" id="venue-grid">
     <p class="state-msg">Loading restaurants…</p>
   </div>
 </main>
 
+<!-- VALUE RIBBON -->
+<div class="ribbon">
+  <div class="ribbon-in">
+    <div class="ribbon-item">
+      <div class="ribbon-icon">🎬</div>
+      <div>
+        <div class="ribbon-label">Watch before you book</div>
+        <div class="ribbon-sub">Short video of every dish</div>
+      </div>
+    </div>
+    <div class="ribbon-item">
+      <div class="ribbon-icon">🔒</div>
+      <div>
+        <div class="ribbon-label">Fully refundable deposit</div>
+        <div class="ribbon-sub">Cancel anytime, no fees</div>
+      </div>
+    </div>
+    <div class="ribbon-item">
+      <div class="ribbon-icon">🍽️</div>
+      <div>
+        <div class="ribbon-label">Independent restaurants</div>
+        <div class="ribbon-sub">No chains. Just real kitchens.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOR RESTAURANTS -->
+<section class="for-rest" id="for-restaurants">
+  <div class="for-rest-in">
+
+    <!-- Visual -->
+    <div class="for-rest-visual">
+      <img src="https://i.ibb.co/xxpf9gG/Screenshot-2026-09-25-at-21-38-44.png" alt="Restaurant atmosphere at Una Mesa partner">
+      <div class="metrics-card">
+        <div class="metrics-header">
+          <span class="metrics-label">Bookings this month</span>
+          <span class="metrics-badge">+68%</span>
+        </div>
+        <div class="sparkline">
+          <span style="height:35%"></span>
+          <span style="height:50%"></span>
+          <span style="height:38%"></span>
+          <span style="height:65%"></span>
+          <span style="height:58%"></span>
+          <span style="height:80%"></span>
+          <span style="height:100%"></span>
+        </div>
+        <div class="metrics-row"><span class="mkey">Direct bookings</span><span class="mval">124</span></div>
+        <div class="metrics-row"><span class="mkey">Covers</span><span class="mval">342</span></div>
+        <div class="metrics-row"><span class="mkey">Menu video views</span><span class="mval">28.4K</span></div>
+      </div>
+    </div>
+
+    <!-- Copy -->
+    <div class="for-rest-copy">
+      <div class="section-eyebrow">For restaurants</div>
+      <h2>Fill your tables,<br>not just your calendar.</h2>
+      <p class="lead">We help independent London restaurants attract more diners through video menus, direct bookings, and a digital presence that actually works — without the commission fees.</p>
+
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <div>
+            <div class="feature-title">Direct bookings</div>
+            <div class="feature-desc">No commission cuts. Your guests book straight with you.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎬</div>
+          <div>
+            <div class="feature-title">Video menu</div>
+            <div class="feature-desc">Short clips of every dish. Diners decide before they arrive.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📱</div>
+          <div>
+            <div class="feature-title">Social content</div>
+            <div class="feature-desc">We shoot and edit. You post and attract new guests.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div>
+            <div class="feature-title">Real analytics</div>
+            <div class="feature-desc">See views, bookings and revenue in one dashboard.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="for-rest-ctas">
+        <button class="btn-large" onclick="window.location='mailto:hello@unamesa.co.uk?subject=List my restaurant on Una Mesa'">
+          List my restaurant
+          <span>→</span>
+        </button>
+        <a href="https://app.unamesa.co.uk" class="link-cta">See how it works</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
 <footer class="foot">
   <div class="foot-in">
     <span>© 2026 Una Mesa · The table that always awaits you</span>
     <div class="foot-links">
-      <a href="#">Are you a restaurant?</a>
+      <a href="mailto:hello@unamesa.co.uk">Are you a restaurant?</a>
       <a href="#">Help</a>
       <a href="#">Privacy</a>
       <a href="#">Terms</a>
@@ -277,9 +650,18 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+function handleSearch(e) {
+  e.preventDefault();
+  const q = document.getElementById('search-input').value.trim();
+  if (q) {
+    window.location = `https://app.unamesa.co.uk/#search/${encodeURIComponent(q)}`;
+  } else {
+    window.location = 'https://app.unamesa.co.uk';
+  }
+}
+
 function renderVenues(venues) {
   const grid = document.getElementById('venue-grid');
-
   if (venues === null) {
     grid.innerHTML = '<p class="state-msg">Couldn\'t load restaurants right now — please try again in a moment.</p>';
     return;
@@ -291,19 +673,22 @@ function renderVenues(venues) {
 
   grid.innerHTML = venues.map(v => {
     const photo = (v.photo_urls && v.photo_urls[0]) || '';
-    const metaParts = [v.cuisine, v.neighborhood].filter(Boolean);
+    const metaParts = [v.neighborhood].filter(Boolean);
     const rating = v.rating != null ? Number(v.rating).toFixed(1) : null;
     const detailUrl = `https://app.unamesa.co.uk/#detail/${v.id}`;
+    const cuisineLabel = v.cuisine ? v.cuisine.split(',')[0].trim().toUpperCase() : '';
 
     return `
       <a class="card" href="${detailUrl}">
         <div class="card-photo" style="${photo ? `background-image:url('${photo.replace(/'/g, "%27")}')` : ''}">
+          ${cuisineLabel ? `<span class="card-cuisine">${escapeHtml(cuisineLabel)}</span>` : ''}
           <span class="card-price">${priceLabel(v.price_range)}</span>
         </div>
         <div class="card-body">
           <div class="card-name">${escapeHtml(v.name)}</div>
-          ${metaParts.length ? `<div class="card-meta">${escapeHtml(metaParts.join(' · '))}</div>` : ''}
+          ${metaParts.length ? `<div class="card-meta"><span class="pin">📍</span>${escapeHtml(metaParts.join(' · '))}, London</div>` : ''}
           ${rating ? `<div class="card-rating"><span class="star">★</span> ${rating} <span class="count">(${v.review_count || 0})</span></div>` : ''}
+          <button class="card-reserve" onclick="event.preventDefault(); window.location='${detailUrl}'">Reserve a table</button>
         </div>
       </a>
     `;
@@ -313,7 +698,7 @@ function renderVenues(venues) {
 async function init() {
   const venues = await sbSelect(
     'venues',
-    'city=eq.London&archived=eq.false&select=id,name,slug,cuisine,neighborhood,rating,review_count,price_range,photo_urls'
+    'city=eq.London&archived=eq.false&select=id,name,slug,cuisine,neighborhood,rating,review_count,price_range,photo_urls&order=rating.desc.nullslast'
   );
   renderVenues(venues);
 }
