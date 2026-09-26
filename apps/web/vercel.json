@@ -1,40 +1,10 @@
 {
-  "redirects": [
+  "headers": [
     {
-      "source": "/((?!portfolio).+)",
-      "has": [{ "type": "host", "value": "unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/$1",
-      "permanent": false
-    },
-    {
-      "source": "/((?!portfolio).+)",
-      "has": [{ "type": "host", "value": "www.unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/$1",
-      "permanent": false
-    },
-    {
-      "source": "/((?!portfolio).+)",
-      "has": [{ "type": "host", "value": "unamesa.co" }],
-      "destination": "https://app.unamesa.co/$1",
-      "permanent": false
-    },
-    {
-      "source": "/((?!portfolio).+)",
-      "has": [{ "type": "host", "value": "www.unamesa.co" }],
-      "destination": "https://app.unamesa.co/$1",
-      "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "unamesa.co" }],
-      "destination": "/index-madrid.html",
-      "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "www.unamesa.co" }],
-      "destination": "/index-madrid.html",
-      "permanent": false
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
     }
   ]
 }
