@@ -8,13 +8,15 @@ const AP_LANG = window.UM_LANG;
    que un enlace compartido como #detail/{id} nunca funcionaba para
    alguien que entra por primera vez (sin sessionStorage previo). */
 /* ── Page transitions (View Transitions API) ──
-   forward: the new page fades in rising from below; back: the current page
-   slides off to the right while the previous one slides in from the left.
+   forward: the new page slides up from the bottom over the previous one;
+   back (incl. going to the main page): the current page slides off to the right.
    Browsers without the API (or with reduced motion) just swap instantly. */
 function umNavigate(setter, next, dir) {
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!document.startViewTransition || reduced) { setter(next); return; }
-  document.documentElement.dataset.navDir = dir === 'back' ? 'back' : 'forward';
+  // going to the main page counts as going back
+  const toHome = next && typeof next === 'object' && next.view === 'home';
+  document.documentElement.dataset.navDir = dir === 'back' || (dir == null && toHome) ? 'back' : 'forward';
   document.startViewTransition(() => {
     ReactDOM.flushSync(() => setter(next));
     window.scrollTo(0, 0);

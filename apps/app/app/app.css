@@ -2012,31 +2012,22 @@ a.lx-reel{display:block;text-decoration:none}
 .lx-reel-v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ════════════════════════════════════════════
-   Page transitions (see umNavigate in app.js)
-   forward: new page fades in rising from below over the old one
-   back:    old page slides out to the right, previous page slides in from the left
+   Page transitions (umNavigate in app.js + cross-page @view-transition)
+   forward: the new page slides up from the bottom over the previous one
+   back:    the current page slides from left to right, uncovering the one underneath
+   html[data-nav-dir] is set by umNavigate (in-app) or on pagereveal (cross-page).
    ════════════════════════════════════════════ */
-.hdr{view-transition-name:um-header}
-::view-transition-group(root){animation-duration:.42s;animation-timing-function:cubic-bezier(.22,.61,.36,1)}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.42s;animation-timing-function:cubic-bezier(.22,.61,.36,1);mix-blend-mode:normal}
-html[data-nav-dir="forward"]::view-transition-old(root){animation-name:umOldFade}
-html[data-nav-dir="forward"]::view-transition-new(root){animation-name:umNewRise}
-html[data-nav-dir="back"]::view-transition-old(root){animation-name:umOldSlideRight;z-index:2;box-shadow:-24px 0 48px rgba(0,0,0,.18)}
-html[data-nav-dir="back"]::view-transition-new(root){animation-name:umNewSlideFromLeft;z-index:1}
-@keyframes umOldFade{to{opacity:0;transform:scale(.985)}}
-@keyframes umNewRise{from{opacity:0;transform:translateY(48px)}to{opacity:1;transform:none}}
-@keyframes umOldSlideRight{to{transform:translateX(100%)}}
-@keyframes umNewSlideFromLeft{from{transform:translateX(-30%);opacity:.6}to{transform:none;opacity:1}}
-/* the per-view entrance animation would double up with the transition */
+@view-transition{navigation:auto}
+::view-transition-group(root){animation-duration:.5s}
+html[data-nav-dir="forward"]::view-transition-old(root){animation:umUnderDim .5s cubic-bezier(.2,.8,.2,1) both;z-index:1}
+html[data-nav-dir="forward"]::view-transition-new(root){animation:umSheetUp .5s cubic-bezier(.2,.8,.2,1) both;z-index:2;box-shadow:0 -24px 60px rgba(0,0,0,.22)}
+html[data-nav-dir="back"]::view-transition-old(root){animation:umPushRight .45s cubic-bezier(.4,0,.2,1) both;z-index:2;box-shadow:-24px 0 60px rgba(0,0,0,.22)}
+html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45s cubic-bezier(.4,0,.2,1) both;z-index:1}
+@keyframes umSheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes umUnderDim{to{filter:brightness(.85)}}
+@keyframes umPushRight{to{transform:translateX(100%)}}
+@keyframes umUnderReveal{from{filter:brightness(.85)}to{filter:none}}
 html[data-nav-dir] .view{animation:none}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
-
-/* cross-page transitions between app.unamesa.co.uk pages (index, menu-video, restaurants) */
-@view-transition{navigation:auto}
-html:not([data-nav-dir])::view-transition-old(root){animation:umOldFade .42s cubic-bezier(.22,.61,.36,1) both}
-html:not([data-nav-dir])::view-transition-new(root){animation:umNewRise .42s cubic-bezier(.22,.61,.36,1) both}
-@keyframes umOldFade{to{opacity:0;transform:scale(.985)}}
-@keyframes umNewRise{from{opacity:0;transform:translateY(48px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none!important}}

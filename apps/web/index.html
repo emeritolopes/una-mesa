@@ -77,6 +77,10 @@
   input[type="date"]::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
   .um-select { appearance:none; background-image:none; }
   a.is-playing .reel-play { opacity:0; }
+  #nav-sheet { position:fixed; inset:0; z-index:1000; background:rgb(var(--c-background)); transform:translateY(100%);
+    box-shadow:0 -24px 60px rgba(0,0,0,.22); pointer-events:none; }
+  #nav-sheet.up { transform:none; transition:transform .48s cubic-bezier(.2,.8,.2,1); }
+  #nav-sheet.away { transform:translateX(100%); transition:transform .45s cubic-bezier(.4,0,.2,1); }
 </style>
 </head>
 <body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
@@ -350,11 +354,21 @@ const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
 /* ── Navigation into the app (hash routes understood by apps/app/app/app.jsx) ── */
+/* Opening a link: a sheet in the page colour slides up from the bottom over this
+   page, then the app loads in its place (the app is another origin, so the
+   browser can't overlap the two pages itself). */
 function navigateTo(url) {
-  document.body.style.transition = 'opacity .22s ease, transform .22s ease';
-  document.body.style.opacity = '0';
-  document.body.style.transform = 'translateX(-24px)';
-  setTimeout(() => { window.location = url; }, 220);
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { window.location = url; return; }
+  let sheet = document.getElementById('nav-sheet');
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'nav-sheet';
+    document.documentElement.appendChild(sheet); // outside <body>: its entrance animation would make it the containing block for position:fixed
+  }
+  sheet.classList.remove('up');
+  void sheet.offsetWidth;
+  sheet.classList.add('up');
+  setTimeout(() => { window.location = url; }, 480);
 }
 function goApp(hash) { navigateTo(APP + (hash || '')); }
 function searchFor(q) { goApp(q ? '#results/' + encodeURIComponent(q) : '#results'); }
@@ -386,9 +400,12 @@ document.addEventListener('click', e => {
 
 /* Coming back via the browser's back button restores the page from bfcache
    with the fade-out still applied */
-window.addEventListener('pageshow', () => {
-  document.body.style.opacity = '';
-  document.body.style.transform = '';
+window.addEventListener('pageshow', e => {
+  // back from the app (bfcache): slide the sheet away to the right, uncovering this page
+  const sheet = document.getElementById('nav-sheet');
+  if (!sheet || !sheet.classList.contains('up')) return;
+  if (e.persisted) { sheet.classList.add('away'); setTimeout(() => sheet.remove(), 460); }
+  else sheet.remove();
 });
 
 /* ── Theme (light 'crema' by default, dark 'noche' on request) ── */

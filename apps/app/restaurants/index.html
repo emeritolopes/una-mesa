@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html class="scroll-smooth" lang="en">
 <head>
+<script>
+  /* page-transition direction for cross-page navigation on app.unamesa.co.uk:
+     back = browser back/forward or returning to the main page; forward otherwise */
+  addEventListener('pagereveal', function (e) {
+    if (!e.viewTransition) return;
+    var back = false;
+    try {
+      var act = navigation.activation;
+      back = act.navigationType === 'traverse' || (location.pathname === '/' && act.from && new URL(act.from.url).pathname !== '/');
+    } catch (err) {}
+    document.documentElement.dataset.navDir = back ? 'back' : 'forward';
+  });
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="page-title">Una Mesa for Restaurants — Stop losing money to no-shows</title>
@@ -79,13 +93,25 @@
   input[type="date"]::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
   .um-select { appearance:none; background-image:none; }
 
-/* page transition — same as the booking app */
+/* ════════════════════════════════════════════
+   Page transitions (umNavigate in app.js + cross-page @view-transition)
+   forward: the new page slides up from the bottom over the previous one
+   back:    the current page slides from left to right, uncovering the one underneath
+   html[data-nav-dir] is set by umNavigate (in-app) or on pagereveal (cross-page).
+   ════════════════════════════════════════════ */
 @view-transition{navigation:auto}
-html:not([data-nav-dir])::view-transition-old(root){animation:umOldFade .42s cubic-bezier(.22,.61,.36,1) both}
-html:not([data-nav-dir])::view-transition-new(root){animation:umNewRise .42s cubic-bezier(.22,.61,.36,1) both}
-@keyframes umOldFade{to{opacity:0;transform:scale(.985)}}
-@keyframes umNewRise{from{opacity:0;transform:translateY(48px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none!important}}
+::view-transition-group(root){animation-duration:.5s}
+html[data-nav-dir="forward"]::view-transition-old(root){animation:umUnderDim .5s cubic-bezier(.2,.8,.2,1) both;z-index:1}
+html[data-nav-dir="forward"]::view-transition-new(root){animation:umSheetUp .5s cubic-bezier(.2,.8,.2,1) both;z-index:2;box-shadow:0 -24px 60px rgba(0,0,0,.22)}
+html[data-nav-dir="back"]::view-transition-old(root){animation:umPushRight .45s cubic-bezier(.4,0,.2,1) both;z-index:2;box-shadow:-24px 0 60px rgba(0,0,0,.22)}
+html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45s cubic-bezier(.4,0,.2,1) both;z-index:1}
+@keyframes umSheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes umUnderDim{to{filter:brightness(.85)}}
+@keyframes umPushRight{to{transform:translateX(100%)}}
+@keyframes umUnderReveal{from{filter:brightness(.85)}to{filter:none}}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+}
 </style>
 <style>
   /* page-specific bits on top of the shared landing tokens */
