@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="scroll-smooth" lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,338 +11,315 @@
 <meta id="og-title" property="og:title" content="Una Mesa for Restaurants">
 <meta id="og-description" property="og:description" content="No membership fee. £1 per diner. Deposits paid straight to your account. Stop losing money to no-shows.">
 <meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <script>
   try { document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') === 'noche' ? 'noche' : 'crema'); } catch (e) {}
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "rgb(var(--c-primary) / <alpha-value>)",
+          "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+          "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+          "secondary-fixed": "rgb(var(--c-secondary-fixed) / <alpha-value>)",
+          "tertiary": "rgb(var(--c-tertiary) / <alpha-value>)",
+          "tertiary-container": "rgb(var(--c-tertiary-container) / <alpha-value>)",
+          "background": "rgb(var(--c-background) / <alpha-value>)",
+          "surface": "rgb(var(--c-surface) / <alpha-value>)",
+          "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
+          "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
+          "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
+          "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
+          "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
+          "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
+          "surface-container-highest": "rgb(var(--c-surface-container-highest) / <alpha-value>)",
+          "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
+          "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
+          "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
+          "inverse-on-surface": "rgb(var(--c-inverse-on-surface) / <alpha-value>)",
+          "outline": "rgb(var(--c-outline) / <alpha-value>)",
+          "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)"
+        },
+        fontFamily: {
+          "headline": ["Newsreader", "Georgia", "serif"],
+          "sans": ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+        },
+        fontSize: {
+          "label-sm": ["12px", { lineHeight: "16px", fontWeight: "600" }],
+          "label-eyebrow": ["11px", { lineHeight: "16px", fontWeight: "700" }],
+          "label-md": ["14px", { lineHeight: "20px", fontWeight: "600" }],
+          "body-sm": ["13px", { lineHeight: "18px" }],
+          "body-md": ["15px", { lineHeight: "22px" }],
+          "body-lg": ["18px", { lineHeight: "28px" }],
+          "headline-sm": ["19px", { lineHeight: "26px", fontWeight: "700" }],
+          "headline-md": ["26px", { lineHeight: "32px", fontWeight: "500" }],
+          "headline-lg-mobile": ["28px", { lineHeight: "34px", fontWeight: "500" }],
+          "headline-lg": ["36px", { lineHeight: "44px", fontWeight: "500" }],
+          "headline-xl-mobile": ["38px", { lineHeight: "44px", fontWeight: "500" }],
+          "headline-xl": ["56px", { lineHeight: "62px", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
 <style>
-  /* same palette as unamesa.co.uk — light 'crema' by default, dark 'noche' via the toggle */
-  :root {
-    --coral: #973312;
-    --coral-dark: #842504;
-    --cream: #FCF9F3;
-    --cream-2: #F0EEE8;
-    --ink: #1C1C18;
-    --muted: #6F5A53;
-    --line: #DEC0B8;
-    --card: #FFFFFF;
-    --on-coral: #FFFFFF;
-    --us-tint: #FFDBD1;
-    --ok: #2E7D52;
-    --shadow: rgba(28,28,24,0.10);
-    color-scheme: light;
-  }
-  :root[data-theme="noche"] {
-    --coral: #E0714B;
-    --coral-dark: #F0916F;
-    --cream: #141210;
-    --cream-2: #1C1A17;
-    --ink: #F3EFE8;
-    --muted: #B9AAA1;
-    --line: #3F3531;
-    --card: #221F1B;
-    --on-coral: #FFFFFF;
-    --us-tint: rgba(224,113,75,0.16);
-    --ok: #5FC08F;
-    --shadow: rgba(0,0,0,0.45);
-    color-scheme: dark;
-  }
+  :root { --c-primary:151 51 18; --c-primary-container:184 74 40; --c-on-primary:255 255 255; --c-secondary-fixed:206 232 221; --c-tertiary:121 73 0; --c-tertiary-container:155 95 1; --c-background:252 249 243; --c-surface:252 249 243; --c-surface-bright:252 249 243; --c-surface-dim:220 218 212; --c-surface-container-lowest:255 255 255; --c-surface-container-low:246 243 237; --c-surface-container:240 238 232; --c-surface-container-high:235 232 226; --c-surface-container-highest:229 226 220; --c-on-surface:28 28 24; --c-on-surface-variant:87 66 60; --c-inverse-surface:49 49 45; --c-inverse-on-surface:243 240 234; --c-outline:139 113 106; --c-outline-variant:222 192 184; color-scheme: light; }
+  :root[data-theme="noche"] { --c-primary:224 113 75; --c-primary-container:200 90 53; --c-on-primary:255 255 255; --c-secondary-fixed:178 204 193; --c-tertiary:255 184 102; --c-tertiary-container:255 184 102; --c-background:20 18 16; --c-surface:20 18 16; --c-surface-bright:255 255 255; --c-surface-dim:168 163 155; --c-surface-container-lowest:28 26 23; --c-surface-container-low:25 23 20; --c-surface-container:34 31 27; --c-surface-container-high:42 38 34; --c-surface-container-highest:52 47 42; --c-on-surface:243 239 232; --c-on-surface-variant:211 196 187; --c-inverse-surface:12 11 9; --c-inverse-on-surface:243 240 234; --c-outline:168 148 139; --c-outline-variant:74 63 58; color-scheme: dark; }
   html { transition: background-color .3s ease; }
-  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; line-height:1; }
-  .nav-right { display: flex; align-items: center; gap: 10px; }
-  .theme-btn { width: 40px; height: 40px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .2s; }
-  .theme-btn:hover { background: var(--cream-2); }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: var(--cream);
-    color: var(--ink);
-    line-height: 1.5;
-  }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-  h1, h2, .display { font-family: 'Newsreader', Georgia, serif; font-weight: 500; letter-spacing: -0.01em; }
-
-  /* ── Nav ── */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px; max-width: 1080px; margin: 0 auto; box-sizing: border-box; }
-  .logo { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; height: 32px; }
-  .logo img { height: 32px; width: 32px; border-radius: 9px; display: block; }
-  .logo span { font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 20px; line-height: 1; }
-  .logo span .light { color: var(--ink); }
-  .logo span .accent { color: var(--coral); }
-  .nav-cta { background: var(--coral); color: var(--on-coral); padding: 0 22px; height: 40px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; box-sizing: border-box; }
-
-  /* ── Hero ── */
-  .hero { padding: 72px 0 64px; text-align: center; }
-  .hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.08; max-width: 780px; margin: 0 auto 20px; }
-  .hero .accent { color: var(--coral); }
-  .hero p { font-size: 19px; color: var(--muted); max-width: 560px; margin: 0 auto 36px; }
-  .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--coral); color: var(--on-coral); padding: 15px 30px; border-radius: 999px; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; }
-  .btn-secondary { background: transparent; color: var(--ink); padding: 15px 30px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 16px; border: 1.5px solid var(--line); }
-
-  /* ── Signature: the receipt ── */
-  .receipt-section { padding: 40px 0 80px; }
-  .receipt {
-    max-width: 380px; margin: 0 auto;
-    background: var(--card); border-radius: 4px;
-    box-shadow: 0 12px 40px var(--shadow);
-    padding: 32px 28px;
-    position: relative;
-    transform: rotate(-1.2deg);
-  }
-  .receipt::before {
-    content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 16px;
-    background: repeating-linear-gradient(-45deg, var(--card) 0 6px, var(--cream) 6px 12px);
-    border-radius: 4px 4px 0 0;
-  }
-  .receipt-title { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 20px; }
-  .receipt-row { display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
-  .receipt-row.total { border-bottom: none; border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 14px; font-weight: 800; font-size: 17px; }
-  .receipt-row .label { color: var(--muted); }
-  .receipt-row.total .label { color: var(--ink); }
-  .receipt-row .amt.negative { color: var(--coral); }
-  .receipt-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 18px; }
-
-  /* ── Value props ── */
-  .values { padding: 20px 0 80px; }
-  .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-  .value-card h3 { font-size: 19px; margin-bottom: 8px; font-family: 'Plus Jakarta Sans'; font-weight: 800; }
-  .value-card p { color: var(--muted); font-size: 15px; }
-  .value-num { font-family: 'Newsreader'; font-size: 15px; color: var(--coral); font-weight: 800; margin-bottom: 10px; display: block; }
-
-  /* ── How it works ── */
-  .how { background: var(--cream-2); padding: 80px 0; }
-  .how h2 { text-align: center; font-size: 34px; margin-bottom: 48px; }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 900px; margin: 0 auto; }
-  .step { text-align: center; }
-  .step-num { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--cream); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Newsreader'; margin: 0 auto 16px; }
-  .step h3 { font-size: 17px; margin-bottom: 8px; }
-  .step p { color: var(--muted); font-size: 14.5px; }
-
-  /* ── Form ── */
-  .form-section { padding: 80px 0; }
-  .form-inner { max-width: 480px; margin: 0 auto; text-align: center; }
-  .form-inner h2 { font-size: 32px; margin-bottom: 10px; }
-  .form-inner > p { color: var(--muted); margin-bottom: 32px; }
-  form { text-align: left; display: flex; flex-direction: column; gap: 14px; }
-  label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; display: block; }
-  input, textarea { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1.5px solid var(--line); font-family: 'Plus Jakarta Sans'; font-size: 15px; background: var(--card); color: var(--ink); }
-  input:focus, textarea:focus { outline: 2px solid var(--coral); outline-offset: 1px; border-color: var(--coral); }
-  .submit-btn { margin-top: 8px; }
-  #form-status { margin-top: 16px; font-size: 14px; font-weight: 600; }
-  #form-status.ok { color: var(--ok); }
-  #form-status.err { color: var(--coral-dark); }
-
-  /* ── Comparison table ── */
-  .compare { background: var(--cream-2); padding: 80px 0; }
-  .compare h2 { text-align: center; font-size: 32px; margin-bottom: 12px; }
-  .compare-sub { text-align: center; color: var(--muted); font-size: 15px; max-width: 620px; margin: 0 auto 40px; }
-  .compare-table-wrap { overflow-x: auto; }
-  table.compare-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; min-width: 640px; }
-  table.compare-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; padding: 14px 18px; border-bottom: 1.5px solid var(--line); }
-  table.compare-table td { padding: 14px 18px; font-size: 14.5px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  table.compare-table tr.us td { background: var(--us-tint); font-weight: 700; }
-  table.compare-table td.category { color: var(--muted); font-size: 12.5px; }
-  table.compare-table td .yes { color: var(--ok); font-weight: 700; }
-  table.compare-table td .no { color: var(--coral-dark); font-weight: 700; }
-  .compare-footnote { font-size: 12.5px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
-  @media (max-width: 720px) {
-    table.compare-table { font-size: 13px; }
-  }
-
-  footer { padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
-
-
-  @media (max-width: 720px) {
-    .values-grid, .steps { grid-template-columns: 1fr; }
-    .hero { padding: 48px 0 40px; }
-  }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; vertical-align:middle; line-height:1; }
+  .fill { font-variation-settings:'FILL' 1; }
+  body { animation: umIn .35s ease both; }
+  @keyframes umIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
+  .um-select { appearance:none; background-image:none; }
+</style>
+<style>
+  /* page-specific bits on top of the shared landing tokens */
+  .hero-title .accent { color: #F0916F; font-style: italic; }
+  #form-status.ok { color: #2E7D52; }
+  :root[data-theme="noche"] #form-status.ok { color: #5FC08F; }
+  #form-status.err { color: rgb(var(--c-primary)); }
+  .receipt-edge { background: repeating-linear-gradient(-45deg, rgb(var(--c-surface-container-lowest)) 0 6px, transparent 6px 12px); }
+  .compare-table tr.us td { background: rgb(var(--c-primary) / 0.08); font-weight: 700; }
+  .um-field { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgb(var(--c-outline-variant)); background: rgb(var(--c-surface-container-lowest)); color: rgb(var(--c-on-surface)); font-size: 15px; }
+  .um-field:focus { outline: 2px solid rgb(var(--c-primary)); outline-offset: 1px; border-color: transparent; }
 </style>
 </head>
-<body>
+<body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
 
-<nav>
-  <a class="logo" href="https://unamesa.co.uk" id="logo-link">
-    <img src="/restaurants/icon.png" alt="Una Mesa">
-    <span><span class="light">Una</span> <span class="accent">Mesa</span></span>
-  </a>
-  <div class="nav-right">
-    <button class="theme-btn" id="theme-toggle" type="button" aria-label="Dark mode" onclick="umToggleTheme()"><span class="material-symbols-outlined" id="theme-icon">dark_mode</span></button>
-    <a class="nav-cta" href="#join" data-i18n="navCta">List your restaurant</a>
+<!-- NAV (same as the landing) -->
+<header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <a id="logo-link" class="font-headline text-headline-md text-on-surface tracking-tight" href="https://unamesa.co.uk">UnaMesa</a>
+    <div class="hidden md:flex items-center space-x-8">
+      <a id="nav-discover" class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://unamesa.co.uk" data-i18n="navDiscover">Discover</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/#results" data-i18n="navExplore">Explore</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors flex items-center gap-1.5" href="/#concierge">
+        <span class="material-symbols-outlined text-primary text-[18px]">auto_awesome</span><span data-i18n="navConcierge">AI Concierge</span>
+      </a>
+      <a class="text-label-md text-primary font-semibold" href="/restaurants/" data-i18n="navForRestaurants">For Restaurants</a>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button id="theme-toggle" type="button" aria-label="Dark mode" onclick="umToggleTheme()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
+        <span class="material-symbols-outlined text-[22px]" id="theme-icon">dark_mode</span>
+      </button>
+      <a href="#join" class="ml-2 px-5 py-2.5 rounded-full bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95" data-i18n="navCta">List your restaurant</a>
+    </div>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="relative min-h-[560px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-[#141210]">
+  <div class="absolute inset-0 z-0">
+    <div class="w-full h-full bg-cover bg-center" style="background-image:url('https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110554_1c68743e-2029-40a7-81cb-30a9527070cb.png')"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#141210] via-black/50 to-black/60"></div>
   </div>
-</nav>
-
-<section class="hero wrap">
-  <h1 data-i18n-html="heroTitle">The empty table costs you more than the <span class="accent">deposit</span> ever will.</h1>
-  <p data-i18n="heroSub">List your restaurant on Una Mesa. Diners pay a deposit to book — you keep it if they don't show. No membership fee, ever.</p>
-  <div class="hero-ctas">
-    <a class="btn-primary" href="#join" data-i18n="heroCta1">List your restaurant — free</a>
-    <a class="btn-secondary" href="#pricing" data-i18n="heroCta2">See the pricing</a>
-  </div>
-</section>
-
-<section class="receipt-section wrap" id="pricing">
-  <div class="receipt">
-    <p class="receipt-title" data-i18n="receiptTitle">A table for 2, booked on Una Mesa</p>
-    <div class="receipt-row">
-      <span class="label" data-i18n="receiptDeposit">Deposit (you set the amount)</span>
-      <span class="amt">£2.00 × 2</span>
-    </div>
-    <div class="receipt-row">
-      <span class="label" data-i18n="receiptFee">Una Mesa fee — £1 per diner</span>
-      <span class="amt negative">−£2.00</span>
-    </div>
-    <div class="receipt-row total">
-      <span class="label" data-i18n="receiptPaid">Paid straight to your bank</span>
-      <span class="amt">£2.00</span>
-    </div>
-    <p class="receipt-note" data-i18n="receiptNote">No booking, no fee. No membership, ever.</p>
-  </div>
-</section>
-
-<section class="values wrap">
-  <div class="values-grid">
-    <div class="value-card">
-      <span class="value-num" data-i18n="value1Num">No membership</span>
-      <h3 data-i18n="value1Title">Free to list</h3>
-      <p data-i18n="value1Body">You never pay to appear on Una Mesa. The only fee is per diner, per booking — and only when you actually get one.</p>
-    </div>
-    <div class="value-card">
-      <span class="value-num" data-i18n="value2Num">Your money, your bank</span>
-      <h3 data-i18n="value2Title">Nothing held back</h3>
-      <p data-i18n="value2Body">Deposits go directly into your own Stripe account. Una Mesa never holds your funds — not for a day, not for an hour.</p>
-    </div>
-    <div class="value-card">
-      <span class="value-num" data-i18n="value3Num">One email, one button</span>
-      <h3 data-i18n="value3Title">No new software</h3>
-      <p data-i18n="value3Body">No dashboard to learn. You get an email per booking, with one button: mark it completed, or mark it a no-show.</p>
+  <div class="relative z-10 max-w-7xl mx-auto px-6 py-20 lg:py-28 w-full text-center flex flex-col items-center">
+    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-label-sm mb-6 tracking-wide">
+      <span class="material-symbols-outlined fill text-[15px] text-[#ffb866]">storefront</span><span data-i18n="heroEyebrow">For restaurants</span>
+    </span>
+    <h1 class="hero-title font-headline text-headline-xl-mobile md:text-headline-xl text-white font-normal max-w-4xl tracking-tight leading-tight mb-4" data-i18n-html="heroTitle">The empty table costs you more than the <span class="accent">deposit</span> ever will.</h1>
+    <p class="text-body-lg text-white/85 max-w-2xl font-light mb-10" data-i18n="heroSub">List your restaurant on Una Mesa. Diners pay a deposit to book — you keep it if they don't show. No membership fee, ever.</p>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <a href="#join" class="px-8 py-4 rounded-full bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md flex items-center justify-center gap-2">
+        <span data-i18n="heroCta1">List your restaurant — free</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+      </a>
+      <a href="#pricing" class="px-8 py-4 rounded-full bg-black/40 hover:bg-black/60 border border-white/25 text-white text-label-md backdrop-blur-md transition-colors" data-i18n="heroCta2">See the pricing</a>
     </div>
   </div>
 </section>
 
-<section class="how">
-  <div class="wrap">
-    <h2 data-i18n="howTitle">Live in under five minutes</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3 data-i18n="step1Title">Tell us about your restaurant</h3>
-        <p data-i18n="step1Body">Send us your details below — we'll set up your listing for you.</p>
+<!-- PRICING: receipt + value props -->
+<section class="py-20 bg-surface" id="pricing">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-5">
+        <div class="relative max-w-[400px] mx-auto bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-xl p-8 -rotate-1">
+          <div class="receipt-edge absolute -top-2 left-4 right-4 h-4 rounded-t"></div>
+          <p class="text-label-eyebrow text-outline tracking-wider uppercase text-center mb-5" data-i18n="receiptTitle">A table for 2, booked on Una Mesa</p>
+          <div class="flex justify-between py-2.5 border-b border-dashed border-outline-variant text-body-md">
+            <span class="text-on-surface-variant" data-i18n="receiptDeposit">Deposit (you set the amount)</span><span class="font-semibold">£2.00 × 2</span>
+          </div>
+          <div class="flex justify-between py-2.5 border-b border-dashed border-outline-variant text-body-md">
+            <span class="text-on-surface-variant" data-i18n="receiptFee">Una Mesa fee — £1 per diner</span><span class="font-semibold text-primary">−£2.00</span>
+          </div>
+          <div class="flex justify-between pt-4 mt-1 border-t-2 border-on-surface text-headline-sm">
+            <span data-i18n="receiptPaid">Paid straight to your bank</span><span>£2.00</span>
+          </div>
+          <p class="text-center text-body-sm text-outline mt-5" data-i18n="receiptNote">No booking, no fee. No membership, ever.</p>
+        </div>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3 data-i18n="step2Title">Connect your bank account</h3>
-        <p data-i18n="step2Body">A short, secure form from Stripe — the same payment processor used by millions of businesses.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3 data-i18n="step3Title">Start receiving bookings</h3>
-        <p data-i18n="step3Body">You're live. Diners book, deposits land in your account, no-shows stop costing you money.</p>
+      <div class="lg:col-span-7">
+        <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-2" data-i18n="pricingEyebrow">Pricing</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-8" data-i18n="pricingTitle">You only pay when a diner books</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[22px]">sell</span></div>
+            <span class="text-label-sm text-primary" data-i18n="value1Num">No membership</span>
+            <h3 class="text-headline-sm text-on-surface" data-i18n="value1Title">Free to list</h3>
+            <p class="text-body-sm text-outline" data-i18n="value1Body">You never pay to appear on Una Mesa. The only fee is per diner, per booking — and only when you actually get one.</p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[22px]">account_balance</span></div>
+            <span class="text-label-sm text-primary" data-i18n="value2Num">Your money, your bank</span>
+            <h3 class="text-headline-sm text-on-surface" data-i18n="value2Title">Nothing held back</h3>
+            <p class="text-body-sm text-outline" data-i18n="value2Body">Deposits go directly into your own Stripe account. Una Mesa never holds your funds — not for a day, not for an hour.</p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[22px]">mark_email_read</span></div>
+            <span class="text-label-sm text-primary" data-i18n="value3Num">One email, one button</span>
+            <h3 class="text-headline-sm text-on-surface" data-i18n="value3Title">No new software</h3>
+            <p class="text-body-sm text-outline" data-i18n="value3Body">No dashboard to learn. You get an email per booking, with one button: mark it completed, or mark it a no-show.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="compare" id="compare-section" style="display:none;">
-  <div class="wrap">
-    <h2>How Una Mesa compares</h2>
-    <p class="compare-sub">Not every platform does the same job. Some bring you new diners. Others just manage the ones you already have.</p>
-    <div class="compare-table-wrap">
-      <table class="compare-table">
+<!-- HOW IT WORKS -->
+<section class="py-16 bg-surface-container-low border-y border-outline-variant/30">
+  <div class="max-w-7xl mx-auto px-6">
+    <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-1" data-i18n="howEyebrow">How it works</span>
+    <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-8" data-i18n="howTitle">Live in under five minutes</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-6">
+        <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline text-[20px] mb-4">1</div>
+        <h3 class="text-headline-sm text-on-surface mb-1" data-i18n="step1Title">Tell us about your restaurant</h3>
+        <p class="text-body-sm text-outline" data-i18n="step1Body">Send us your details below — we'll set up your listing for you.</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-6">
+        <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline text-[20px] mb-4">2</div>
+        <h3 class="text-headline-sm text-on-surface mb-1" data-i18n="step2Title">Connect your bank account</h3>
+        <p class="text-body-sm text-outline" data-i18n="step2Body">A short, secure form from Stripe — the same payment processor used by millions of businesses.</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-6">
+        <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline text-[20px] mb-4">3</div>
+        <h3 class="text-headline-sm text-on-surface mb-1" data-i18n="step3Title">Start receiving bookings</h3>
+        <p class="text-body-sm text-outline" data-i18n="step3Body">You're live. Diners book, deposits land in your account, no-shows stop costing you money.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON (UK only — shown by the script) -->
+<section class="py-20 bg-surface" id="compare-section" style="display:none;">
+  <div class="max-w-7xl mx-auto px-6">
+    <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-1">Compare</span>
+    <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">How Una Mesa compares</h2>
+    <p class="text-body-md text-on-surface-variant max-w-2xl mb-8">Not every platform does the same job. Some bring you new diners. Others just manage the ones you already have.</p>
+    <div class="overflow-x-auto rounded-2xl border border-outline-variant/40 shadow-sm">
+      <table class="compare-table w-full min-w-[640px] bg-surface-container-lowest text-body-sm">
         <thead>
-          <tr>
-            <th>Category</th>
-            <th>Platform</th>
-            <th>Monthly fee</th>
-            <th>Fee per diner</th>
-            <th>Brings new diners?</th>
+          <tr class="text-left text-label-eyebrow uppercase tracking-wider text-outline">
+            <th class="px-5 py-4 border-b border-outline-variant/60">Category</th>
+            <th class="px-5 py-4 border-b border-outline-variant/60">Platform</th>
+            <th class="px-5 py-4 border-b border-outline-variant/60">Monthly fee</th>
+            <th class="px-5 py-4 border-b border-outline-variant/60">Fee per diner</th>
+            <th class="px-5 py-4 border-b border-outline-variant/60">Brings new diners?</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="us">
-            <td class="category">Marketplace<br>(real discovery)</td>
-            <td>Una Mesa</td>
-            <td>£0</td>
-            <td>£1.00</td>
-            <td><span class="yes">Yes</span></td>
-          </tr>
-          <tr>
-            <td class="category"></td>
-            <td>Dojo Bookings</td>
-            <td>£149/mo + VAT* (12-month min.)</td>
-            <td>£0</td>
-            <td><span class="yes">Yes</span></td>
-          </tr>
-          <tr>
-            <td class="category"></td>
-            <td>OpenTable</td>
-            <td>Quote-based — no published UK price</td>
-            <td>~£1–2</td>
-            <td><span class="yes">Yes</span></td>
-          </tr>
-          <tr>
-            <td class="category"></td>
-            <td>Quandoo Pro / Premium</td>
-            <td>£39 / £99/mo + £249 / £749 setup</td>
-            <td>£3.90 (partner network only)</td>
-            <td><span class="yes">Yes</span> — stops taking bookings 30 Sep 2026</td>
-          </tr>
-          <tr>
-            <td class="category">White-label<br>(manages your own customers)</td>
-            <td>Seatly</td>
-            <td>£89/mo</td>
-            <td>£0</td>
-            <td><span class="no">No</span></td>
-          </tr>
-          <tr>
-            <td class="category"></td>
-            <td>ResDiary</td>
-            <td>£89–99/mo + £99–300 setup**</td>
-            <td>£0</td>
-            <td><span class="no">No</span></td>
-          </tr>
+        <tbody class="[&_td]:px-5 [&_td]:py-4 [&_td]:border-b [&_td]:border-outline-variant/40 [&_td]:align-top">
+          <tr class="us"><td class="text-outline">Marketplace<br>(real discovery)</td><td>Una Mesa</td><td>£0</td><td>£1.00</td><td><span class="text-[#2E7D52] font-bold">Yes</span></td></tr>
+          <tr><td></td><td>Dojo Bookings</td><td>£149/mo + VAT* (12-month min.)</td><td>£0</td><td><span class="text-[#2E7D52] font-bold">Yes</span></td></tr>
+          <tr><td></td><td>OpenTable</td><td>Quote-based — no published UK price</td><td>~£1–2</td><td><span class="text-[#2E7D52] font-bold">Yes</span></td></tr>
+          <tr><td></td><td>Quandoo Pro / Premium</td><td>£39 / £99/mo + £249 / £749 setup</td><td>£3.90 (partner network only)</td><td><span class="text-[#2E7D52] font-bold">Yes</span> — stops taking bookings 30 Sep 2026</td></tr>
+          <tr><td class="text-outline">White-label<br>(manages your own customers)</td><td>Seatly</td><td>£89/mo</td><td>£0</td><td><span class="text-primary font-bold">No</span></td></tr>
+          <tr><td></td><td>ResDiary</td><td>£89–99/mo + £99–300 setup**</td><td>£0</td><td><span class="text-primary font-bold">No</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="compare-footnote">*Dojo's figure is reported by third-party resellers and comparison sites, not Dojo's own published price — some report negotiating it down to around £99/mo. **ResDiary's figure is corroborated by its own pricing page alongside independent comparison sources. Figures approximate as of mid-2026 and subject to change — worth confirming directly with each provider before making a decision.</p>
+    <p class="text-[12.5px] leading-relaxed text-outline mt-4">*Dojo's figure is reported by third-party resellers and comparison sites, not Dojo's own published price — some report negotiating it down to around £99/mo. **ResDiary's figure is corroborated by its own pricing page alongside independent comparison sources. Figures approximate as of mid-2026 and subject to change — worth confirming directly with each provider before making a decision.</p>
   </div>
 </section>
 
-<section class="form-section wrap" id="join">
-  <div class="form-inner">
-    <h2 data-i18n="formTitle">List your restaurant</h2>
-    <p data-i18n="formSub">Leave your details and we'll reach out to get you set up.</p>
-    <form id="lead-form">
-      <div>
-        <label for="restaurant_name" data-i18n="labelRestaurant">Restaurant name</label>
-        <input type="text" id="restaurant_name" required>
+<!-- FORM (card like the landing's AI Concierge block) -->
+<section class="py-20 bg-surface" id="join">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low rounded-3xl p-8 md:p-12 border border-outline-variant/50 shadow-lg relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center mx-auto mb-4 shadow-md"><span class="material-symbols-outlined text-[24px]">storefront</span></div>
+          <span class="text-label-eyebrow text-primary tracking-wider uppercase block mb-2" data-i18n="formEyebrow">Join Una Mesa</span>
+          <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-3" data-i18n="formTitle">List your restaurant</h2>
+          <p class="text-body-md text-on-surface-variant mb-8" data-i18n="formSub">Leave your details and we'll reach out to get you set up.</p>
+        </div>
+        <form id="lead-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+          <div class="sm:col-span-2">
+            <label for="restaurant_name" class="block text-label-sm text-on-surface mb-1.5" data-i18n="labelRestaurant">Restaurant name</label>
+            <input class="um-field" type="text" id="restaurant_name" required>
+          </div>
+          <div>
+            <label for="contact_name" class="block text-label-sm text-on-surface mb-1.5" data-i18n="labelName">Your name</label>
+            <input class="um-field" type="text" id="contact_name">
+          </div>
+          <div>
+            <label for="email" class="block text-label-sm text-on-surface mb-1.5" data-i18n="labelEmail">Email</label>
+            <input class="um-field" type="email" id="email" required>
+          </div>
+          <div>
+            <label for="phone" class="block text-label-sm text-on-surface mb-1.5" data-i18n="labelPhone">Phone</label>
+            <input class="um-field" type="tel" id="phone">
+          </div>
+          <div>
+            <label for="city" class="block text-label-sm text-on-surface mb-1.5" data-i18n="labelCity">City</label>
+            <input class="um-field" type="text" id="city" placeholder="London">
+          </div>
+          <div class="sm:col-span-2 mt-2">
+            <button type="submit" id="submit-btn" class="w-full px-8 py-4 rounded-full bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md disabled:opacity-60" data-i18n="submitBtn">Send my details</button>
+            <p id="form-status" class="text-center text-label-md mt-4"></p>
+          </div>
+        </form>
       </div>
-      <div>
-        <label for="contact_name" data-i18n="labelName">Your name</label>
-        <input type="text" id="contact_name">
-      </div>
-      <div>
-        <label for="email" data-i18n="labelEmail">Email</label>
-        <input type="email" id="email" required>
-      </div>
-      <div>
-        <label for="phone" data-i18n="labelPhone">Phone</label>
-        <input type="tel" id="phone">
-      </div>
-      <div>
-        <label for="city" data-i18n="labelCity">City</label>
-        <input type="text" id="city" placeholder="London">
-      </div>
-      <button type="submit" class="btn-primary submit-btn" id="submit-btn" data-i18n="submitBtn">Send my details</button>
-      <p id="form-status"></p>
-    </form>
+    </div>
   </div>
 </section>
 
-<footer class="wrap">
-  Una Mesa — <a href="https://unamesa.co.uk" id="footer-link" style="color:inherit;">unamesa.co.uk</a>
+<!-- VALUE RIBBON (same as the landing) -->
+<section class="bg-[#0B1E17] text-white py-8 border-y border-white/10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-white/10">
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-4 md:pt-0">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">calendar_month</span>
+        <div><span class="block text-headline-sm" data-i18n="rib1T">Direct reservations</span><span class="text-body-sm text-white/70" data-i18n="rib1S">No hefty commissions</span></div>
+      </div>
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-6 md:pt-0 md:pl-8">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">groups_2</span>
+        <div><span class="block text-headline-sm" data-i18n="rib2T">Less dependency</span><span class="text-body-sm text-white/70" data-i18n="rib2S">On impersonal marketplaces</span></div>
+      </div>
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-6 md:pt-0 md:pl-8">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">bar_chart_4_bars</span>
+        <div><span class="block text-headline-sm" data-i18n="rib3T">Content that converts</span><span class="text-body-sm text-white/70" data-i18n="rib3S">Real, sustainable demand</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER (same as the landing) -->
+<footer class="w-full bg-inverse-surface border-t border-outline/20">
+  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      <a id="footer-link" class="font-headline text-headline-md text-inverse-on-surface tracking-tight" href="https://unamesa.co.uk">UnaMesa</a>
+      <span class="text-surface-dim text-body-sm" data-i18n="footerCopy">© 2026 Una Mesa Ltd. All rights reserved.</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/#results" data-i18n="footRestaurants">Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/restaurants/" data-i18n="navForRestaurants">For Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/#concierge" data-i18n="navConcierge">AI Concierge</a>
+      <a id="contact-link" class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="mailto:hello@unamesa.co.uk" data-i18n="footContact">Contact</a>
+    </div>
+    <div class="flex items-center gap-4 text-surface-dim">
+      <a aria-label="Instagram" class="hover:text-surface-bright transition-colors" href="https://www.instagram.com/unamesagroup/" target="_blank" rel="noopener"><span class="material-symbols-outlined text-[20px]">photo_camera</span></a>
+      <a aria-label="TikTok" class="hover:text-surface-bright transition-colors" href="https://www.tiktok.com/@unamesagroup" target="_blank" rel="noopener"><span class="material-symbols-outlined text-[20px]">music_note</span></a>
+    </div>
+  </div>
 </footer>
 
 <script>
@@ -391,6 +368,12 @@ var I18N = {
     labelRestaurant: 'Restaurant name', labelName: 'Your name', labelEmail: 'Email', labelPhone: 'Phone', labelCity: 'City',
     submitBtn: 'Send my details', sending: 'Sending…',
     ok: "Thanks — we'll be in touch shortly.", err: 'Something went wrong — please try again.',
+    navDiscover: 'Discover', navExplore: 'Explore', navConcierge: 'AI Concierge', navForRestaurants: 'For Restaurants',
+    heroEyebrow: 'For restaurants', pricingEyebrow: 'Pricing', pricingTitle: 'You only pay when a diner books',
+    howEyebrow: 'How it works', formEyebrow: 'Join Una Mesa',
+    rib1T: 'Direct reservations', rib1S: 'No hefty commissions', rib2T: 'Less dependency', rib2S: 'On impersonal marketplaces',
+    rib3T: 'Content that converts', rib3S: 'Real, sustainable demand',
+    footerCopy: '© 2026 Una Mesa Ltd. All rights reserved.', footRestaurants: 'Restaurants', footContact: 'Contact',
     cityPlaceholder: 'London'
   },
   es: {
@@ -422,6 +405,12 @@ var I18N = {
     labelRestaurant: 'Nombre del restaurante', labelName: 'Tu nombre', labelEmail: 'Email', labelPhone: 'Teléfono', labelCity: 'Ciudad',
     submitBtn: 'Enviar mis datos', sending: 'Enviando…',
     ok: 'Gracias — nos pondremos en contacto pronto.', err: 'Algo salió mal — inténtalo de nuevo.',
+    navDiscover: 'Descubrir', navExplore: 'Explorar', navConcierge: 'AI Concierge', navForRestaurants: 'Para Restaurantes',
+    heroEyebrow: 'Para restaurantes', pricingEyebrow: 'Precio', pricingTitle: 'Solo pagas cuando un comensal reserva',
+    howEyebrow: 'Cómo funciona', formEyebrow: 'Únete a Una Mesa',
+    rib1T: 'Reserva directa', rib1S: 'Sin comisiones abusivas', rib2T: 'Menos dependencia', rib2S: 'De marketplaces impersonales',
+    rib3T: 'Contenido que genera', rib3S: 'Demanda real y sostenible',
+    footerCopy: '© 2026 Una Mesa Ltd. Todos los derechos reservados.', footRestaurants: 'Restaurantes', footContact: 'Contacto',
     cityPlaceholder: 'Madrid'
   }
 };
@@ -473,7 +462,8 @@ var I18N = {
   var domain = lang === 'en' ? 'unamesa.co.uk' : 'unamesa.co';
   document.getElementById('logo-link').href = 'https://' + domain;
   document.getElementById('footer-link').href = 'https://' + domain;
-  document.getElementById('footer-link').textContent = domain;
+  document.getElementById('nav-discover').href = 'https://' + domain;
+  document.getElementById('contact-link').href = lang === 'en' ? 'mailto:hello@unamesa.co.uk' : 'mailto:hola@unamesa.co';
 
   document.getElementById('lead-form').addEventListener('submit', async function(e) {
     e.preventDefault();
