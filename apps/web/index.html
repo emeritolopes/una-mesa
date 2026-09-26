@@ -1,236 +1,496 @@
 <!DOCTYPE html>
-<html lang="en-GB" data-theme="noche">
+<html class="scroll-smooth" lang="en-GB">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Una Mesa — Reserve Your Table at London's Best Restaurants</title>
 <meta name="description" content="Browse video menus and reserve your table at London's best independent restaurants. Fully refundable deposit.">
 <link rel="canonical" href="https://unamesa.co.uk/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,600;0,700;0,800;0,900;1,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus. Diners watch short videos of every dish before visiting, and book with a fully refundable deposit to secure their table.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free for diners. Restaurants pay a monthly listing fee."},"featureList":["Video menu — watch every dish before you visit","Table reservation with refundable deposit","London restaurant listings","QR code video menus for restaurant tables"],"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk"},"areaServed":{"@type":"City","name":"London","addressCountry":"GB"}}
 </script>
-<link rel="stylesheet" href="https://app.unamesa.co.uk/app/app.css">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#973312", "primary-container": "#b84a28", "on-primary": "#ffffff",
+          "secondary-fixed": "#cee8dd",
+          "tertiary": "#794900", "tertiary-container": "#9b5f01",
+          "background": "#fcf9f3", "surface": "#fcf9f3", "surface-bright": "#fcf9f3", "surface-dim": "#dcdad4",
+          "surface-container-lowest": "#ffffff", "surface-container-low": "#f6f3ed", "surface-container": "#f0eee8",
+          "surface-container-high": "#ebe8e2", "surface-container-highest": "#e5e2dc",
+          "on-surface": "#1c1c18", "on-surface-variant": "#57423c",
+          "inverse-surface": "#31312d", "inverse-on-surface": "#f3f0ea",
+          "outline": "#8b716a", "outline-variant": "#dec0b8"
+        },
+        fontFamily: {
+          "headline": ["Newsreader", "Georgia", "serif"],
+          "sans": ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+        },
+        fontSize: {
+          "label-sm": ["12px", { lineHeight: "16px", fontWeight: "600" }],
+          "label-eyebrow": ["11px", { lineHeight: "16px", fontWeight: "700" }],
+          "label-md": ["14px", { lineHeight: "20px", fontWeight: "600" }],
+          "body-sm": ["13px", { lineHeight: "18px" }],
+          "body-md": ["15px", { lineHeight: "22px" }],
+          "body-lg": ["18px", { lineHeight: "28px" }],
+          "headline-sm": ["19px", { lineHeight: "26px", fontWeight: "700" }],
+          "headline-md": ["26px", { lineHeight: "32px", fontWeight: "500" }],
+          "headline-lg-mobile": ["28px", { lineHeight: "34px", fontWeight: "500" }],
+          "headline-lg": ["36px", { lineHeight: "44px", fontWeight: "500" }],
+          "headline-xl-mobile": ["38px", { lineHeight: "44px", fontWeight: "500" }],
+          "headline-xl": ["56px", { lineHeight: "62px", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
 <style>
-  #um-hero-shell {
-    position: fixed; inset: 0; z-index: 9999;
-    background: #0d0c0b;
-    display: flex; flex-direction: column;
-    transition: opacity 0.4s ease;
-  }
-  #um-hero-shell.hidden { opacity: 0; pointer-events: none; }
-
-  .um-nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 32px;
-    background: rgba(13,12,11,0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    position: relative; z-index: 2;
-  }
-  .um-brand {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-weight: 800; font-size: 20px;
-    color: #F4EFE6; letter-spacing: -0.01em;
-  }
-  .um-brand span { color: #D8552E; }
-  .um-nav-links { display: flex; gap: 28px; align-items: center; }
-  .um-nav-links a {
-    color: rgba(244,239,230,0.7);
-    font-family: 'Manrope', sans-serif;
-    font-size: 14px; font-weight: 600;
-    text-decoration: none; transition: color 0.2s;
-  }
-  .um-nav-links a:hover { color: #F4EFE6; }
-  .um-btn-outline {
-    border: 1px solid rgba(244,239,230,0.3) !important;
-    border-radius: 999px; padding: 8px 20px;
-    color: #F4EFE6 !important; font-size: 13px !important;
-  }
-  .um-btn-solid {
-    background: #D8552E; color: #fff !important;
-    border-radius: 999px; padding: 8px 20px;
-    font-size: 13px !important; font-weight: 700 !important;
-  }
-
-  .um-hero-bg { flex: 1; position: relative; overflow: hidden; }
-  .um-hero-bg::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80') center/cover no-repeat;
-    animation: heroZoom 8s ease-out forwards;
-  }
-  @keyframes heroZoom {
-    from { transform: scale(1.04); }
-    to   { transform: scale(1.00); }
-  }
-  .um-hero-bg::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(13,12,11,0.35) 0%, rgba(13,12,11,0.6) 60%, rgba(13,12,11,0.92) 100%);
-  }
-
-  .um-hero-content {
-    position: absolute; inset: 0; z-index: 1;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 0 24px 60px; text-align: center;
-  }
-  .um-eyebrow {
-    font-family: 'Manrope', sans-serif;
-    font-size: 11px; font-weight: 800;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    color: #D8552E; margin-bottom: 18px;
-  }
-  .um-hero-h1 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(40px, 6vw, 80px);
-    font-weight: 700; line-height: 1.05;
-    color: #F4EFE6; letter-spacing: -0.02em;
-  }
-  .um-hero-h1 em { font-style: italic; color: #D8552E; }
-
-  .um-search-wrap { width: 100%; max-width: 600px; margin-top: 36px; }
-  .um-search-bar {
-    display: flex; align-items: center;
-    background: rgba(244,239,230,0.10);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(244,239,230,0.2);
-    border-radius: 999px;
-    padding: 6px 6px 6px 22px; gap: 8px;
-  }
-  .um-search-bar input {
-    flex: 1; background: none; border: none; outline: none;
-    font-family: 'Manrope', sans-serif;
-    font-size: 15px; color: #F4EFE6; padding: 10px 0;
-  }
-  .um-search-bar input::placeholder { color: rgba(244,239,230,0.5); }
-  .um-search-bar button {
-    background: #D8552E; color: #fff;
-    border: none; border-radius: 999px;
-    padding: 11px 24px;
-    font-family: 'Manrope', sans-serif;
-    font-size: 14px; font-weight: 700;
-    cursor: pointer; transition: opacity 0.2s;
-  }
-  .um-search-bar button:hover { opacity: 0.88; }
-
-  .um-pills {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    justify-content: center; margin-top: 16px;
-  }
-  .um-pill {
-    background: rgba(244,239,230,0.08);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(244,239,230,0.15);
-    border-radius: 999px; padding: 7px 16px;
-    font-family: 'Manrope', sans-serif;
-    font-size: 13px; font-weight: 600;
-    color: rgba(244,239,230,0.85);
-    cursor: pointer; transition: all 0.2s;
-  }
-  .um-pill:hover {
-    background: rgba(216,85,46,0.2);
-    border-color: rgba(216,85,46,0.5);
-    color: #F4EFE6;
-  }
-
-  @media (max-width: 640px) {
-    .um-nav { padding: 14px 20px; }
-    .um-nav-links { gap: 12px; }
-  }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; vertical-align:middle; line-height:1; }
+  .fill { font-variation-settings:'FILL' 1; }
+  body { animation: umIn .35s ease both; }
+  @keyframes umIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
+  .um-select { appearance:none; background-image:none; }
 </style>
 </head>
-<body>
+<body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
 
-<div id="um-hero-shell">
-  <nav class="um-nav">
-    <span class="um-brand">Una <span>Mesa</span></span>
-    <div class="um-nav-links">
-      <a href="#" onclick="umPillSearch('');return false;">Discover</a>
-      <a href="#" onclick="umNav('concierge');return false;">AI Concierge</a>
-      <a href="#" class="um-btn-outline" onclick="umNav('signin');return false;">Sign in</a>
-      <a href="#" class="um-btn-solid" onclick="umNav('signup');return false;">Create profile</a>
+<!-- NAV -->
+<header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <a class="font-headline text-headline-md text-on-surface tracking-tight" href="#">UnaMesa</a>
+    <nav class="hidden md:flex items-center space-x-8">
+      <a class="text-label-md text-primary font-semibold" href="#discover">Discover</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://app.unamesa.co.uk/#results">Explore</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors flex items-center gap-1.5" href="https://app.unamesa.co.uk/#concierge">
+        <span class="material-symbols-outlined text-primary text-[18px]">auto_awesome</span>AI Concierge
+      </a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="#videos">Videos</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="#for-restaurants">For Restaurants</a>
+    </nav>
+    <div class="flex items-center space-x-3">
+      <button aria-label="Search" type="button" onclick="focusSearch()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
+        <span class="material-symbols-outlined text-[22px]">search</span>
+      </button>
+      <a aria-label="Saved restaurants" href="https://app.unamesa.co.uk/#profile" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
+        <span class="material-symbols-outlined text-[22px]">favorite</span>
+      </a>
+      <a href="https://app.unamesa.co.uk/" class="ml-2 px-5 py-2.5 rounded-full border border-on-surface text-label-md text-on-surface hover:bg-on-surface hover:text-surface transition-all active:scale-95">Sign in</a>
     </div>
-  </nav>
-  <div class="um-hero-bg">
-    <div class="um-hero-content">
-      <p class="um-eyebrow">Book near you</p>
-      <h1 class="um-hero-h1">The table that <em>awaits</em><br>you.</h1>
-      <div class="um-search-wrap">
-        <form class="um-search-bar" onsubmit="umHeroSearch(event)">
-          <input id="um-search-input" type="text" placeholder="Restaurant, cuisine, area…" autocomplete="off">
-          <button type="submit">Search</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative min-h-[620px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-on-surface">
+  <div class="absolute inset-0 z-0">
+    <div class="w-full h-full bg-cover bg-center" style="background-image:url('https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110543_2a51e290-0934-4a45-a5f2-7916884c9998.png')"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#141210] via-black/40 to-black/60"></div>
+  </div>
+  <div class="relative z-10 max-w-7xl mx-auto px-6 py-20 lg:py-28 w-full text-center flex flex-col items-center">
+    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-label-sm mb-6 tracking-wide">
+      <span class="material-symbols-outlined fill text-[15px] text-[#ffb866]">restaurant_menu</span>
+      Exclusive Gastronomic Platform · London
+    </span>
+    <h1 class="font-headline text-headline-xl-mobile md:text-headline-xl text-white font-normal max-w-4xl tracking-tight leading-tight mb-4">Discover. Choose. Reserve.</h1>
+    <p class="text-body-lg text-white/85 max-w-2xl font-light mb-10">Real restaurants, authentic stories and direct reservations. Experience London's gastronomy differently.</p>
+
+    <!-- Booking bar -->
+    <div class="w-full max-w-5xl bg-surface-container-lowest/95 backdrop-blur-xl rounded-2xl md:rounded-full p-2.5 md:p-3 shadow-2xl border border-white/60 text-left">
+      <form id="search-form" class="flex flex-col md:flex-row items-stretch md:items-center justify-between divide-y md:divide-y-0 md:divide-x divide-surface-container-high">
+        <label class="flex items-center gap-3.5 px-5 py-3 md:py-2 flex-1 cursor-text" for="search-input">
+          <span class="material-symbols-outlined text-outline text-[22px]">search</span>
+          <span class="w-full">
+            <span class="block text-label-sm text-on-surface font-semibold">Where do you want to eat?</span>
+            <input id="search-input" type="text" autocomplete="off" placeholder="Area, cuisine or restaurant" class="w-full bg-transparent border-none p-0 text-body-sm text-on-surface-variant placeholder:text-outline/60 focus:ring-0">
+          </span>
+        </label>
+        <label class="flex items-center gap-3.5 px-5 py-3 md:py-2 md:min-w-[190px] cursor-pointer" for="search-date">
+          <span class="material-symbols-outlined text-outline text-[22px]">calendar_today</span>
+          <span class="w-full">
+            <span class="block text-label-sm text-on-surface font-semibold">Date</span>
+            <input id="search-date" type="date" class="w-full bg-transparent border-none p-0 text-body-sm text-on-surface-variant focus:ring-0">
+          </span>
+        </label>
+        <label class="flex items-center gap-3.5 px-5 py-3 md:py-2 md:min-w-[170px] cursor-pointer" for="search-guests">
+          <span class="material-symbols-outlined text-outline text-[22px]">person</span>
+          <span class="w-full">
+            <span class="block text-label-sm text-on-surface font-semibold">Guests</span>
+            <select id="search-guests" class="um-select w-full bg-transparent border-none p-0 text-body-sm text-on-surface-variant focus:ring-0 cursor-pointer">
+              <option value="1">1 guest</option><option value="2" selected>2 guests</option><option value="3">3 guests</option>
+              <option value="4">4 guests</option><option value="5">5 guests</option><option value="6">6+ guests</option>
+            </select>
+          </span>
+          <span class="material-symbols-outlined text-outline text-[18px]">keyboard_arrow_down</span>
+        </label>
+        <label class="flex items-center gap-3.5 px-5 py-3 md:py-2 md:min-w-[170px] cursor-pointer" for="search-cuisine">
+          <span class="material-symbols-outlined text-outline text-[22px]">restaurant</span>
+          <span class="w-full">
+            <span class="block text-label-sm text-on-surface font-semibold">Cuisine</span>
+            <select id="search-cuisine" class="um-select w-full bg-transparent border-none p-0 text-body-sm text-on-surface-variant focus:ring-0 cursor-pointer">
+              <option value="">All</option><option>Italian</option><option>Japanese</option><option>Mediterranean</option>
+              <option>Turkish</option><option>Spanish</option><option>Modern British</option>
+            </select>
+          </span>
+          <span class="material-symbols-outlined text-outline text-[18px]">keyboard_arrow_down</span>
+        </label>
+        <div class="pt-3 md:pt-0 md:pl-2">
+          <button type="submit" class="w-full md:w-auto px-7 py-4 rounded-full bg-primary text-on-primary text-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-md">
+            <span>Explore restaurants</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button type="button" onclick="goApp('#results')" class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white text-label-sm backdrop-blur-md transition-colors">
+        <span class="material-symbols-outlined text-[18px]">near_me</span>See restaurants near me
+      </button>
+      <span class="text-white/40 hidden sm:inline">•</span>
+      <button type="button" onclick="searchFor('romantic')" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-label-sm transition-colors">Romantic</button>
+      <button type="button" onclick="searchFor('terrace')" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-label-sm transition-colors">Outdoor terrace</button>
+      <button type="button" onclick="searchFor('tasting menu')" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-label-sm transition-colors">Chef's counter</button>
+      <button type="button" onclick="searchFor('brunch')" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-label-sm transition-colors">Sunday Brunch</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESTAURANTS (live from Supabase) -->
+<section class="py-20 bg-surface" id="discover">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+      <div>
+        <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-1">Restaurants in London</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">Discover where you want to eat <span id="time-of-day">tonight</span></h2>
+      </div>
+      <a class="group inline-flex items-center gap-1.5 text-label-md text-on-surface hover:text-primary transition-colors" href="https://app.unamesa.co.uk/#results">
+        <span>See all restaurants</span><span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+    <div id="venue-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <p class="col-span-full text-center text-outline py-16">Loading restaurants…</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEOS -->
+<section class="py-16 bg-surface-container-low border-y border-outline-variant/30" id="videos">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+      <div>
+        <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-1">Videos, menus &amp; experiences</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">Experience it before you book</h2>
+      </div>
+      <a class="group inline-flex items-center gap-1.5 text-label-md text-on-surface hover:text-primary transition-colors" href="https://app.unamesa.co.uk/#results">
+        <span>Explore more videos</span><span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+    <div id="video-reel" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
+  </div>
+</section>
+
+<!-- AI CONCIERGE -->
+<section class="py-20 bg-surface" id="ai-concierge">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low rounded-3xl p-8 md:p-12 border border-outline-variant/50 shadow-lg relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 text-center max-w-2xl mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center mx-auto mb-4 shadow-md">
+          <span class="material-symbols-outlined text-[24px]">auto_awesome</span>
+        </div>
+        <span class="text-label-eyebrow text-primary tracking-wider uppercase block mb-2">Intelligent Gastronomic Assistant</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-3">Looking for something special tonight?</h2>
+        <p class="text-body-md text-on-surface-variant mb-8">Describe the vibe, the occasion or whatever you fancy, and our AI Concierge will find your perfect table instantly.</p>
+        <form id="concierge-form" class="relative flex items-center bg-surface-container-lowest rounded-full shadow-md border border-outline-variant p-2">
+          <span class="material-symbols-outlined text-outline ml-3 mr-2 text-[22px]">chat_bubble_outline</span>
+          <input id="concierge-input" type="text" autocomplete="off" placeholder="E.g. 'An intimate, romantic dinner with natural wines near Covent Garden…'" class="w-full bg-transparent border-none p-1 text-body-sm text-on-surface placeholder:text-outline/60 focus:ring-0">
+          <button type="submit" aria-label="Ask the concierge" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container transition-all flex-shrink-0">
+            <span class="material-symbols-outlined text-[20px]">arrow_upward</span>
+          </button>
         </form>
-        <div class="um-pills">
-          <button class="um-pill" onclick="umPillSearch('Outdoor seating')">Outdoor seating</button>
-          <button class="um-pill" onclick="umPillSearch('Romantic')">Romantic</button>
-          <button class="um-pill" onclick="umPillSearch('Seafood')">Seafood</button>
-          <button class="um-pill" onclick="umPillSearch('Groups')">Groups</button>
-          <button class="um-pill" onclick="umPillSearch('Brunch')">Brunch</button>
-          <button class="um-pill" onclick="umPillSearch('Vegetarian')">Vegetarian</button>
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+          <span class="text-label-sm text-outline mr-1">Try:</span>
+          <button type="button" onclick="askConcierge('A hidden gem')" class="px-3.5 py-1.5 rounded-full bg-surface-container-highest text-on-surface text-label-sm hover:bg-outline-variant/30 transition-colors">Hidden gem</button>
+          <button type="button" onclick="askConcierge('Business dinner with clients')" class="px-3.5 py-1.5 rounded-full bg-surface-container-highest text-on-surface text-label-sm hover:bg-outline-variant/30 transition-colors">Dinner with clients</button>
+          <button type="button" onclick="askConcierge('Group celebration')" class="px-3.5 py-1.5 rounded-full bg-surface-container-highest text-on-surface text-label-sm hover:bg-outline-variant/30 transition-colors">Group celebration</button>
+          <button type="button" onclick="askConcierge('Late-night drinks')" class="px-3.5 py-1.5 rounded-full bg-surface-container-highest text-on-surface text-label-sm hover:bg-outline-variant/30 transition-colors">Late-night drinks</button>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<div id="root"></div>
+<!-- FOR RESTAURANTS -->
+<section class="py-20 bg-surface-container-lowest border-t border-outline-variant/30" id="for-restaurants">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-6 relative">
+        <div class="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl">
+          <img class="w-full h-full object-cover" alt="Chef plating a dish" src="https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110554_1c68743e-2029-40a7-81cb-30a9527070cb.png">
+        </div>
+        <div class="absolute bottom-6 left-6 max-w-[240px] sm:max-w-[260px] bg-black/80 backdrop-blur-xl border border-white/20 text-white rounded-2xl p-4 shadow-2xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold text-white/70">Bookings this month</span>
+            <span class="px-2 py-0.5 rounded-md bg-[#2E7D52] text-[11px] text-white font-bold">+68%</span>
+          </div>
+          <div class="flex items-end gap-1 h-9 mb-3 pt-2">
+            <div class="w-2 bg-white/20 rounded-t h-[40%]"></div><div class="w-2 bg-white/30 rounded-t h-[55%]"></div>
+            <div class="w-2 bg-white/30 rounded-t h-[35%]"></div><div class="w-2 bg-white/50 rounded-t h-[70%]"></div>
+            <div class="w-2 bg-white/60 rounded-t h-[60%]"></div><div class="w-2 bg-white/80 rounded-t h-[85%]"></div>
+            <div class="w-2 bg-primary rounded-t h-[100%]"></div>
+          </div>
+          <div class="space-y-1.5 text-xs text-white/90">
+            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">event_seat</span>Direct bookings</span><span class="font-bold">124</span></div>
+            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">group</span>Covers</span><span class="font-bold">342</span></div>
+            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">visibility</span>Menu video views</span><span class="font-bold">28.4K</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="lg:col-span-6">
+        <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-2">For restaurants</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-4">Fill your tables, not just your calendar</h2>
+        <p class="text-body-lg text-on-surface-variant font-light mb-8">We help independent London restaurants attract more diners with video content, direct bookings and an online presence that actually works.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+          <div class="flex gap-3.5"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined text-[22px]">calendar_today</span></div>
+            <div><h3 class="text-headline-sm text-on-surface">Direct bookings</h3><p class="mt-0.5 text-body-sm text-outline">No hefty commissions, no lock-ins.</p></div></div>
+          <div class="flex gap-3.5"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined text-[22px]">smart_display</span></div>
+            <div><h3 class="text-headline-sm text-on-surface">Video menu</h3><p class="mt-0.5 text-body-sm text-outline">Short clips of every dish that win diners over.</p></div></div>
+          <div class="flex gap-3.5"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined text-[22px]">camera_enhance</span></div>
+            <div><h3 class="text-headline-sm text-on-surface">Professional content</h3><p class="mt-0.5 text-body-sm text-outline">High-quality production for social media.</p></div></div>
+          <div class="flex gap-3.5"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined text-[22px]">query_stats</span></div>
+            <div><h3 class="text-headline-sm text-on-surface">Real analytics</h3><p class="mt-0.5 text-body-sm text-outline">Clear results and guest metrics.</p></div></div>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <a href="https://app.unamesa.co.uk/restaurants/" class="px-8 py-3.5 rounded-full bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md flex items-center justify-center gap-2">
+            <span>List my restaurant on Una Mesa</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </a>
+          <a href="https://app.unamesa.co.uk/restaurants/" class="inline-flex items-center justify-center gap-1 text-label-md text-on-surface hover:text-primary transition-colors py-2">
+            <span>See how it works</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>window.useState=React.useState;window.useEffect=React.useEffect;window.useRef=React.useRef;</script>
-<script src="https://app.unamesa.co.uk/image-slot.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://app.unamesa.co.uk/app/data.js"></script>
-<script src="https://app.unamesa.co.uk/app/auth.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/components.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/home.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/results.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/detail.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/booking.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/concierge.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/reserve-auth.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/profile-extras.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/profile.js"></script>
-<script src="https://app.unamesa.co.uk/app/compiled/app.js"></script>
+<!-- VALUE RIBBON -->
+<section class="bg-[#0B1E17] text-white py-8 border-y border-white/10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-white/10">
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-4 md:pt-0">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">calendar_month</span>
+        <div><span class="block text-headline-sm">Direct reservations</span><span class="text-body-sm text-white/70">No hefty commissions</span></div>
+      </div>
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-6 md:pt-0 md:pl-8">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">groups_2</span>
+        <div><span class="block text-headline-sm">Less dependency</span><span class="text-body-sm text-white/70">On impersonal marketplaces</span></div>
+      </div>
+      <div class="flex items-center justify-center md:justify-start gap-4 pt-6 md:pt-0 md:pl-8">
+        <span class="material-symbols-outlined text-[32px] text-secondary-fixed">bar_chart_4_bars</span>
+        <div><span class="block text-headline-sm">Content that converts</span><span class="text-body-sm text-white/70">Real, sustainable demand</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="w-full bg-inverse-surface border-t border-outline/20">
+  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      <a class="font-headline text-headline-md text-inverse-on-surface tracking-tight" href="#">UnaMesa</a>
+      <span class="text-surface-dim text-body-sm">© 2026 Una Mesa Ltd. All rights reserved.</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/#results">Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/restaurants/">For Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/#concierge">AI Concierge</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="mailto:hello@unamesa.co.uk">Contact</a>
+    </div>
+    <div class="flex items-center gap-4 text-surface-dim">
+      <a aria-label="Instagram" class="hover:text-surface-bright transition-colors" href="https://www.instagram.com/unamesagroup/" target="_blank" rel="noopener"><span class="material-symbols-outlined text-[20px]">photo_camera</span></a>
+      <a aria-label="TikTok" class="hover:text-surface-bright transition-colors" href="https://www.tiktok.com/@unamesagroup" target="_blank" rel="noopener"><span class="material-symbols-outlined text-[20px]">music_note</span></a>
+      <div class="h-4 w-px bg-surface-dim/40"></div>
+      <a href="https://unamesa.co" class="flex items-center gap-1 text-label-sm hover:text-surface-bright transition-colors" title="Una Mesa España">EN <span class="text-surface-dim/60">/ ES</span></a>
+    </div>
+  </div>
+</footer>
 
 <script>
-  if (!localStorage.getItem('um-theme')) localStorage.setItem('um-theme', 'noche');
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') || 'noche');
+const APP = 'https://app.unamesa.co.uk/';
+const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 
-  function hideHeroShell() {
-    var shell = document.getElementById('um-hero-shell');
-    if (shell) shell.classList.add('hidden');
-  }
-  function umHeroSearch(e) {
-    e.preventDefault();
-    var q = document.getElementById('um-search-input').value.trim();
-    hideHeroShell();
-    window.location.hash = q ? '#search/' + encodeURIComponent(q) : '#home';
-  }
-  function umPillSearch(q) {
-    hideHeroShell();
-    window.location.hash = q ? '#search/' + encodeURIComponent(q) : '#home';
-  }
-  function umNav(view) {
-    hideHeroShell();
-    window.location.hash = '#' + view;
-  }
+/* ── Navigation into the app (hash routes understood by apps/app/app/app.jsx) ── */
+function navigateTo(url) {
+  document.body.style.transition = 'opacity .22s ease, transform .22s ease';
+  document.body.style.opacity = '0';
+  document.body.style.transform = 'translateX(-24px)';
+  setTimeout(() => { window.location = url; }, 220);
+}
+function goApp(hash) { navigateTo(APP + (hash || '')); }
+function searchFor(q) { goApp(q ? '#results/' + encodeURIComponent(q) : '#results'); }
+function askConcierge(q) { goApp(q ? '#concierge/' + encodeURIComponent(q) : '#concierge'); }
+function focusSearch() {
+  const el = document.getElementById('search-input');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => el.focus(), 300);
+}
 
-  var attempts = 0;
-  var checkMounted = setInterval(function() {
-    attempts++;
-    var root = document.getElementById('root');
-    if (root && root.children.length > 0) {
-      clearInterval(checkMounted);
-      setTimeout(hideHeroShell, 250);
-    }
-    if (attempts > 80) { clearInterval(checkMounted); hideHeroShell(); }
-  }, 50);
+document.getElementById('search-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = document.getElementById('search-input').value.trim();
+  const cuisine = document.getElementById('search-cuisine').value;
+  searchFor([text, cuisine].filter(Boolean).join(' '));
+});
+document.getElementById('concierge-form').addEventListener('submit', e => {
+  e.preventDefault();
+  askConcierge(document.getElementById('concierge-input').value.trim());
+});
+
+/* Smooth hand-off for every link that goes into the app */
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="' + APP + '"]');
+  if (!a || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank') return;
+  e.preventDefault();
+  navigateTo(a.href);
+});
+
+/* Coming back via the browser's back button restores the page from bfcache
+   with the fade-out still applied */
+window.addEventListener('pageshow', () => {
+  document.body.style.opacity = '';
+  document.body.style.transform = '';
+});
+
+/* ── Helpers ── */
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+function priceLabel(p) {
+  if (typeof p === 'string' && p.trim()) return p.replace(/€/g, '£');
+  const n = Math.max(1, Math.min(4, parseInt(p, 10) || 2));
+  return '£'.repeat(n);
+}
+function setTimeOfDay() {
+  const h = new Date().getHours();
+  const el = document.getElementById('time-of-day');
+  if (el) el.textContent = h >= 5 && h < 12 ? 'this morning' : h >= 12 && h < 17 ? 'this afternoon' : 'tonight';
+}
+function setDefaultDate() {
+  const el = document.getElementById('search-date');
+  el.value = new Date().toLocaleDateString('en-CA');
+  el.min = el.value;
+}
+
+/* ── Restaurants (live) ── */
+async function sbSelect(table, query) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+function venuePhoto(v) {
+  const list = Array.isArray(v.photos) ? v.photos : Array.isArray(v.photo_urls) ? v.photo_urls : [];
+  return list[0] || v.photo_url || v.image || '';
+}
+
+function areaLabel(v) {
+  const area = String(v.neighborhood || v.area || '').trim();
+  return !area || /^london$/i.test(area) ? 'London' : area + ', London';
+}
+
+function renderVenues(venues) {
+  const grid = document.getElementById('venue-grid');
+  if (venues === null) {
+    grid.innerHTML = '<p class="col-span-full text-center text-outline py-16">Couldn\'t load restaurants right now — please try again in a moment.</p>';
+    return;
+  }
+  if (venues.length === 0) {
+    grid.innerHTML = '<p class="col-span-full text-center text-outline py-16">No restaurants listed yet — check back soon.</p>';
+    return;
+  }
+  grid.innerHTML = venues.map(v => {
+    const detail = APP + '#detail/' + encodeURIComponent(v.id);
+    const photo = venuePhoto(v);
+    const cuisine = v.cuisine ? String(v.cuisine).split(',')[0].trim().toUpperCase() : '';
+    const rating = v.rating != null ? Number(v.rating).toFixed(1) : null;
+    return `
+      <article class="group bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+        <a href="${detail}" class="relative aspect-[4/3] overflow-hidden block bg-surface-container-high">
+          ${photo ? `<img loading="lazy" alt="${escapeHtml(v.name)}" src="${escapeHtml(photo)}" onerror="this.remove()" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : ''}
+          ${cuisine ? `<span class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md text-white text-label-sm px-3 py-1 rounded-md tracking-wider">${escapeHtml(cuisine)}</span>` : ''}
+          <span aria-hidden="true" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/40 group-hover:bg-black/60 backdrop-blur-md flex items-center justify-center text-white transition-colors">
+            <span class="material-symbols-outlined text-[20px]">favorite</span>
+          </span>
+        </a>
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="text-headline-sm text-on-surface"><a href="${detail}" class="hover:text-primary transition-colors">${escapeHtml(v.name)}</a></h3>
+            <p class="mt-1 text-body-sm text-outline flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">location_on</span>${escapeHtml(areaLabel(v))}
+            </p>
+            <div class="mt-3 flex items-center gap-2 text-label-sm">
+              ${rating ? `<span class="flex items-center text-tertiary font-bold gap-0.5"><span class="material-symbols-outlined fill text-[18px] text-tertiary-container">star</span>${rating}</span>
+              <span class="text-outline font-normal">(${parseInt(v.review_count || 0, 10)})</span>
+              <span class="text-outline-variant">•</span>` : ''}
+              <span class="text-on-surface-variant font-medium">${escapeHtml(priceLabel(v.price_range || v.price))}</span>
+            </div>
+          </div>
+          <a href="${detail}" class="mt-5 w-full py-3 rounded-xl bg-primary text-on-primary text-label-md text-center hover:bg-primary-container transition-all">Reserve a table</a>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+/* ── Video reel ── */
+const REELS = [
+  ['hf_20260926_110631_b909a1a4-0bda-44ef-be23-3f5a45edbd12.png', 'Authentic Neapolitan pizza in London', '12.4K', 'pizza'],
+  ['hf_20260926_110651_38d56b61-aa87-4f01-85d2-52a0a4067efb.png', 'Signature cocktails in the heart of Soho', '8.7K', 'cocktails'],
+  ['hf_20260926_110631_1a165c04-8165-4da6-8b61-35493b2d9ea1.png', 'A unique gastronomic experience', '15.2K', 'steak'],
+  ['hf_20260926_110631_ecf3c52d-ff6d-4a1b-b7d9-c0406ea61688.png', 'Dinners with the best views of the city', '11.1K', 'views'],
+  ['hf_20260926_110631_ea54d46c-53a0-4cd5-96d9-9e8bffe257ed.png', 'The art of sushi in every detail', '9.3K', 'sushi'],
+  ['hf_20260926_110651_c0d360d0-1846-4e83-a8aa-9fbf56b8581f.png', 'This is how our menu is made', '9.3K', '']
+];
+function renderReels() {
+  const base = 'https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/';
+  document.getElementById('video-reel').innerHTML = REELS.map(([img, caption, views, q]) => `
+    <a href="${APP}#results${q ? '/' + encodeURIComponent(q) : ''}" class="group relative rounded-2xl overflow-hidden aspect-[9/16] shadow-md block">
+      <img loading="lazy" alt="" src="${base}${img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined fill text-white text-[24px]">play_arrow</span>
+        </div>
+      </div>
+      <div class="absolute bottom-0 inset-x-0 p-3 text-white">
+        <p class="text-[13px] leading-tight font-semibold line-clamp-2">${caption}</p>
+        <div class="mt-2 flex items-center gap-1.5 text-white/80 text-[11px] font-semibold">
+          <span class="material-symbols-outlined text-[14px]">visibility</span><span>${views}</span>
+        </div>
+      </div>
+    </a>`).join('');
+}
+
+async function init() {
+  setTimeOfDay();
+  setDefaultDate();
+  renderReels();
+  const venues = await sbSelect('venues', 'city=eq.London&archived=eq.false&select=*&order=rating.desc.nullslast&limit=8');
+  renderVenues(venues);
+}
+init();
 </script>
 </body>
 </html>

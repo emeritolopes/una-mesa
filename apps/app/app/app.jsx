@@ -9,10 +9,17 @@ const AP_LANG = window.UM_LANG;
    alguien que entra por primera vez (sin sessionStorage previo). */
 function parseRouteFromHash() {
   const hash = (window.location.hash || '').replace(/^#/, '');
-  const [view, rid] = hash.split('/');
+  const slash = hash.indexOf('/');
+  const view = slash < 0 ? hash : hash.slice(0, slash);
+  const rid = slash < 0 ? '' : hash.slice(slash + 1);
+  // #results/<texto>, #search/<texto> y #concierge/<texto> llevan la consulta
+  // (los usan la landing de unamesa.co.uk y cualquier enlace compartido)
+  let q = '';
+  try { q = decodeURIComponent(rid); } catch(e) { q = rid; }
   if (view === 'detail' && rid) return { view:'detail', rid, query:'', presetTime:null };
   if (view === 'booking' && rid) return { view:'booking', rid, query:'', presetTime:null };
-  if (view === 'results') return { view:'results', rid:null, query:'', presetTime:null };
+  if (view === 'results' || view === 'search') return { view:'results', rid:null, query:q, presetTime:null };
+  if (view === 'concierge') return { view:'concierge', rid:null, query:q, presetTime:null };
   if (view === 'home') return { view:'home', rid:null, query:'', presetTime:null };
   return null; // hash vacío o no reconocido — usar el respaldo de sessionStorage
 }
