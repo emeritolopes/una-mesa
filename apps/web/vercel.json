@@ -1,18 +1,6 @@
 {
   "redirects": [
     {
-      "source": "/",
-      "has": [{ "type": "host", "value": "unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/#home",
-      "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "www.unamesa.co.uk" }],
-      "destination": "https://app.unamesa.co.uk/#home",
-      "permanent": false
-    },
-    {
       "source": "/((?!portfolio).+)",
       "has": [{ "type": "host", "value": "unamesa.co.uk" }],
       "destination": "https://app.unamesa.co.uk/$1",
