@@ -93,22 +93,25 @@ header.top {
 .hero h1 em { font-style:italic; }
 .hero p.sub {
   color:rgba(255,255,255,0.68); font-size:17px; line-height:1.65;
-  max-width:500px; margin:0 auto 48px; font-weight:400;
+  max-width:500px; margin:0 auto 40px; font-weight:400;
 }
+.search-gap { margin-bottom:20px; }
 
 /* ── SEARCH BAR ── */
 .search-block {
   background:rgba(255,255,255,0.97); border-radius:16px;
-  padding:6px 6px 6px 6px;
+  padding:6px;
   display:flex; align-items:center; gap:0;
-  max-width:720px; margin:0 auto;
+  max-width:860px; margin:0 auto 20px;
   box-shadow:0 16px 60px rgba(0,0,0,0.5);
 }
 .search-field {
   display:flex; align-items:center; gap:10px;
-  flex:1; padding:10px 16px;
+  padding:10px 16px;
   border-right:1px solid rgba(0,0,0,0.1);
 }
+.search-field.grow { flex:2; }
+.search-field.fixed { flex:1; min-width:130px; }
 .search-field:last-of-type { border-right:none; }
 .search-field svg { flex-shrink:0; color:#888; }
 .search-field input, .search-field select {
@@ -392,6 +395,13 @@ footer.foot { background:#0a0908; border-top:1px solid rgba(255,255,255,0.06); p
 .foot-links a:hover { color:var(--accent); }
 .foot-legal { font-size:12px; color:var(--text-dim); }
 
+/* ── PAGE TRANSITION ── */
+@keyframes slideInRight {
+  from { opacity:0; transform:translateX(32px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+body { animation: slideInRight 0.35s ease both; }
+
 /* ── RESPONSIVE ── */
 @media (min-width:1100px) { .grid { grid-template-columns:repeat(4,1fr); gap:28px; } }
 @media (min-width:768px) and (max-width:1099px) { .grid { grid-template-columns:repeat(3,1fr); } }
@@ -453,21 +463,21 @@ footer.foot { background:#0a0908; border-top:1px solid rgba(255,255,255,0.06); p
 
     <!-- SEARCH BAR -->
     <form class="search-block" onsubmit="handleSearch(event)">
-      <div class="search-field">
+      <div class="search-field grow">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="search-input" placeholder="Where do you want to eat?" aria-label="Search restaurants">
       </div>
-      <div class="search-field">
+      <div class="search-field fixed">
         <span style="font-size:14px">📅</span>
-        <input type="text" placeholder="Date" readonly onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+        <input type="text" placeholder="Date" readonly onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="min-width:0">
       </div>
-      <div class="search-field">
+      <div class="search-field fixed">
         <span style="font-size:14px">👥</span>
-        <select><option>2 guests</option><option>1 guest</option><option>3 guests</option><option>4 guests</option><option>5+ guests</option></select>
+        <select style="min-width:0"><option>2 guests</option><option>1 guest</option><option>3 guests</option><option>4 guests</option><option>5+ guests</option></select>
       </div>
-      <div class="search-field">
+      <div class="search-field fixed">
         <span style="font-size:14px">🍽️</span>
-        <select><option>All cuisines</option><option>Italian</option><option>Japanese</option><option>Mediterranean</option><option>Turkish</option><option>Modern British</option></select>
+        <select style="min-width:0"><option>All cuisines</option><option>Italian</option><option>Japanese</option><option>Mediterranean</option><option>Turkish</option><option>Modern British</option></select>
       </div>
       <button type="submit" class="search-submit">Explore restaurants →</button>
     </form>
@@ -489,7 +499,7 @@ footer.foot { background:#0a0908; border-top:1px solid rgba(255,255,255,0.06); p
     <div class="section-header">
       <div>
         <div class="section-eyebrow">Restaurants in London</div>
-        <h2 class="section-title">Discover where you want to eat tonight</h2>
+        <h2 class="section-title">Discover where you want to eat <span id="time-of-day">tonight</span></h2>
       </div>
       <a href="https://app.unamesa.co.uk" class="see-all">See all restaurants</a>
     </div>
@@ -737,9 +747,12 @@ function renderVenues(venues) {
     const rating = v.rating != null ? Number(v.rating).toFixed(1) : null;
     const detailUrl = `https://app.unamesa.co.uk/#detail/${v.id}`;
     const cuisine = v.cuisine ? v.cuisine.split(',')[0].trim().toUpperCase() : '';
+    // Use onerror fallback for broken images
+    const photoStyle = photo ? `background-image:url('${photo.replace(/'/g,"%27")}')` : 'background:#e8e2d8';
+    const photoTag = photo ? `<img src="${photo.replace(/"/g,'&quot;')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0" onerror="this.style.display='none'" onload="this.parentNode.style.backgroundImage='none';this.style.opacity='1'">` : '';
     return `
-      <a class="card" href="${detailUrl}">
-        <div class="card-photo" style="${photo ? `background-image:url('${photo.replace(/'/g,"%27")}')` : ''}">
+      <a class="card" href="${detailUrl}" onclick="event.preventDefault();navigateTo('${detailUrl}')">
+        <div class="card-photo" style="${photoStyle}">${photoTag}
           <div class="card-heart">🤍</div>
           ${cuisine ? `<span class="card-cuisine">${escapeHtml(cuisine)}</span>` : ''}
         </div>
@@ -754,7 +767,41 @@ function renderVenues(venues) {
   }).join('');
 }
 
+// ── TIME OF DAY ──
+function setTimeOfDay() {
+  const h = new Date().getHours();
+  let word;
+  if (h >= 5 && h < 12)       word = 'this morning';
+  else if (h >= 12 && h < 17) word = 'this afternoon';
+  else if (h >= 17 && h < 21) word = 'tonight';
+  else                          word = 'tonight';
+  const el = document.getElementById('time-of-day');
+  if (el) el.textContent = word;
+}
+
+// ── SLIDE-OUT TRANSITION when navigating away ──
+function navigateTo(url) {
+  document.body.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+  document.body.style.opacity = '0';
+  document.body.style.transform = 'translateX(-24px)';
+  setTimeout(() => { window.location = url; }, 220);
+}
+
+// Intercept all internal nav links
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href && href.startsWith('https://app.unamesa.co.uk')) {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        navigateTo(href);
+      });
+    }
+  });
+});
+
 async function init() {
+  setTimeOfDay();
   const venues = await sbSelect(
     'venues',
     'city=eq.London&archived=eq.false&select=id,name,slug,cuisine,neighborhood,rating,review_count,price_range,photo_urls&order=rating.desc.nullslast'
