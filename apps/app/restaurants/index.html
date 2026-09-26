@@ -144,13 +144,13 @@
           <div class="receipt-edge absolute -top-2 left-4 right-4 h-4 rounded-t"></div>
           <p class="text-label-eyebrow text-outline tracking-wider uppercase text-center mb-5" data-i18n="receiptTitle">A table for 2, booked on Una Mesa</p>
           <div class="flex justify-between py-2.5 border-b border-dashed border-outline-variant text-body-md">
-            <span class="text-on-surface-variant" data-i18n="receiptDeposit">Deposit (you set the amount)</span><span class="font-semibold">£2.00 × 2</span>
+            <span class="text-on-surface-variant" data-i18n="receiptDeposit">Deposit (you set the amount)</span><span class="font-semibold" data-i18n="amtDeposit">£2.00 × 2</span>
           </div>
           <div class="flex justify-between py-2.5 border-b border-dashed border-outline-variant text-body-md">
-            <span class="text-on-surface-variant" data-i18n="receiptFee">Una Mesa fee — £1 per diner</span><span class="font-semibold text-primary">−£2.00</span>
+            <span class="text-on-surface-variant" data-i18n="receiptFee">Una Mesa fee — £1 per diner</span><span class="font-semibold text-primary" data-i18n="amtFee">−£2.00</span>
           </div>
           <div class="flex justify-between pt-4 mt-1 border-t-2 border-on-surface text-headline-sm">
-            <span data-i18n="receiptPaid">Paid straight to your bank</span><span>£2.00</span>
+            <span data-i18n="receiptPaid">Paid straight to your bank</span><span data-i18n="amtPaid">£2.00</span>
           </div>
           <p class="text-center text-body-sm text-outline mt-5" data-i18n="receiptNote">No booking, no fee. No membership, ever.</p>
         </div>
@@ -352,6 +352,7 @@ var I18N = {
     receiptTitle: 'A table for 2, booked on Una Mesa',
     receiptDeposit: 'Deposit (you set the amount)',
     receiptFee: 'Una Mesa fee — £1 per diner',
+    amtDeposit: '£2.00 × 2', amtFee: '−£2.00', amtPaid: '£2.00',
     receiptPaid: 'Paid straight to your bank',
     receiptNote: 'No booking, no fee. No membership, ever.',
     value1Num: 'No membership', value1Title: 'Free to list',
@@ -378,9 +379,9 @@ var I18N = {
   },
   es: {
     pageTitle: 'Una Mesa para Restaurantes — Deja de perder dinero con los no-shows',
-    metaDescription: 'Publica tu restaurante en Una Mesa. Sin cuota de membresía — solo £1 por comensal, y solo cuando consigues una reserva. Los depósitos van directo a tu cuenta bancaria.',
+    metaDescription: 'Publica tu restaurante en Una Mesa. Sin cuota de membresía — solo 1 € por comensal, y solo cuando consigues una reserva. Los depósitos van directo a tu cuenta bancaria.',
     ogTitle: 'Una Mesa para Restaurantes',
-    ogDescription: 'Sin cuota de membresía. £1 por comensal. Los depósitos se pagan directo a tu cuenta. Deja de perder dinero con los no-shows.',
+    ogDescription: 'Sin cuota de membresía. 1 € por comensal. Los depósitos se pagan directo a tu cuenta. Deja de perder dinero con los no-shows.',
     navCta: 'Publica tu restaurante',
     heroTitle: 'La mesa vacía te cuesta más que el <span class="accent">depósito</span>.',
     heroSub: 'Publica tu restaurante en Una Mesa. Los comensales pagan un depósito para reservar — tú te lo quedas si no aparecen. Sin cuota de membresía, nunca.',
@@ -388,7 +389,8 @@ var I18N = {
     heroCta2: 'Ver el precio',
     receiptTitle: 'Una mesa para 2, reservada en Una Mesa',
     receiptDeposit: 'Depósito (tú eliges el monto)',
-    receiptFee: 'Comisión de Una Mesa — £1 por comensal',
+    receiptFee: 'Comisión de Una Mesa — 1 € por comensal',
+    amtDeposit: '2,00 € × 2', amtFee: '−2,00 €', amtPaid: '2,00 €',
     receiptPaid: 'Pagado directo a tu banco',
     receiptNote: 'Sin reserva, sin comisión. Sin membresía, nunca.',
     value1Num: 'Sin membresía', value1Title: 'Gratis publicarte',
