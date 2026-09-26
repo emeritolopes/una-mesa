@@ -124,8 +124,8 @@ function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img })
         (r.area || r.city || '') + (dist != null ? UM_T.kmAway(dist) : '')),
       React.createElement('div', { className: 'rc-rating' },
         React.createElement(Icon, { name: 'star', fill: 'currentColor' }),
-        r.rating.toFixed(1),
-        React.createElement('span', { className: 'cnt' }, '(' + r.reviews + ')'),
+        umRating(r),
+        umIsNew(r) ? null : React.createElement('span', { className: 'cnt' }, '(' + r.reviews + ')'),
         React.createElement('span', { className: 'dot' }, '•'),
         React.createElement('span', { className: 'price' }, r.price)),
       React.createElement('div', { className: 'rc-times' },
@@ -177,7 +177,7 @@ function BentoCard({
     }
   }, r.name)), React.createElement('div', {
     className: 'stitch-bento-pill'
-  }, r.rating.toFixed(1) + ' ★')));
+  }, umRating(r) + ' ★')));
 }
 
 /* nearby card — sección Disponible hoy (bento pequeño con título visible) */
@@ -212,7 +212,7 @@ function NearbyCard({
     className: 'nb-meta'
   }, r.cuisine + (dist != null ? UM_T.kmAway(dist) : ' · ' + r.area))), React.createElement('div', {
     className: 'nb-pill'
-  }, r.rating.toFixed(1) + ' ★'));
+  }, umRating(r) + ' ★'));
 }
 
 /* ════ HomeScreen ════ */
@@ -239,8 +239,7 @@ const HX = {
     frEyebrow: 'Para restaurantes', frTitle: 'Llena tus mesas, no solo tu calendario',
     frSub: 'Te ayudamos a atraer más comensales con contenido visual, reservas directas y una presencia online que realmente funciona.',
     feats: [['calendar_today', 'Reservas directas', 'Sin comisiones abusivas ni ataduras.'], ['smart_display', 'Menú de vídeo', 'Contenido audiovisual que enamora al instante.'], ['camera_enhance', 'Contenido profesional', 'Producción de alta calidad para redes sociales.'], ['query_stats', 'Analítica real', 'Resultados tangibles y métricas claras de clientes.']],
-    frCta: 'Quiero mi restaurante en Una Mesa', frHow: 'Ver cómo funciona',
-    metrics: ['Reservas este mes', 'Reservas directas', 'Comensales', 'Visualizaciones'],
+    frCta: 'Quiero mi restaurante en Una Mesa', frHow: 'Ver cómo funciona', watch: 'Ver',
     ribbon: [['calendar_month', 'Reserva directa', 'Sin comisiones abusivas'], ['groups_2', 'Menos dependencia', 'De marketplaces impersonales'], ['bar_chart_4_bars', 'Contenido que genera', 'Demanda real y sostenible']]
   },
   en: {
@@ -263,8 +262,7 @@ const HX = {
     frEyebrow: 'For restaurants', frTitle: 'Fill your tables, not just your calendar',
     frSub: 'We help independent London restaurants attract more diners with video content, direct bookings and an online presence that actually works.',
     feats: [['calendar_today', 'Direct bookings', 'No hefty commissions, no lock-ins.'], ['smart_display', 'Video menu', 'Short clips of every dish that win diners over.'], ['camera_enhance', 'Professional content', 'High-quality production for social media.'], ['query_stats', 'Real analytics', 'Clear results and guest metrics.']],
-    frCta: 'List my restaurant on Una Mesa', frHow: 'See how it works',
-    metrics: ['Bookings this month', 'Direct bookings', 'Covers', 'Menu video views'],
+    frCta: 'List my restaurant on Una Mesa', frHow: 'See how it works', watch: 'Watch',
     ribbon: [['calendar_month', 'Direct reservations', 'No hefty commissions'], ['groups_2', 'Less dependency', 'On impersonal marketplaces'], ['bar_chart_4_bars', 'Content that converts', 'Real, sustainable demand']]
   }
 };
@@ -272,12 +270,12 @@ const HX_IMG = 'https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2h
 const HX_HERO = HX_IMG + 'hf_20260926_110543_2a51e290-0934-4a45-a5f2-7916884c9998.png';
 const HX_CHEF = HX_IMG + 'hf_20260926_110554_1c68743e-2029-40a7-81cb-30a9527070cb.png';
 const HX_REELS = [
-  ['hf_20260926_110631_b909a1a4-0bda-44ef-be23-3f5a45edbd12.png', '12.4K'],
-  ['hf_20260926_110651_38d56b61-aa87-4f01-85d2-52a0a4067efb.png', '8.7K'],
-  ['hf_20260926_110631_1a165c04-8165-4da6-8b61-35493b2d9ea1.png', '15.2K'],
-  ['hf_20260926_110631_ecf3c52d-ff6d-4a1b-b7d9-c0406ea61688.png', '11.1K'],
-  ['hf_20260926_110631_ea54d46c-53a0-4cd5-96d9-9e8bffe257ed.png', '9.3K'],
-  ['hf_20260926_110651_c0d360d0-1846-4e83-a8aa-9fbf56b8581f.png', '9.3K']
+  ['hf_20260926_110631_b909a1a4-0bda-44ef-be23-3f5a45edbd12.png'],
+  ['hf_20260926_110651_38d56b61-aa87-4f01-85d2-52a0a4067efb.png'],
+  ['hf_20260926_110631_1a165c04-8165-4da6-8b61-35493b2d9ea1.png'],
+  ['hf_20260926_110631_ecf3c52d-ff6d-4a1b-b7d9-c0406ea61688.png'],
+  ['hf_20260926_110631_ea54d46c-53a0-4cd5-96d9-9e8bffe257ed.png'],
+  ['hf_20260926_110651_c0d360d0-1846-4e83-a8aa-9fbf56b8581f.png']
 ];
 const MS = (name, extra) => React.createElement('span', { className: 'msym' + (extra ? ' ' + extra : '') }, name);
 
@@ -440,13 +438,13 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
       React.createElement('div', { className: 'lx-wrap' },
         sec(T.vidEyebrow, T.vidTitle, T.vidMore, () => go('results')),
         React.createElement(LiveReels, { city: T.city, fallback: React.createElement('div', { className: 'lx-reels' },
-          HX_REELS.map(([img, views], i) => React.createElement('button', { key: i, type: 'button', className: 'lx-reel', onClick: () => T.reelQ[i] ? search(T.reelQ[i]) : go('results') },
+          HX_REELS.map(([img], i) => React.createElement('button', { key: i, type: 'button', className: 'lx-reel', onClick: () => T.reelQ[i] ? search(T.reelQ[i]) : go('results') },
             React.createElement('img', { src: HX_IMG + img, alt: '', loading: 'lazy' }),
             React.createElement('span', { className: 'lx-reel-shade' }),
             React.createElement('span', { className: 'lx-play' }, MS('play_arrow', 'fill')),
             React.createElement('span', { className: 'lx-reel-cap' },
               React.createElement('span', { className: 'lx-reel-t' }, T.reels[i]),
-              React.createElement('span', { className: 'lx-reel-v' }, MS('visibility'), views))))) }))),
+              React.createElement('span', { className: 'lx-reel-v' }, MS('play_circle'), T.watch))))) }))),
 
     /* 4. AI CONCIERGE */
     React.createElement('section', { className: 'lx-sec' },
@@ -470,12 +468,7 @@ function HomeScreen({ go, openRest, search, askConcierge, favs, toggleFav, start
     React.createElement('section', { className: 'lx-sec lowest' },
       React.createElement('div', { className: 'lx-wrap lx-fr' },
         React.createElement('div', { className: 'lx-fr-vis' },
-          React.createElement('img', { src: HX_CHEF, alt: '' }),
-          React.createElement('div', { className: 'lx-metrics' },
-            React.createElement('div', { className: 'lx-m-head' }, React.createElement('span', null, T.metrics[0]), React.createElement('b', null, '+68%')),
-            React.createElement('div', { className: 'lx-spark' }, [40, 55, 35, 70, 60, 85, 100].map((v, i) => React.createElement('i', { key: i, style: { height: v + '%' } }))),
-            [['event_seat', T.metrics[1], '124'], ['group', T.metrics[2], '342'], ['visibility', T.metrics[3], '28.4K']].map(([ic, k, v]) =>
-              React.createElement('div', { key: k, className: 'lx-m-row' }, React.createElement('span', null, MS(ic), k), React.createElement('b', null, v))))),
+          React.createElement('img', { src: HX_CHEF, alt: '' })),
         React.createElement('div', null,
           React.createElement('span', { className: 'lx-eyebrow' }, T.frEyebrow),
           React.createElement('h2', { className: 'lx-h2' }, T.frTitle),

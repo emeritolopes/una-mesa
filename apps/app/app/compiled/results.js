@@ -17,7 +17,7 @@ const RS_T = {
     filterCuisine: 'Cocina',
     filterPrice: 'Precio',
     filterAmbiance: 'Ambiente',
-    sortMatch: 'Afinidad IA',
+    sortMatch: 'Recomendados',
     sortRating: 'Mejor valorados',
     sortPriceLo: 'Precio: bajo',
     sortPriceHi: 'Precio: alto',
@@ -36,7 +36,7 @@ const RS_T = {
     filterCuisine: 'Cuisine',
     filterPrice: 'Price',
     filterAmbiance: 'Atmosphere',
-    sortMatch: 'AI match',
+    sortMatch: 'Recommended',
     sortRating: 'Top rated',
     sortPriceLo: 'Price: low',
     sortPriceHi: 'Price: high',
@@ -137,7 +137,7 @@ function ResultsScreen({
     markersRef.current = [];
     list.forEach(r => {
       if (!r.lat || !r.lng) return;
-      const m = window.L.marker([r.lat, r.lng]).addTo(leafletMapRef.current).bindPopup('<b>' + r.name + '</b><br>' + r.rating.toFixed(1) + '★ · ' + r.price + '<br><small>' + r.area + '</small>');
+      const m = window.L.marker([r.lat, r.lng]).addTo(leafletMapRef.current).bindPopup('<b>' + r.name + '</b><br>' + umRating(r) + '★ · ' + r.price + '<br><small>' + r.area + '</small>');
       m.on('click', () => openRest(r.id));
       markersRef.current.push(m);
     });
@@ -264,7 +264,7 @@ function ResultsScreen({
     onFav: toggleFav,
     onOpen: openRest,
     onBook: startBook,
-    showMatch: sort === 'match'
+    showMatch: false
   })))) : React.createElement('div', {
     className: 'res-empty'
   }, React.createElement('div', {

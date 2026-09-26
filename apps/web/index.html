@@ -260,23 +260,6 @@
         <div class="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl">
           <img class="w-full h-full object-cover" alt="Chef plating a dish" src="https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/hf_20260926_110554_1c68743e-2029-40a7-81cb-30a9527070cb.png">
         </div>
-        <div class="absolute bottom-6 left-6 max-w-[240px] sm:max-w-[260px] bg-black/80 backdrop-blur-xl border border-white/20 text-white rounded-2xl p-4 shadow-2xl">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-semibold text-white/70">Bookings this month</span>
-            <span class="px-2 py-0.5 rounded-md bg-[#2E7D52] text-[11px] text-white font-bold">+68%</span>
-          </div>
-          <div class="flex items-end gap-1 h-9 mb-3 pt-2">
-            <div class="w-2 bg-white/20 rounded-t h-[40%]"></div><div class="w-2 bg-white/30 rounded-t h-[55%]"></div>
-            <div class="w-2 bg-white/30 rounded-t h-[35%]"></div><div class="w-2 bg-white/50 rounded-t h-[70%]"></div>
-            <div class="w-2 bg-white/60 rounded-t h-[60%]"></div><div class="w-2 bg-white/80 rounded-t h-[85%]"></div>
-            <div class="w-2 bg-primary rounded-t h-[100%]"></div>
-          </div>
-          <div class="space-y-1.5 text-xs text-white/90">
-            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">event_seat</span>Direct bookings</span><span class="font-bold">124</span></div>
-            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">group</span>Covers</span><span class="font-bold">342</span></div>
-            <div class="flex justify-between items-center"><span class="flex items-center gap-1.5 text-white/70"><span class="material-symbols-outlined text-[15px]">visibility</span>Menu video views</span><span class="font-bold">28.4K</span></div>
-          </div>
-        </div>
       </div>
       <div class="lg:col-span-6">
         <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-2">For restaurants</span>
@@ -482,7 +465,8 @@ function renderVenues(venues) {
     const detail = APP + '#detail/' + encodeURIComponent(v.id);
     const photo = venuePhoto(v);
     const cuisine = v.cuisine ? String(v.cuisine).split(',')[0].trim().toUpperCase() : '';
-    const rating = v.rating != null ? Number(v.rating).toFixed(1) : null;
+    const reviews = parseInt(v.review_count || 0, 10);
+    const rating = v.rating != null && reviews > 0 ? Number(v.rating).toFixed(1) : null; // no reviews → "New", not a default rating
     return `
       <article class="group bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
         <a href="${detail}" class="relative aspect-[4/3] overflow-hidden block bg-surface-container-high">
@@ -500,8 +484,8 @@ function renderVenues(venues) {
             </p>
             <div class="mt-3 flex items-center gap-2 text-label-sm">
               ${rating ? `<span class="flex items-center text-tertiary font-bold gap-0.5"><span class="material-symbols-outlined fill text-[18px] text-tertiary-container">star</span>${rating}</span>
-              <span class="text-outline font-normal">(${parseInt(v.review_count || 0, 10)})</span>
-              <span class="text-outline-variant">•</span>` : ''}
+              <span class="text-outline font-normal">(${reviews})</span>
+              <span class="text-outline-variant">•</span>` : `<span class="px-2 py-0.5 rounded-md bg-surface-container-high text-primary font-bold">New</span><span class="text-outline-variant">•</span>`}
               <span class="text-on-surface-variant font-medium">${escapeHtml(priceLabel(v.price_range || v.price))}</span>
             </div>
           </div>
@@ -513,16 +497,16 @@ function renderVenues(venues) {
 
 /* ── Video reel ── */
 const REELS = [
-  ['hf_20260926_110631_b909a1a4-0bda-44ef-be23-3f5a45edbd12.png', 'Authentic Neapolitan pizza in London', '12.4K', 'pizza'],
-  ['hf_20260926_110651_38d56b61-aa87-4f01-85d2-52a0a4067efb.png', 'Signature cocktails in the heart of Soho', '8.7K', 'cocktails'],
-  ['hf_20260926_110631_1a165c04-8165-4da6-8b61-35493b2d9ea1.png', 'A unique gastronomic experience', '15.2K', 'steak'],
-  ['hf_20260926_110631_ecf3c52d-ff6d-4a1b-b7d9-c0406ea61688.png', 'Dinners with the best views of the city', '11.1K', 'views'],
-  ['hf_20260926_110631_ea54d46c-53a0-4cd5-96d9-9e8bffe257ed.png', 'The art of sushi in every detail', '9.3K', 'sushi'],
-  ['hf_20260926_110651_c0d360d0-1846-4e83-a8aa-9fbf56b8581f.png', 'This is how our menu is made', '9.3K', '']
+  ['hf_20260926_110631_b909a1a4-0bda-44ef-be23-3f5a45edbd12.png', 'Authentic Neapolitan pizza in London', 'pizza'],
+  ['hf_20260926_110651_38d56b61-aa87-4f01-85d2-52a0a4067efb.png', 'Signature cocktails in the heart of Soho', 'cocktails'],
+  ['hf_20260926_110631_1a165c04-8165-4da6-8b61-35493b2d9ea1.png', 'A unique gastronomic experience', 'steak'],
+  ['hf_20260926_110631_ecf3c52d-ff6d-4a1b-b7d9-c0406ea61688.png', 'Dinners with the best views of the city', 'views'],
+  ['hf_20260926_110631_ea54d46c-53a0-4cd5-96d9-9e8bffe257ed.png', 'The art of sushi in every detail', 'sushi'],
+  ['hf_20260926_110651_c0d360d0-1846-4e83-a8aa-9fbf56b8581f.png', 'This is how our menu is made', '']
 ];
 function renderReels() {
   const base = 'https://d8j0ntlcm91z4.cloudfront.net/user_3EEAzwZUvO4SvnS8Notm2hD9DNK/';
-  document.getElementById('video-reel').innerHTML = REELS.map(([img, caption, views, q]) => `
+  document.getElementById('video-reel').innerHTML = REELS.map(([img, caption, q]) => `
     <a href="${APP}#results${q ? '/' + encodeURIComponent(q) : ''}" class="group relative rounded-2xl overflow-hidden aspect-[9/16] shadow-md block">
       <img loading="lazy" alt="" src="${base}${img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
       <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10"></div>
@@ -533,9 +517,6 @@ function renderReels() {
       </div>
       <div class="absolute bottom-0 inset-x-0 p-3 text-white">
         <p class="text-[13px] leading-tight font-semibold line-clamp-2">${caption}</p>
-        <div class="mt-2 flex items-center gap-1.5 text-white/80 text-[11px] font-semibold">
-          <span class="material-symbols-outlined text-[14px]">visibility</span><span>${views}</span>
-        </div>
       </div>
     </a>`).join('');
 }

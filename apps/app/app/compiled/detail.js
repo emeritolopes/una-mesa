@@ -186,9 +186,9 @@ function DetailScreen({
   }, React.createElement(Icon, {
     name: 'star',
     fill: 'currentColor'
-  }), r.rating.toFixed(1)), React.createElement('span', {
+  }), umRating(r)), React.createElement('span', {
     className: 'muted'
-  }, DT_T.reviewsParen(r.reviews)), React.createElement('span', {
+  }, umIsNew(r) ? '' : DT_T.reviewsParen(r.reviews)), React.createElement('span', {
     className: 'dot-sep'
   }), React.createElement('span', null, r.cuisine), React.createElement('span', {
     className: 'dot-sep'
@@ -285,8 +285,8 @@ function DetailScreen({
     className: 'rev-summary'
   }, React.createElement('div', null, React.createElement('div', {
     className: 'rev-big display'
-  }, r.rating.toFixed(1)), React.createElement(Stars, {
-    value: r.rating,
+  }, umRating(r)), React.createElement(Stars, {
+    value: umIsNew(r) ? 0 : r.rating,
     size: 18
   }), React.createElement('div', {
     className: 'muted',

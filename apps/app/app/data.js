@@ -12,6 +12,12 @@ window.UM_LANG = (function() {
   return 'es';
 })();
 
+/* Ratings: a restaurant with no reviews shows "New" instead of a number —
+   the rating column has a default value, so a star rating with 0 reviews
+   would be invented. */
+window.umIsNew = r => !(r && r.reviews > 0);
+window.umRating = r => window.umIsNew(r) ? (window.UM_LANG === 'en' ? 'New' : 'Nuevo') : Number(r.rating || 0).toFixed(1);
+
 (function(){
   // gradient palettes for photo placeholders [from,to]
   const G = {
@@ -304,7 +310,13 @@ window.UM_LANG = (function() {
       slug:    v.slug || null,
       name:    v.name || 'Restaurante',
       cuisine,
-      price:   v.price || v.price_range || '€€',
+      // price_range is stored as a number (1–4); show it as the market's currency symbols
+      price:   (function (pr) {
+        const sym = window.UM_LANG === 'en' ? '£' : '€';
+        const n = parseInt(pr, 10);
+        if (!isNaN(n) && String(pr).trim() === String(n)) return sym.repeat(Math.max(1, Math.min(4, n)));
+        return pr ? String(pr) : sym + sym;
+      })(v.price || v.price_range),
       area:    v.neighborhood || v.area || v.district || '',
       city:    v.city || '',
       rating:  parseFloat(v.rating || v.avg_rating || 4.0),

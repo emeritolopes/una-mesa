@@ -2031,3 +2031,6 @@ html[data-nav-dir] .view{animation:none}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
+
+/* the "% match" pill on the restaurant page showed a default value, not a real score — hidden until matching uses real data */
+.det-match-pill{display:none!important}
