@@ -330,7 +330,7 @@ window.UM_LANG = (function() {
       menuVideoAccess:        !!v.menu_video_access,
       stripeMode: v.stripe_mode || 'live',
       photo_url: v.photo_url || v.image_url || v.photo || null,
-      photo_urls: Array.isArray(v.photo_urls) ? v.photo_urls : [],
+      photo_urls: Array.isArray(v.photos) ? v.photos : (Array.isArray(v.photo_urls) ? v.photo_urls : []),
     };
   }
 
