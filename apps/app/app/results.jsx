@@ -2,6 +2,8 @@
 
 /* ── Market/language: window.UM_LANG is the single source of truth (see data.js) ── */
 const RS_LANG = window.UM_LANG;
+/* map centre when location is unavailable: the market's city */
+const RS_FALLBACK = RS_LANG === 'en' ? { lat: 51.5074, lng: -0.1278 } : { lat: 40.4168, lng: -3.7038 };
 const RS_T = {
   es: {
     eyebrow: 'Explorar',
@@ -60,10 +62,10 @@ function ResultsScreen({ query, openRest, favs, toggleFav, startBook, geoLabel, 
   useEffect(() => {
     if (coords) return;
     let alive = true;
-    if (!('geolocation' in navigator)) { setCoords({ lat: 40.4168, lng: -3.7038 }); return; }
+    if (!('geolocation' in navigator)) { setCoords(RS_FALLBACK); return; }
     navigator.geolocation.getCurrentPosition(
       pos => { if (alive) setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-      ()  => { if (alive) setCoords({ lat: 40.4168, lng: -3.7038 }); },
+      ()  => { if (alive) setCoords(RS_FALLBACK); },
       { timeout: 5000, maximumAge: 300000 }
     );
     return () => { alive = false; };

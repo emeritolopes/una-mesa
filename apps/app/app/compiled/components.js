@@ -313,21 +313,10 @@ function Header({
       go('home');
       setMenuOpen(false);
     }
-  }, React.createElement('img', {
-    src: 'https://app.unamesa.co.uk/una-mesa-logo.svg',
-    alt: 'Una Mesa',
-    style: {
-      height: '36px',
-      width: 'auto',
-      filter: theme === 'noche' ? 'brightness(0) invert(1)' : 'brightness(0)',
-      display: 'inline-block',
-      verticalAlign: 'middle',
-      flexShrink: 0
-    }
-  })), /* ── Links de navegación (desktop) ── */
+  }, React.createElement('span', { className: 'brand-word' }, 'UnaMesa')), /* ── Links de navegación (desktop) ── */
   React.createElement('nav', {
     className: 'hdr-links'
-  }, lnk('home', CM_T.discover), lnk('results', CM_T.explore), lnk('concierge', CM_T.concierge)), /* ── Barra de búsqueda scroll ── */
+  }, lnk('home', CM_T.discover), lnk('results', CM_T.explore), lnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes'))), /* ── Barra de búsqueda scroll ── */
   React.createElement('form', {
     className: 'hdr-search' + (scrolled ? ' show' : ''),
     onSubmit: submit,
@@ -437,7 +426,7 @@ function Header({
   React.createElement('nav', {
     className: 'hdr-mobile-menu' + (menuOpen ? ' open' : ''),
     'aria-hidden': String(!menuOpen)
-  }, mlnk('home', CM_T.discover), mlnk('results', CM_T.explore), mlnk('concierge', CM_T.concierge)));
+  }, mlnk('home', CM_T.discover), mlnk('results', CM_T.explore), mlnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-mobile-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes'))));
 }
 
 /* ── Footer ── */
@@ -461,36 +450,23 @@ const SOCIAL_LINKS = [{
   label: 'TikTok'
 }];
 function Footer() {
-  return React.createElement('footer', {
-    className: 'foot'
-  }, React.createElement('div', {
-    className: 'wrap'
-  }, React.createElement('div', {
-    className: 'foot-in'
-  }, React.createElement('span', null, CM_T.footerTag), React.createElement('div', {
-    className: 'foot-social'
-  }, SOCIAL_LINKS.map(s => React.createElement('a', {
-    key: s.name,
-    href: s.href,
-    target: '_blank',
-    rel: 'noopener noreferrer',
-    'aria-label': s.label,
-    title: s.label
-  }, React.createElement(Icon, {
-    name: s.name,
-    fill: 'currentColor',
-    style: { width: 18, height: 18 }
-  })))), React.createElement('div', {
-    className: 'foot-links'
-  }, React.createElement('a', {
-    href: '/restaurants'
-  }, CM_T.forRestaurants), React.createElement('a', {
-    href: '#'
-  }, CM_T.help), React.createElement('a', {
-    href: '#'
-  }, CM_T.privacy), React.createElement('a', {
-    href: '#'
-  }, CM_T.terms)))));
+  /* Same footer as the unamesa.co.uk landing: wordmark + ©, links, socials */
+  const en = window.UM_LANG === 'en';
+  return React.createElement('footer', { className: 'foot' },
+    React.createElement('div', { className: 'wrap' },
+      React.createElement('div', { className: 'foot-in' },
+        React.createElement('div', { className: 'foot-brand' },
+          React.createElement('span', { className: 'brand-word' }, 'UnaMesa'),
+          React.createElement('span', { className: 'foot-copy' }, en ? '© 2026 Una Mesa Ltd. All rights reserved.' : '© 2026 Una Mesa Ltd. Todos los derechos reservados.')),
+        React.createElement('div', { className: 'foot-links' },
+          React.createElement('a', { href: '#results' }, en ? 'Restaurants' : 'Restaurantes'),
+          React.createElement('a', { href: '/restaurants/' }, en ? 'For Restaurants' : 'Para Restaurantes'),
+          React.createElement('a', { href: '#concierge' }, en ? 'AI Concierge' : 'Conserje IA'),
+          React.createElement('a', { href: en ? 'mailto:hello@unamesa.co.uk' : 'mailto:hola@unamesa.co' }, en ? 'Contact' : 'Contacto')),
+        React.createElement('div', { className: 'foot-social' },
+          SOCIAL_LINKS.map(s => React.createElement('a', {
+            key: s.name, href: s.href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': s.label, title: s.label
+          }, React.createElement(Icon, { name: s.name, fill: 'currentColor', style: { width: 18, height: 18 } })))))));
 }
 Object.assign(window, {
   Icon,

@@ -10,8 +10,8 @@ const UM_T = {
     noRestaurantsYetBody: 'Estamos incorporando restaurantes en esta ciudad. Vuelve pronto.',
     heroEyebrowIn: 'Reserva en ',
     heroEyebrowNear: 'Reserva cerca de ti',
-    heroA: 'La mesa que ',
-    heroB: 'te espera',
+    heroA: 'Descubre. Elige. ',
+    heroB: 'Reserva',
     searchPh: 'Restaurante, cocina, zona…',
     search: 'Buscar',
     chips: ['Con terraza', 'Romántico', 'Marisco', 'Grupos', 'Brunch', 'Vegetariano'],
@@ -54,8 +54,8 @@ const UM_T = {
     noRestaurantsYetBody: "We're onboarding restaurants in this city. Check back soon.",
     heroEyebrowIn: 'Book in ',
     heroEyebrowNear: 'Book near you',
-    heroA: 'The table that ',
-    heroB: 'awaits you',
+    heroA: 'Discover. Choose. ',
+    heroB: 'Reserve',
     searchPh: 'Restaurant, cuisine, area…',
     search: 'Search',
     chips: ['Outdoor seating', 'Romantic', 'Seafood', 'Groups', 'Brunch', 'Vegetarian'],
@@ -94,90 +94,52 @@ const UM_T = {
 }[UM_LANG];
 
 /* shared restaurant card — usado en results, profile, concierge */
-function RestaurantCard({
-  r,
-  fav,
-  onFav,
-  onOpen,
-  onBook,
-  showMatch,
-  dist,
-  img
-}) {
+function RestaurantCard({ r, fav, onFav, onOpen, onBook, showMatch, dist, img }) {
+  /* Same card as the unamesa.co.uk landing: 4:3 photo with cuisine badge + heart,
+     name, area, rating · price, quick time slots, full-width "Reserve" button. */
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const firstTimes = [...(r.times.lunch || []), ...(r.times.dinner || [])].filter(([time]) => {
-    const [h, m] = time.split(':').map(Number);
-    return h * 60 + m > currentMinutes + 30;
-  }).slice(0, 3);
+  const firstTimes = [...(r.times.lunch || []), ...(r.times.dinner || [])]
+    .filter(([time]) => { const [h, m] = time.split(':').map(Number); return h * 60 + m > currentMinutes + 30; })
+    .slice(0, 3);
   const resolvedImg = r.photo_url || img;
   const isAbsoluteImg = resolvedImg && /^https?:\/\//.test(resolvedImg);
-  return React.createElement('div', {
-    className: 'rcard',
-    onClick: () => onOpen(r.id)
-  }, React.createElement('div', {
-    className: 'rc-photo'
-  }, resolvedImg ? React.createElement('div', {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      backgroundImage: "url('" + (isAbsoluteImg ? resolvedImg : './' + resolvedImg) + "')",
-      backgroundSize: 'cover',
-      backgroundPosition: 'center'
-    }
-  }) : React.createElement(Photo, {
-    cz: r.cz,
-    glyph: r.glyph,
-    slotId: 'rphoto-' + r.id
-  }), showMatch ? React.createElement('span', {
-    className: 'rc-match'
-  }, React.createElement(Icon, {
-    name: 'sparkle',
-    fill: 'currentColor'
-  }), r.match + '%') : null, React.createElement('button', {
-    className: 'rc-fav' + (fav ? ' on' : ''),
-    title: UM_T.save,
-    onClick: e => {
-      e.stopPropagation();
-      onFav(r.id);
-    }
-  }, React.createElement(Icon, {
-    name: 'heart',
-    fill: fav ? 'currentColor' : 'none'
-  }))), React.createElement('div', {
-    className: 'rc-body'
-  }, React.createElement('div', {
-    className: 'rc-top'
-  }, React.createElement('div', {
-    className: 'rc-name'
-  }, r.name), React.createElement('div', {
-    className: 'rc-rating'
-  }, React.createElement(Icon, {
-    name: 'star',
-    fill: 'currentColor'
-  }), r.rating.toFixed(1), React.createElement('span', {
-    className: 'cnt'
-  }, '(' + r.reviews + ')'))), React.createElement('div', {
-    className: 'rc-meta'
-  }, r.cuisine + ' · ' + r.price + ' · ' + r.area + (dist != null ? UM_T.kmAway(dist) : '')), React.createElement('div', {
-    className: 'rc-tags'
-  }, r.tags.slice(0, 2).map((t, i) => React.createElement('span', {
-    key: i,
-    className: 'tagpill'
-  }, t))), React.createElement('div', {
-    className: 'rc-foot'
-  }, React.createElement('div', {
-    className: 'rc-times'
-  }, firstTimes.length ? firstTimes.map(([t, st], i) => React.createElement('span', {
-    key: i,
-    className: 'tslot' + (st === 'few' ? ' few' : st === 'full' ? ' full' : ''),
-    onClick: e => {
-      e.stopPropagation();
-      if (st !== 'full') onBook(r.id, t);
-    }
-  }, t)) : React.createElement('span', {
-    className: 'rc-meta'
-  }, UM_T.noSlotsToday)))));
+  const cuisine = String(r.cuisine || '').split(',')[0].trim();
+  return React.createElement('div', { className: 'rcard', onClick: () => onOpen(r.id) },
+    React.createElement('div', { className: 'rc-photo' },
+      resolvedImg
+        ? React.createElement('div', { className: 'rc-img', style: { backgroundImage: "url('" + (isAbsoluteImg ? resolvedImg : './' + resolvedImg) + "')" } })
+        : React.createElement(Photo, { cz: r.cz, glyph: r.glyph, slotId: 'rphoto-' + r.id }),
+      showMatch ? React.createElement('span', { className: 'rc-match' },
+        React.createElement(Icon, { name: 'sparkle', fill: 'currentColor' }), r.match + '%') : null,
+      cuisine ? React.createElement('span', { className: 'rc-cuisine' }, cuisine) : null,
+      React.createElement('button', { className: 'rc-fav' + (fav ? ' on' : ''), title: UM_T.save,
+        onClick: e => { e.stopPropagation(); onFav(r.id); } },
+        React.createElement(Icon, { name: 'heart', fill: fav ? 'currentColor' : 'none' }))
+    ),
+    React.createElement('div', { className: 'rc-body' },
+      React.createElement('div', { className: 'rc-name' }, r.name),
+      React.createElement('div', { className: 'rc-loc' },
+        React.createElement(Icon, { name: 'pin' }),
+        (r.area || r.city || '') + (dist != null ? UM_T.kmAway(dist) : '')),
+      React.createElement('div', { className: 'rc-rating' },
+        React.createElement(Icon, { name: 'star', fill: 'currentColor' }),
+        r.rating.toFixed(1),
+        React.createElement('span', { className: 'cnt' }, '(' + r.reviews + ')'),
+        React.createElement('span', { className: 'dot' }, '•'),
+        React.createElement('span', { className: 'price' }, r.price)),
+      React.createElement('div', { className: 'rc-times' },
+        firstTimes.length
+          ? firstTimes.map(([t, st], i) => React.createElement('span', {
+              key: i, className: 'tslot' + (st === 'few' ? ' few' : st === 'full' ? ' full' : ''),
+              onClick: e => { e.stopPropagation(); if (st !== 'full') onBook(r.id, t); }
+            }, t))
+          : React.createElement('span', { className: 'rc-meta' }, UM_T.noSlotsToday)),
+      React.createElement('button', { type: 'button', className: 'rc-reserve',
+        onClick: e => { e.stopPropagation(); onOpen(r.id); } },
+        UM_LANG === 'en' ? 'Reserve a table' : 'Reservar mesa')
+    )
+  );
 }
 
 /* bento card — sección Selección de la semana */
