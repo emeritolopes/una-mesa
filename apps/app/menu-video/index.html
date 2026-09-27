@@ -131,7 +131,6 @@ nav.um-nav {
 .play-overlay-btn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.18); }
 .play-overlay-btn .play-circle { width: 52px; height: 52px; border-radius: 50%; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
 .play-overlay-btn .play-circle svg { width: 22px; height: 22px; fill: #fff; }
-.ai-preview-badge { position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); border-radius: 4px; padding: 2px 6px; }
 .chefs-choice-badge { position: absolute; bottom: 10px; left: 10px; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--um-accent); border-radius: 4px; padding: 3px 8px; }
 .dish-card-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--um-text); line-height: 1.3; margin-bottom: 3px; }
 .dish-card-subtitle { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--um-accent); }
@@ -190,7 +189,6 @@ nav.um-nav {
 .reels-item-text { max-width: 70%; }
 .reels-item-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .reels-item-subtitle { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 8px; }
-.reels-item-story { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.8); }
 .reels-side-btns { display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .reels-icon-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); border: 0.5px solid rgba(255,255,255,0.2); transition: transform 0.15s; }
 .reels-icon-btn:active { transform: scale(0.9); }
@@ -207,6 +205,32 @@ nav.um-nav {
 
 footer.um-footer { text-align: center; padding: 32px 24px; color: var(--um-text-muted); font-size: 12px; border-top: 1px solid var(--um-border); }
 footer.um-footer a { color: var(--um-accent); }
+
+.reels-story-tip {
+  position: absolute;
+  right: 68px;
+  bottom: 120px;
+  max-width: calc(100% - 88px);
+  background: rgba(13,12,11,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244,239,230,0.14);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.88);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 20;
+}
+.reels-story-tip.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
@@ -389,7 +413,7 @@ function renderPage() {
                   ? `<video id="video-${s.id}" data-src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
                      <button class="play-overlay-btn" data-play="${s.id}" aria-label="Play"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></button>`
                   : `<div class="thumb-bg" style="background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
-                <span class="ai-preview-badge">AI preview</span>
+                
                 ${s.is_chefs_choice ? `<span class="chefs-choice-badge">Chef's Choice</span>` : ''}
               </div>
               <div class="dish-card-name">${s.dish_name}</div>
@@ -568,7 +592,7 @@ function renderReelsHome() {
       <button data-reels-open="${reelsSlug(cat)}" class="reels-card-btn">
         ${first ? reelsVideoTag(first.video_url, first.thumbnail_url) : `<div style="position:absolute;inset:0;background:var(--um-surface);"></div>`}
         <div class="reels-card-overlay"></div>
-        ${first ? `<span class="ai-preview-badge">AI preview</span>` : ''}
+        ${first ? `` : ''}
         <div class="reels-card-body">
           <div class="reels-category-badge">${badge}</div>
           <div class="reels-card-title">${cat}</div>
@@ -588,18 +612,19 @@ function renderReelsHome() {
       <section class="reels-snap-item" data-reels-dish="${d.id}">
         ${d.video_url ? `<video data-src="${d.video_url}" muted loop playsinline preload="none"${d.thumbnail_url ? ` poster="${d.thumbnail_url}"` : ''}></video>` : `<div style="position:absolute;inset:0;background-image:url('${d.thumbnail_url || DEMO_HERO_PHOTO}');background-size:cover;background-position:center;"></div>`}
         <div class="reels-gradient"></div>
-        <span class="ai-preview-badge">AI preview</span>
+        
         <div class="reels-item-info">
           <div class="reels-item-text">
             ${d.is_chefs_choice ? `<span class="chefs-choice-badge" style="position:relative;bottom:auto;left:auto;margin-bottom:10px;display:inline-block;">Chef's Choice</span><br>` : ''}
             <div class="reels-item-name">${d.dish_name}</div>
             ${d.subtitle ? `<div class="reels-item-subtitle">${d.subtitle}</div>` : ''}
-            <div class="reels-item-story">${d.story_body || DEMO_STORY_BODY}</div>
           </div>
           <div class="reels-side-btns">
             <a href="${bookUrl()}" class="reels-icon-btn" aria-label="Book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></a>
             <button data-reels-share="${d.id}" class="reels-icon-btn" aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+            <button class="reels-icon-btn reels-info-btn" aria-label="Dish info" data-story="${d.story_body || DEMO_STORY_BODY}"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><polyline points="11 12 12 12 12 16"/></svg></button>
           </div>
+          <div class="reels-story-tip" aria-hidden="true"></div>
         </div>
         <div class="reels-book-bar"><a href="${bookUrl()}" class="reels-book-btn">Reserve a table</a></div>
       </section>`).join('');
@@ -708,6 +733,24 @@ function bindReelsEvents() {
     btn.addEventListener('click', () => { const dish = ALL_VIDEOS.find(v => v.id === btn.dataset.reelsShare); if (dish) shareReelsDish(dish); });
   });
 }
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.reels-info-btn');
+  if (btn) {
+    const item = btn.closest('.reels-snap-item');
+    const tip = item ? item.querySelector('.reels-story-tip') : null;
+    if (!tip) return;
+    const story = btn.dataset.story || '';
+    tip.textContent = story;
+    const isVisible = tip.classList.contains('visible');
+    // Close all tips first
+    document.querySelectorAll('.reels-story-tip.visible').forEach(t => t.classList.remove('visible'));
+    if (!isVisible) tip.classList.add('visible');
+    return;
+  }
+  // Tap anywhere else closes tips
+  document.querySelectorAll('.reels-story-tip.visible').forEach(t => t.classList.remove('visible'));
+}, true);
 </script>
 
 </body>
