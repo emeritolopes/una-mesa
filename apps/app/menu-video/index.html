@@ -1,381 +1,260 @@
-<!DOCTYPE html><html class="dark" lang="en" style="overflow-x:hidden;"><head>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Menu | Una Mesa</title>
+<meta name="description" content="Watch video clips of every dish before you visit. Book your table on Una Mesa.">
+
 <script>
-  /* page-transition direction for cross-page navigation on app.unamesa.co.uk:
-     back = browser back/forward or returning to the main page; forward otherwise */
-  addEventListener('pagereveal', function (e) {
-    if (!e.viewTransition) return;
-    var back = false;
+  (function(){
     try {
-      var act = navigation.activation;
-      var home = location.pathname === '/' && (location.hash === '' || location.hash === '#home');
-      back = act.navigationType === 'traverse' || (home && act.from && new URL(act.from.url).pathname !== '/');
-    } catch (err) {}
-    document.documentElement.dataset.navDir = back ? 'back' : 'forward';
-  });
+      if (!document.startViewTransition) return;
+      document.addEventListener('click', function(e){
+        const a = e.target.closest('a[href]');
+        if (!a || a.target === '_blank' || !a.href.startsWith(location.origin)) return;
+        const dest = a.href;
+        e.preventDefault();
+        document.startViewTransition(() => { location.href = dest; });
+      });
+    } catch(_){}
+  })();
 </script>
 
 <script>
-  try { var _t = localStorage.getItem('um-theme'); if (!_t) { localStorage.setItem('um-theme', 'noche'); } else if (_t !== 'noche') { document.documentElement.classList.add('light-mode'); document.documentElement.classList.remove('dark'); } } catch (e) {}
+  try {
+    var _t = localStorage.getItem('um-theme');
+    if (!_t) {
+      localStorage.setItem('um-theme', 'noche');
+    } else if (_t !== 'noche') {
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.classList.remove('dark');
+    }
+  } catch(e) {}
 </script>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Una Mesa | Digital Menu</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "secondary": "#e6c364",
-                    "outline": "#ab8982",
-                    "on-error": "#690005",
-                    "on-secondary": "#3d2e00",
-                    "secondary-fixed": "#ffe08f",
-                    "on-surface-variant": "#e4beb6",
-                    "on-tertiary-container": "#302925",
-                    "on-background": "#f3efe8",
-                    "surface-tint": "#ffb4a4",
-                    "surface-bright": "#3a342f",
-                    "on-tertiary-fixed": "#211a17",
-                    "on-primary-fixed": "#3d0600",
-                    "tertiary-fixed-dim": "#d0c4bf",
-                    "surface-container-highest": "#342f2a",
-                    "inverse-primary": "#b72301",
-                    "surface-container": "#221f1b",
-                    "outline-variant": "#5b403a",
-                    "surface-variant": "#342f2a",
-                    "tertiary": "#d0c4bf",
-                    "on-secondary-fixed-variant": "#584400",
-                    "on-error-container": "#ffdad6",
-                    "on-primary-fixed-variant": "#8c1800",
-                    "on-surface": "#f3efe8",
-                    "tertiary-container": "#9a8f8a",
-                    "secondary-fixed-dim": "#e6c364",
-                    "primary-fixed-dim": "#ffb4a4",
-                    "error": "#ffb4ab",
-                    "on-secondary-fixed": "#241a00",
-                    "error-container": "#93000a",
-                    "secondary-container": "#785d00",
-                    "on-tertiary-fixed-variant": "#4d4541",
-                    "primary": "#f0916f",
-                    "surface-container-low": "#191714",
-                    "primary-container": "#e0714b",
-                    "inverse-on-surface": "#313030",
-                    "surface-dim": "#141210",
-                    "on-secondary-container": "#fdd977",
-                    "inverse-surface": "#f3efe8",
-                    "tertiary-fixed": "#ede0da",
-                    "on-primary-container": "#580c00",
-                    "surface-container-lowest": "#0f0d0b",
-                    "surface": "#141210",
-                    "primary-fixed": "#ffdad3",
-                    "background": "#141210",
-                    "surface-container-high": "#2a2622",
-                    "on-tertiary": "#362f2b",
-                    "on-primary": "#ffffff"
-            },
-            "borderRadius": {
-                    "DEFAULT": "1rem",
-                    "lg": "2rem",
-                    "xl": "3rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "max-width": "1240px",
-                    "container-sm": "12px",
-                    "container-lg": "48px",
-                    "margin-safe": "24px",
-                    "gutter": "24px",
-                    "container-md": "24px",
-                    "unit": "4px"
-            },
-            "fontFamily": {
-                    "headline-lg-mobile": ["Newsreader"],
-                    "headline-md": ["Newsreader"],
-                    "body-medium": ["Plus Jakarta Sans"],
-                    "display-hero": ["Newsreader"],
-                    "title-section": ["Plus Jakarta Sans"],
-                    "label-eyebrow": ["Plus Jakarta Sans"],
-                    "headline-lg": ["Newsreader"],
-                    "body-base": ["Plus Jakarta Sans"]
-            },
-            "fontSize": {
-                    "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "headline-md": ["34px", {"lineHeight": "1.1", "fontWeight": "700"}],
-                    "body-medium": ["14.5px", {"lineHeight": "1.5", "fontWeight": "600"}],
-                    "display-hero": ["70px", {"lineHeight": "1.02", "letterSpacing": "-0.02em", "fontWeight": "300"}],
-                    "title-section": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800"}],
-                    "label-eyebrow": ["11.5px", {"lineHeight": "1.2", "letterSpacing": "0.18em", "fontWeight": "800"}],
-                    "headline-lg": ["48px", {"lineHeight": "1.05", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "body-base": ["16px", {"lineHeight": "1.55", "fontWeight": "400"}]
-            }
-          },
-        },
-      }
-    </script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
-        /* accent: light tint on the dark theme, deep terracotta on light (matches unamesa.co.uk) */
-        :root { --um-accent-rgb: 224, 113, 75; }
-        html.light-mode { --um-accent-rgb: 151, 51, 18; }
-        .glass-panel {
-            background: rgba(20, 18, 16, 0.7);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .coral-glow:hover {
-            box-shadow: 0 0 20px rgba(var(--um-accent-rgb), 0.3);
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* ── Modo claro ──
-           El sistema "Obsidian Reserve" nunca definió una paleta clara —
-           esta es una construida a propósito, usando el mismo tono crema
-           que ya usa el resto de la plataforma en modo claro, para que se
-           sienta parte de la misma marca, no algo inventado sin relación. */
-        html.light-mode body { background: #FCF9F3 !important; }
-        html.light-mode .bg-background { background-color: #FCF9F3 !important; }
-        html.light-mode .text-on-background,
-        html.light-mode .text-on-surface,
-        html.light-mode .text-on-surface-variant { color: #1C1C18 !important; }
-        html.light-mode header.bg-surface\/80 { background-color: rgba(252, 249, 243, 0.85) !important; }
-        html.light-mode .bg-surface-container-lowest,
-        html.light-mode .bg-surface-container-high { background-color: #F0EEE8 !important; }
-        html.light-mode .border-white\/10,
-        html.light-mode .border-white\/20 { border-color: rgba(26, 20, 17, 0.12) !important; }
-        html.light-mode .glass-panel {
-            background: rgba(255, 255, 255, 0.75) !important;
-            border-color: rgba(26, 20, 17, 0.10) !important;
-        }
-        html.light-mode .text-outline { color: #8B716A !important; }
-        html.light-mode .hover\:bg-white\/5:hover,
-        html.light-mode .hover\:bg-white\/10:hover,
-        html.light-mode .hover\:bg-white\/20:hover { background-color: rgba(26, 20, 17, 0.06) !important; }
-
-        /* ── Layout de la página del menú (video + historia) ── */
-        .menu-layout { display: flex; gap: 32px; align-items: flex-start; min-width: 0; }
-        .menu-video-col { flex: 1; min-width: 0; }
-        .menu-story-col { width: 340px; flex-shrink: 0; }
-        .carousel-dots { display: none; gap: 6px; justify-content: center; margin-top: 4px; }
-        .carousel-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.25); transition: background .2s, transform .2s; }
-        .carousel-dot.active { background: rgb(var(--um-accent-rgb)); transform: scale(1.3); }
-
-        @media (max-width: 900px) {
-          .menu-layout { flex-direction: column; }
-          .menu-story-col { width: 100%; }
-          #story-panel { position: sticky !important; top: 80px !important; }
-          #cards-row > div { width: 168px !important; }
-          .carousel-arrows { display: none !important; } /* en móvil se desliza con el dedo, las flechas sobran */
-          .carousel-dots { display: flex !important; }
-        }
-        /* ── Tipografía explícita ──
-           Antes dependía de que Tailwind generara correctamente estas
-           clases personalizadas (font-headline-lg, etc.) — igual que
-           pasó antes con la proporción del video, el CDN de Tailwind no
-           siempre las resuelve de forma confiable. Esto lo garantiza
-           con CSS normal, sin depender de eso, para que coincida
-           siempre con la tipografía real del resto de la plataforma. */
-        .font-headline-lg, .font-headline-md { font-family: 'Newsreader', Georgia, serif !important; }
-        .font-body-base, .font-body-medium, .font-label-eyebrow { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
-        .text-headline-lg { font-size: 48px !important; line-height: 1.05 !important; letter-spacing: -0.01em !important; font-weight: 700 !important; }
-        .text-headline-md { font-size: 34px !important; line-height: 1.1 !important; font-weight: 700 !important; }
-        .text-body-medium { font-size: 14.5px !important; line-height: 1.5 !important; font-weight: 600 !important; }
-        .text-label-eyebrow { font-size: 11.5px !important; line-height: 1.2 !important; letter-spacing: 0.18em !important; font-weight: 800 !important; }
-
-        /* ── Vista "Reels" — patrón vertical estilo Instagram Reels,
-           adaptado de menu-reels.html (claude.ai). Activa solo por debajo
-           del breakpoint móvil que ya usa el resto de esta página (900px,
-           ver @media (max-width: 900px) arriba) — el carrusel horizontal
-           de #content no se toca ni se reemplaza, solo se oculta con CSS
-           en ese ancho y esta vista ocupa su lugar. ── */
-        #reels-view { display: none; }
-        /* the Reels view always sits on dark video: keep it dark even in light mode */
-        html.light-mode #reels-view { --um-accent-rgb: 224, 113, 75; }
-        html.light-mode #reels-view .text-on-background,
-        html.light-mode #reels-view .text-on-surface,
-        html.light-mode #reels-view .text-on-surface-variant { color: #F3EFE8 !important; }
-        html.light-mode #reels-view .bg-background { background-color: #141210 !important; }
-        html.light-mode #reels-view .bg-surface-container-lowest,
-        html.light-mode #reels-view .bg-surface-container-high { background-color: #2A2622 !important; }
-        html.light-mode #reels-view .glass-panel { background: rgba(20, 18, 16, 0.7) !important; border-color: rgba(255, 255, 255, 0.08) !important; }
-        html.light-mode #reels-view .border-white\/10,
-        html.light-mode #reels-view .border-white\/20 { border-color: rgba(255, 255, 255, 0.15) !important; }
-        .reels-category-overlay { background: linear-gradient(to top, rgba(20,18,16,0.92) 0%, rgba(20,18,16,0.45) 100%); }
-        .reels-gradient-overlay { background: linear-gradient(to top, rgba(20,18,16,1) 0%, rgba(20,18,16,0.5) 40%, rgba(20,18,16,0) 100%); }
-
-        .reels-cat-overlay {
-          position: fixed; inset: 0; z-index: 200;
-          display: none;
-          background: var(--surface, #131313);
-          transform: scale(0); transform-origin: center center; opacity: 0;
-          transition: transform .5s cubic-bezier(0.16,1,0.3,1), opacity .35s ease;
-        }
-        .reels-cat-overlay.open { transform: scale(1); opacity: 1; }
-
-        .reels-snap-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: 100%; scrollbar-width: none; }
-        .reels-snap-container::-webkit-scrollbar { display: none; }
-        .reels-snap-item { scroll-snap-align: start; height: 100%; width: 100%; position: relative; overflow: hidden; }
-
-        .reels-progress-bar { height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; overflow: hidden; }
-        .reels-progress-fill { height: 100%; background: #F0EEE8; width: 0%; }
-
-        /* ── Disclosure: los clips son generados por IA a partir de fotos,
-           no vídeo filmado real. Un solo estilo compartido entre las tres
-           superficies que muestran vídeo (tarjeta de escritorio, tarjeta
-           de categoría de Reels, slide del feed de Reels) — arriba a la
-           derecha en todas, para no chocar nunca con el badge de "Chef's
-           Choice"/insignia de conteo (abajo-izquierda) ni con el nombre,
-           precio o botones de like/compartir (todos en la mitad inferior
-           o en las esquinas opuestas). */
-        .ai-preview-badge {
-          position: absolute; top: 8px; right: 8px; z-index: 10;
-          padding: 3px 8px; border-radius: 999px;
-          background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
-          font-size: 9px; font-weight: 700; letter-spacing: .04em;
-          color: #fff; text-transform: uppercase; white-space: nowrap;
-          pointer-events: none;
-        }
-        /* En el slide del feed Reels, top:8px choca con el riel de
-           progreso (centrado, hasta el 75% del ancho — más ancho de lo
-           que parece a simple vista). Bajarlo lo despeja sin tocar las
-           otras dos superficies (tarjeta de escritorio, tarjeta de
-           categoría), que no tienen ese riel. */
-        .reels-snap-item .ai-preview-badge { top: 34px; }
-
-        .reels-empty-state {
-          position: fixed; inset: 0; z-index: 200; display: none;
-          background: var(--surface, #131313);
-          align-items: center; justify-content: center; text-align: center;
-          flex-direction: column; gap: 14px; padding: 0 40px;
-          transform: scale(0); opacity: 0; transform-origin: center center;
-          transition: transform .5s cubic-bezier(0.16,1,0.3,1), opacity .35s ease;
-        }
-        .reels-empty-state.open { transform: scale(1); opacity: 1; }
-
-        @media (max-width: 900px) {
-          #content { display: none; }
-          #reels-view { display: block; }
-        }
-    
-/* ════════════════════════════════════════════
-   Page transitions (umNavigate in app.js + cross-page @view-transition)
-   forward: the new page slides up from the bottom over the previous one
-   back:    the current page slides from left to right, uncovering the one underneath
-   html[data-nav-dir] is set by umNavigate (in-app) or on pagereveal (cross-page).
-   ════════════════════════════════════════════ */
-@view-transition{navigation:auto}
-::view-transition-group(root){animation-duration:.5s}
-html[data-nav-dir="forward"]::view-transition-old(root){animation:umUnderDim .5s cubic-bezier(.2,.8,.2,1) both;z-index:1}
-html[data-nav-dir="forward"]::view-transition-new(root){animation:umSheetUp .5s cubic-bezier(.2,.8,.2,1) both;z-index:2;box-shadow:0 -24px 60px rgba(0,0,0,.22)}
-html[data-nav-dir="back"]::view-transition-old(root){animation:umPushRight .45s cubic-bezier(.4,0,.2,1) both;z-index:2;box-shadow:-24px 0 60px rgba(0,0,0,.22)}
-html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45s cubic-bezier(.4,0,.2,1) both;z-index:1}
-@keyframes umSheetUp{from{transform:translateY(100%)}to{transform:none}}
-@keyframes umUnderDim{to{filter:brightness(.85)}}
-@keyframes umPushRight{to{transform:translateX(100%)}}
-@keyframes umUnderReveal{from{filter:brightness(.85)}to{filter:none}}
-@media (prefers-reduced-motion:reduce){
-  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+:root {
+  --um-bg:          #0d0c0b;
+  --um-surface:     #1a1917;
+  --um-surface-2:   #232220;
+  --um-text:        #F4EFE6;
+  --um-text-muted:  rgba(244,239,230,0.55);
+  --um-accent:      #D8552E;
+  --um-accent-rgb:  216,85,46;
+  --um-border:      rgba(244,239,230,0.10);
+  --um-radius:      12px;
+  --nav-h:          64px;
 }
-</style>
-<!-- Reproducción HLS (Cloudflare Stream). hls.js para navegadores sin HLS
-     nativo; Safari lo reproduce solo. -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
-<script>
-/* Los videos de plato se migraron de Supabase Storage (.mp4 servido
-   directo) a Cloudflare Stream (HLS, .m3u8) — ver
-   scripts/migrate-videos-to-stream.mjs y la migración 040.
+.light-mode {
+  --um-bg:          #F4EFE6;
+  --um-surface:     #EDE8DF;
+  --um-surface-2:   #E4DDD3;
+  --um-text:        #1a1917;
+  --um-text-muted:  rgba(26,25,23,0.55);
+  --um-border:      rgba(26,25,23,0.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--um-bg);
+  color: var(--um-text);
+  font-family: 'Manrope', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; background: none; border: none; cursor: pointer; color: inherit; }
 
-   Para no perder el ahorro de egress (commits #189–191), cada <video> se
-   crea SIN src, solo con data-src, y nada de la red se toca hasta que algo
-   llama a umLoadVideo(el) — exactamente en el mismo momento en que antes se
-   llamaba a .play() sobre un <video preload="none">. */
-window.umLoadVideo = function (video) {
-  if (!video || video.dataset.umLoaded) return;
-  var src = video.dataset.src;
-  if (!src) return;
+@keyframes um-fade-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+::view-transition-old(root) { animation: 220ms ease both fade-out; }
+::view-transition-new(root) { animation: 260ms ease both um-fade-in; }
+
+nav.um-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--nav-h); z-index: 100;
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+  background: rgba(13,12,11,0.82);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--um-border);
+}
+.light-mode nav.um-nav { background: rgba(244,239,230,0.88); }
+.nav-back {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--um-border); flex-shrink: 0; transition: background 0.2s;
+}
+.nav-back:hover { background: var(--um-surface); }
+.nav-back svg { width:18px; height:18px; stroke: var(--um-text); fill: none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 20px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 1px; }
+.nav-brand .una { color: var(--um-text); }
+.nav-brand .mesa { color: var(--um-accent); }
+.nav-venue { font-size: 13px; font-weight: 500; color: var(--um-text-muted); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.nav-theme-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--um-border); flex-shrink: 0; transition: background 0.2s; margin-left: 8px;
+}
+.nav-theme-btn:hover { background: var(--um-surface); }
+.nav-theme-btn svg { width:18px; height:18px; stroke: var(--um-text); fill: none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+.page-wrap { max-width: 1240px; margin: 0 auto; padding: calc(var(--nav-h) + 32px) 24px 48px; }
+
+.cat-nav-wrap {
+  display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
+  margin-bottom: 32px; border-bottom: 1px solid var(--um-border); padding-bottom: 0;
+}
+.cat-nav-wrap::-webkit-scrollbar { display: none; }
+.cat-nav-wrap a {
+  display: inline-block; padding: 10px 18px; font-size: 13px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--um-text-muted);
+  white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s;
+}
+.cat-nav-wrap a:hover { color: var(--um-text); }
+.cat-nav-wrap a.active { color: var(--um-accent); border-bottom-color: var(--um-accent); }
+
+.section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 6px; }
+.section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--um-text); margin-bottom: 24px; }
+
+.menu-layout { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; }
+@media (max-width: 900px) { .menu-layout { display: block; } }
+
+.cards-row-wrap { position: relative; overflow: hidden; }
+.cards-row { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 8px 4px 20px 4px; scrollbar-width: none; }
+.cards-row::-webkit-scrollbar { display: none; }
+.dish-card { flex: 0 0 auto; width: 200px; cursor: pointer; scroll-snap-align: start; transition: transform 0.2s; }
+.dish-card:hover { transform: translateY(-3px); }
+.dish-card-media { position: relative; aspect-ratio: 9/16; border-radius: var(--um-radius); overflow: hidden; background: var(--um-surface); margin-bottom: 10px; }
+.dish-card-media video, .dish-card-media .thumb-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dish-card-media .thumb-bg { background-size: cover; background-position: center; }
+.play-overlay-btn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.18); }
+.play-overlay-btn .play-circle { width: 52px; height: 52px; border-radius: 50%; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+.play-overlay-btn .play-circle svg { width: 22px; height: 22px; fill: #fff; }
+.ai-preview-badge { position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); border-radius: 4px; padding: 2px 6px; }
+.chefs-choice-badge { position: absolute; bottom: 10px; left: 10px; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--um-accent); border-radius: 4px; padding: 3px 8px; }
+.dish-card-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--um-text); line-height: 1.3; margin-bottom: 3px; }
+.dish-card-subtitle { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--um-accent); }
+
+.car-arrow { position: absolute; top: 0; bottom: 20px; width: 52px; display: flex; align-items: center; border: none; cursor: pointer; z-index: 10; transition: opacity 0.2s; }
+.car-arrow.left { left: 0; justify-content: flex-start; padding-left: 4px; background: linear-gradient(to right, var(--um-bg) 10%, transparent); }
+.car-arrow.right { right: 0; justify-content: flex-end; padding-right: 4px; background: linear-gradient(to left, var(--um-bg) 10%, transparent); }
+.car-arrow .arrow-circle { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+.car-arrow .arrow-circle svg { width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+.carousel-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.carousel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--um-border); transition: background 0.2s, transform 0.2s; }
+.carousel-dot.active { background: var(--um-accent); transform: scale(1.3); }
+@media (min-width: 901px) { .carousel-dots { display: none; } }
+
+.story-panel { position: sticky; top: calc(var(--nav-h) + 24px); }
+.story-card { background: var(--um-surface); border: 1px solid var(--um-border); border-radius: var(--um-radius); padding: 24px; }
+.story-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--um-text-muted); margin-bottom: 10px; }
+.story-quote { font-family: 'Playfair Display', serif; font-size: 20px; font-style: italic; color: var(--um-text); line-height: 1.4; margin-bottom: 12px; }
+.story-body { font-size: 14px; line-height: 1.65; color: var(--um-text-muted); margin-bottom: 18px; }
+.story-macros { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.macro-cell { background: var(--um-surface-2); border: 1px solid var(--um-border); border-radius: 8px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.macro-val { font-size: 18px; font-weight: 700; color: var(--um-accent); line-height: 1; margin-bottom: 4px; }
+.macro-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--um-text-muted); }
+.story-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-book { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 22px; background: var(--um-accent); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; border-radius: 999px; transition: filter 0.2s, transform 0.15s; }
+.btn-book:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.btn-book svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.btn-share { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; background: var(--um-surface-2); border: 1px solid var(--um-border); color: var(--um-text); font-size: 13px; font-weight: 700; border-radius: 999px; transition: background 0.2s, transform 0.15s; }
+.btn-share:hover { background: var(--um-surface); transform: translateY(-1px); }
+.btn-share svg { width:16px; height:16px; stroke: var(--um-text); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.empty-msg { text-align: center; padding: 60px 24px; color: var(--um-text-muted); font-size: 15px; }
+
+#reels-view { display: none; }
+@media (max-width: 900px) { #content { display: none; } #reels-view { display: block; } }
+
+.reels-grid { display: flex; flex-direction: column; gap: 10px; padding: 0 0 32px; }
+.reels-card-btn { position: relative; display: block; width: 100%; min-height: 130px; border-radius: var(--um-radius); overflow: hidden; text-align: left; transition: transform 0.15s; }
+.reels-card-btn:active { transform: scale(0.98); }
+.reels-card-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--um-surface); }
+.reels-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.1) 100%); }
+.reels-card-body { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; }
+.reels-category-badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; background: rgba(216,85,46,0.2); border: 1px solid rgba(216,85,46,0.35); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 6px; backdrop-filter: blur(6px); width: fit-content; }
+.reels-card-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; }
+
+.reels-cat-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: #000; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+.reels-cat-overlay.open { transform: translateY(0); }
+.reels-empty-state { display: none; position: fixed; inset: 0; z-index: 200; background: var(--um-bg); flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 32px; text-align: center; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+.reels-empty-state.open { transform: translateY(0); }
+.reels-snap-container { height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+.reels-snap-item { position: relative; height: 100vh; width: 100%; scroll-snap-align: start; overflow: hidden; }
+.reels-snap-item video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.reels-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.0) 55%); }
+.reels-item-info { position: absolute; bottom: 120px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+.reels-item-text { max-width: 70%; }
+.reels-item-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.reels-item-subtitle { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 8px; }
+.reels-item-story { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.8); }
+.reels-side-btns { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.reels-icon-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); border: 0.5px solid rgba(255,255,255,0.2); transition: transform 0.15s; }
+.reels-icon-btn:active { transform: scale(0.9); }
+.reels-icon-btn svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.reels-book-bar { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 10; padding: 0 20px 28px; }
+.reels-book-btn { display: block; width: 100%; height: 54px; line-height: 54px; text-align: center; background: var(--um-accent); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 999px; }
+.reels-book-btn:active { opacity: 0.9; }
+.reels-overlay-nav { position: absolute; top: 0; left: 0; z-index: 10; width: 100%; padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+.reels-back-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); border: 0.5px solid rgba(255,255,255,0.2); }
+.reels-back-btn svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.reels-progress-rail { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); width: 55%; display: flex; gap: 5px; }
+.reels-progress-bar { flex: 1; height: 2px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+.reels-progress-fill { height: 100%; background: #fff; width: 0%; }
+
+footer.um-footer { text-align: center; padding: 32px 24px; color: var(--um-text-muted); font-size: 12px; border-top: 1px solid var(--um-border); }
+footer.um-footer a { color: var(--um-accent); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<script>
+window.umLoadVideo = function(video) {
+  if (video.dataset.umLoaded) return;
   video.dataset.umLoaded = '1';
-  var isHls = /\.m3u8($|\?)/i.test(src);
-  // .mp4 heredado, o Safari (HLS nativo): src directo y listo.
-  if (!isHls || video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = src;
-    return;
-  }
-  if (window.Hls && window.Hls.isSupported()) {
-    var hls = new window.Hls({ capLevelToPlayerSize: true, maxBufferLength: 12 });
-    hls.on(window.Hls.Events.ERROR, function (_e, data) {
-      if (data && data.fatal) { try { hls.destroy(); } catch (_) {} }
-    });
-    // Si el <video> ya estaba en pantalla cuando se llamó a umLoadVideo
-    // (el IntersectionObserver o el botón de play ya dispararon), arrancá
-    // en cuanto el manifiesto esté listo — el .play() del caller puede
-    // haber corrido antes de que hubiera buffer.
-    hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
-      video.play().catch(function () {});
-    });
+  const src = video.dataset.src || video.src;
+  if (!src) return;
+  if (Hls.isSupported() && src.includes('.m3u8')) {
+    const hls = new Hls({ startLevel: -1 });
     hls.loadSource(src);
     hls.attachMedia(video);
     video._hls = hls;
   } else {
-    video.src = src; // último recurso
+    video.src = src;
   }
 };
 </script>
-<script type="application/ld+json" id="uma-venue-schema">{"@context":"https://schema.org","@type":"WebPage","name":"Video Menu | Una Mesa","url":"https://app.unamesa.co.uk/menu-video/"}</script>
-</head>
-<body class="bg-background text-on-background font-body-base min-h-screen selection:bg-primary-container selection:text-white" style="overflow-x:hidden;">
-<!-- TopNavBar -->
-<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-2xl border-b border-white/10">
-<nav class="flex justify-between items-center px-container-lg max-w-max-width mx-auto h-20">
-<div class="flex items-center gap-8">
-<a id="back-link" href="#" class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors" title="Back to restaurant profile">
-<span class="material-symbols-outlined">arrow_back</span>
-</a>
-<a href="/" class="flex items-center gap-2">
-<img src="/restaurants/icon.png" alt="Una Mesa" class="w-8 h-8 rounded-lg">
-<span style="font-family: 'Newsreader', serif; font-weight: 800; font-size: 20px; line-height: 1;"><span class="text-on-surface dark:text-on-surface">Una</span> <span style="color: rgb(var(--um-accent-rgb));">Mesa</span></span>
-</a>
-<div class="hidden md:flex items-center gap-6" id="cat-nav"></div>
-</div>
-<div class="flex items-center gap-4">
-<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">search</span>
-</button>
-<button id="theme-toggle" class="p-2 text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined" id="theme-icon">light_mode</span>
-</button>
-</div>
-</nav>
-</header>
-<!-- Side Category Bar (Mocking the SideNavBar logic for sub-navigation) -->
 
-<!-- Main Content Area -->
-<main class="pt-20">
-<div class="max-w-max-width mx-auto px-container-md lg:px-container-lg" style="padding-top:24px;">
-  <p class="text-on-surface-variant" id="venue-name" style="font-size:13px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;"></p>
+<script id="uma-venue-schema" type="application/ld+json">{}</script>
+</head>
+
+<body>
+
+<nav class="um-nav">
+  <a id="back-link" href="/" class="nav-back" aria-label="Back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <span class="nav-brand"><span class="una">Una&nbsp;</span><span class="mesa">Mesa</span></span>
+  <span class="nav-venue" id="venue-name"></span>
+  <button class="nav-theme-btn" id="theme-toggle" aria-label="Toggle theme">
+    <svg id="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="theme-icon-moon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</nav>
+
+<div class="page-wrap" id="desktop-wrap">
+  <nav class="cat-nav-wrap" id="cat-nav"></nav>
+  <div id="content"><div class="empty-msg">Loading…</div></div>
 </div>
-<div class="max-w-max-width mx-auto px-container-md lg:px-container-lg py-12" id="content">
-<p class="text-on-surface-variant py-24 text-center">Loading…</p>
-</div>
+
 <div id="reels-view"></div>
-</main>
-<!-- Footer -->
-<footer class="w-full py-12 bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-white/10 mt-20">
-<div class="max-w-max-width mx-auto px-container-lg flex flex-col md:flex-row justify-between items-center gap-8">
-<div class="flex flex-col items-center md:items-start">
-<span class="font-headline-md text-headline-md text-on-surface font-bold">Una Mesa</span>
-<p class="text-on-surface-variant font-body-base mt-2" style="color: rgb(var(--um-accent-rgb));">© 2024 Una Mesa Hospitality Group</p>
-</div>
-<div class="flex gap-8">
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Privacy Policy</a>
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Terms of Service</a>
-<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors" href="#" style="color: rgb(var(--um-accent-rgb));">Contact Us</a>
-</div>
-</div>
+
+<footer class="um-footer">
+  <a href="https://www.unamesa.co.uk">Una Mesa</a> — Discover restaurants through video
 </footer>
+
 <script>
 const SUPABASE_URL = 'https://rkaytcmyaaighozxatod.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
@@ -385,8 +264,6 @@ const venueSlug = qs.get('venue');
 const requestedDishId = qs.get('dish');
 
 let ALL_VIDEOS = [];
-/* Funnel tracking (venue_events, migration 041): a dish counts as watched once
-   its video has actually played for 2 seconds, once per dish per page. */
 const UM_WATCHED = new Set();
 function umSid() {
   try {
@@ -410,27 +287,16 @@ document.addEventListener('timeupdate', e => {
     body: JSON.stringify({ venue_id: VENUE.id, event: 'video_view', session_id: umSid(), dish_id: dish ? dish.id : null })
   }).catch(() => {});
 }, true);
-// uuid real del venue — se rellena en init() tras encontrarlo por slug.
-// bookUrl()/profileUrl() y la query de menu_videos necesitan el uuid,
-// nunca el slug (menu_videos.venue_id es FK a venues.id, no hay columna
-// de slug ahí).
+
 let venueId = null;
 let VENUE = null;
 let currentCategory = null;
 let currentDish = null;
 
-// Contenido de ejemplo de la maqueta original — se usa como respaldo
-// mientras un plato todavía no tiene su propia historia, foto, o platos
-// relacionados reales cargados, para que la página nunca se vea vacía.
 const DEMO_STORY_QUOTE = 'A legacy of the salt marshes.';
 const DEMO_STORY_BODY = 'Sourced exclusively from the salt marshes of Suffolk, this lamb is slow-cooked for twelve hours in a reduction of wild thyme and marrow.';
 const DEMO_HERO_PHOTO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmCA4JQf-R25M8IvDLcaWT8clOjRpPOJeHRq4xizD9KEat1aVR88k1el0s00CENns1L5sjMe2Kn222DTSK0Il1pRHwOovgzzkTv6jQncFBDRSsngEAPwOmIjdGiqq74AqH2o2x5NtFLFA80uvT2ICl4zr32CZg1udiHsCJV8TIxFjKpi-qmb6Zz2hF-4BII6MK4LlQ1ncj5l2UEB-sOaOMxVzbkujZKgXGQwppmv5yTziKYh5NRRjbUu7FZDDdvkWrHlUvS1zcCQU';
-const DEMO_CAROUSEL = [
-  { dish_name: 'Mesa Wagyu', subtitle: 'Grade A5 • Kagoshima', is_chefs_choice: true, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBf4nxVczV26ScPYoBiE0eke7iDt-Hq1xjQBQlzVF0UN4M2FMWLXcxgv8bkVlxfcj8tlPVYfcDFD6x1O0S1dX2yQy8U37WGckB7LZMgp6_vwE8biFeHgzIcX5l-rg24jdrTUKFBBAu8-_TGRTKBDWn5sgz50mE78CAAfiNBzdTvIH0Z8kSP8achTtcwh2m2VdX8Vixek5ZK5eWSAwQxX4VtxLB6RmMjd33jDYESX8z2mzzmTr0aETnRowSIos1ILazinRTGcyyx7fI' },
-  { dish_name: 'Truffle Risotto', subtitle: 'Autumn Black Truffle', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu4g545-nXhWJBuz3pNly0-PjkfktpBiPabvZQVjePxtG0idNYj7_2CrzHRd0WjBOvZghevVAySODwOmKmlXp-g9qdtFPOeya5iEK1wpiy2bTejdgebAiogXwOQ8uiNlTfskr9YkMjg4b1NJgW3cmUw8_XGxPFHm8vomKKw7o0i9qRplXcIthX71o91wqyFX1bNmhM9owKpkIRwPH4IvXpHzE-wUIj5lJmjVshAwF9t7Zz8baV2V5dUdEDS_FMBiP1J3_OjeRcTWM' },
-  { dish_name: 'Obsidian Negroni', subtitle: 'Charcoal Gin • Bitters', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBXSBhJg1AuAGOfzC1BV4Y5Gq_20zc9mworXKbVljGn3oVezy4cg0Zkb9QIjkmNjdRgkKi0SzTih1bImHU0nJHWHkU8SlO1ygFJQZSBxI3_8CEX6J64-pxoUZvSSztgN8UZnt_3ItGcdxfJJbaH5XvacszYE_EG3Op3KKtgUsBQubE8Xr_aiGSQyZRXxnL6liKvtgNYJGJyFX6aQJEwuRWw8PXT2k3eDr2lbaMuKFL6Sxpff7ohJQmO3W-4ZnwEN2RIim1xizSo0Pc' },
-  { dish_name: 'Hokkaido Scallops', subtitle: 'Yuzu • Sea Foam', is_chefs_choice: false, photo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBHSeJrW9r8vOPV_wm3UjbwcsVeubRG3JrJy1V5HuE7MiZ8HIZmj03Jdm3AsX-3rCdKT7aQZPArEEp7LXDkdeQun5iZyS-3SsU6l1VG1Q3GVe0X9eM71B51nPlGe9ecaIN166fuwxUJNrUgMCW-c7_RAyoYOX274zfOGVkCubSOoSnhz4RDfxnRe6AbISOaZ740fkkVlXcN40pQK3mr77hDGO3YuK2vCx4nEMZlOQnL1ORqKzFpBB5zrl_lMBfC5vpazvTGXKi8XQ' },
-];
+const STANDARD_CATEGORIES = ['Starters', 'Mains', 'Sides', 'Cocktails', 'Desserts'];
 
 async function sbSelect(table, query) {
   try {
@@ -439,147 +305,104 @@ async function sbSelect(table, query) {
     });
     if (!res.ok) return [];
     return res.json();
-  } catch (e) {
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
-function appHost() {
-  return window.location.hostname.endsWith('.co.uk') ? 'app.unamesa.co.uk' : 'app.unamesa.co';
-}
+function appHost() { return window.location.hostname.endsWith('.co.uk') ? 'app.unamesa.co.uk' : 'app.unamesa.co'; }
 function bookUrl() { return `https://${appHost()}/#detail/${venueId}`; }
-function profileUrl() { return `https://${appHost()}/#detail/${venueId}`; }
 
 function renderMessage(msg) {
-  const html = `<p class="text-on-surface-variant py-24 text-center px-5">${msg}</p>`;
-  document.getElementById('content').innerHTML = html;
-  // Espejo en la vista Reels (mobile) — sin esto, un venue sin platos o con
-  // error de carga se quedaría con #reels-view vacío y en blanco en mobile,
-  // ya que #content (donde este mensaje normalmente aparece) está oculto
-  // por CSS en ese ancho.
+  document.getElementById('content').innerHTML = `<div class="empty-msg">${msg}</div>`;
   const reels = document.getElementById('reels-view');
-  if (reels) reels.innerHTML = html;
+  if (reels) reels.innerHTML = `<div class="empty-msg" style="padding-top:100px;">${msg}</div>`;
 }
 
-function fmtTime(s) {
-  if (!isFinite(s)) return '0:00';
-  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-  return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
-const STANDARD_CATEGORIES = ['Starters', 'Mains', 'Sides', 'Cocktails', 'Desserts'];
-
-function renderCatNav() {
+function orderedCategories() {
   const realCats = [...new Set(ALL_VIDEOS.map(v => v.category))];
-  let cats;
   if (VENUE && VENUE.category_order) {
     const saved = VENUE.category_order.split(',').map(s => s.trim()).filter(Boolean);
-    const savedThatStillExist = saved.filter(c => realCats.includes(c));
-    const newOnes = realCats.filter(c => !saved.includes(c));
-    cats = [...savedThatStillExist, ...newOnes];
-  } else {
-    const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
-    cats = [...STANDARD_CATEGORIES, ...extraCats];
+    return [...saved.filter(c => realCats.includes(c)), ...realCats.filter(c => !saved.includes(c))];
   }
+  const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
+  return [...STANDARD_CATEGORIES.filter(c => realCats.includes(c)), ...extraCats];
+}
+
+function renderCatNav() {
+  const cats = orderedCategories();
   const nav = document.getElementById('cat-nav');
-  nav.innerHTML = cats.map(c => `
-    <a href="#" data-cat="${c}" class="${c === currentCategory ? '' : 'text-on-surface-variant dark:text-on-surface-variant'} font-body-medium text-body-medium hover:text-primary transition-colors duration-300" style="${c === currentCategory ? 'color: rgb(var(--um-accent-rgb)); font-weight:700;' : ''}">${c}</a>
-  `).join('');
+  nav.innerHTML = cats.map(c => `<a href="#" data-cat="${c}" class="${c === currentCategory ? 'active' : ''}">${c}</a>`).join('');
   nav.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
       const cat = a.dataset.cat;
       const first = ALL_VIDEOS.find(v => v.category === cat);
-      if (first) {
-        selectDish(first.id);
-      } else {
-        currentCategory = cat;
-        renderCatNav();
-        renderMessage(`No dishes in "${cat}" yet — check back soon.`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      if (first) { selectDish(first.id); }
+      else { currentCategory = cat; renderCatNav(); renderMessage(`No dishes in "${cat}" yet.`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
   });
 }
 
 function shareDish() {
   const shareText = `${currentDish.dish_name} — ${VENUE.name} — Una Mesa`;
-  if (navigator.share) {
-    navigator.share({ title: currentDish.dish_name, text: shareText, url: window.location.href }).catch(() => {});
-  } else {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`, '_blank', 'noopener');
-  }
+  if (navigator.share) { navigator.share({ title: currentDish.dish_name, text: shareText, url: window.location.href }).catch(() => {}); }
+  else { window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`, '_blank', 'noopener'); }
 }
+
+const ICON_CAL   = `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+const ICON_SHARE = `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
 
 function renderStoryPanel() {
   const v = currentDish;
   const panel = document.getElementById('story-panel');
-  if (!panel) return;
+  if (!panel || !v) return;
   panel.innerHTML = `
-    <div class="glass-panel p-6 rounded-lg mb-6">
-      <h3 class="font-label-eyebrow text-label-eyebrow text-outline uppercase tracking-widest mb-2">The Story — ${v.dish_name}</h3>
-      <blockquote class="font-headline-md text-2xl text-on-surface mb-4 leading-tight italic">"${v.story_quote || DEMO_STORY_QUOTE}"</blockquote>
-      <p class="text-on-surface-variant text-sm leading-relaxed opacity-80 mb-4">${v.story_body || DEMO_STORY_BODY}</p>
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(var(--um-accent-rgb));">${v.carbs_g != null ? v.carbs_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Carbs</span></div>
-        <div class="glass-panel p-3 rounded-lg flex flex-col items-center justify-center text-center"><span class="text-xl text-primary font-bold mb-1" style="color: rgb(var(--um-accent-rgb));">${v.fats_g != null ? v.fats_g + 'g' : '—'}</span><span class="text-[10px] uppercase text-on-surface-variant">Fats</span></div>
-        <div class="flex items-center justify-center"><button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">menu_book</span><span class="text-[10px] font-label-eyebrow uppercase tracking-widest">Recipe</span></button></div>
+    <div class="story-card">
+      <div class="story-eyebrow">The Story — ${v.dish_name}</div>
+      <blockquote class="story-quote">"${v.story_quote || DEMO_STORY_QUOTE}"</blockquote>
+      <p class="story-body">${v.story_body || DEMO_STORY_BODY}</p>
+      <div class="story-macros">
+        <div class="macro-cell"><div class="macro-val">${v.carbs_g != null ? v.carbs_g+'g' : '—'}</div><div class="macro-label">Carbs</div></div>
+        <div class="macro-cell"><div class="macro-val">${v.fats_g != null ? v.fats_g+'g' : '—'}</div><div class="macro-label">Fats</div></div>
+        <div class="macro-cell"><div class="macro-val">${v.protein_g != null ? v.protein_g+'g' : '—'}</div><div class="macro-label">Protein</div></div>
       </div>
-      <div class="flex gap-3 flex-wrap">
-        <a href="${bookUrl()}" class="h-12 px-6 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 hover:-translate-y-1 transition-all coral-glow" style="background-color: rgb(var(--um-accent-rgb));"><span class="material-symbols-outlined">calendar_today</span>Book a Table</a>
-        <button id="share-btn" class="h-12 px-6 glass-panel rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><span class="material-symbols-outlined">share</span>Share</button>
+      <div class="story-actions">
+        <a href="${bookUrl()}" class="btn-book">${ICON_CAL} Book a Table</a>
+        <button id="share-btn" class="btn-share">${ICON_SHARE} Share</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.getElementById('share-btn')?.addEventListener('click', shareDish);
 }
 
 function renderPage() {
   const dishesInCategory = ALL_VIDEOS.filter(x => x.category === currentCategory);
-
   document.getElementById('content').innerHTML = `
-<div class="mb-6">
-  <h2 class="font-label-eyebrow text-label-eyebrow text-primary uppercase tracking-[0.3em] mb-2" style="color: rgb(var(--um-accent-rgb));">Video Menu</h2>
-  <h3 class="font-headline-lg text-headline-lg text-on-surface">${currentCategory}</h3>
-</div>
-<div class="menu-layout">
-  <div class="menu-video-col">
-    <div style="position:relative; z-index:60; overflow:hidden; width:100%;">
-      <div class="hide-scrollbar" style="display:flex; gap:20px; overflow-x:auto; width:100%; padding:8px 8px 24px 8px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;" id="cards-row">
-        ${dishesInCategory.map(s => `
-        <div class="group" data-card="${s.id}" data-select="${s.id}" style="flex:0 0 auto; width:220px; cursor:pointer; scroll-snap-align:start;">
-          <div class="rounded-lg overflow-hidden mb-3" style="position:relative; aspect-ratio: 9 / 16;">
-            ${s.video_url ? `
-            <video id="video-${s.id}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" class="bg-black" data-src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
-            <button class="play-overlay-btn" data-play="${s.id}" aria-label="Reproducir video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.18);border:none;cursor:pointer;padding:0;">
-              <span style="width:56px;height:56px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;">
-                <span class="material-symbols-outlined" style="font-size:28px;color:#fff;">play_arrow</span>
-              </span>
-            </button>` : `
-            <div style="position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
-            <span class="ai-preview-badge">AI-generated preview</span>
-            ${s.is_chefs_choice ? `<div style="position:absolute; bottom:12px; left:12px; right:12px;"><span class="px-2 py-1 bg-primary text-on-primary text-[10px] font-bold uppercase rounded tracking-widest" style="background-color: rgb(var(--um-accent-rgb));">Chef's Choice</span></div>` : ''}
+    <div class="section-eyebrow">Video Menu</div>
+    <div class="section-title">${currentCategory}</div>
+    <div class="menu-layout">
+      <div>
+        <div class="cards-row-wrap">
+          <div class="cards-row" id="cards-row">
+            ${dishesInCategory.map(s => `
+            <div class="dish-card" data-card="${s.id}" data-select="${s.id}">
+              <div class="dish-card-media">
+                ${s.video_url
+                  ? `<video id="video-${s.id}" data-src="${s.video_url}" muted loop playsinline preload="none"${s.thumbnail_url ? ` poster="${s.thumbnail_url}"` : ''}></video>
+                     <button class="play-overlay-btn" data-play="${s.id}" aria-label="Play"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></button>`
+                  : `<div class="thumb-bg" style="background-image:url('${s.thumbnail_url || DEMO_HERO_PHOTO}');"></div>`}
+                <span class="ai-preview-badge">AI preview</span>
+                ${s.is_chefs_choice ? `<span class="chefs-choice-badge">Chef's Choice</span>` : ''}
+              </div>
+              <div class="dish-card-name">${s.dish_name}</div>
+              ${s.subtitle ? `<div class="dish-card-subtitle">${s.subtitle}</div>` : ''}
+            </div>`).join('')}
           </div>
-          <h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">${s.dish_name}</h4>
-          ${s.subtitle ? `<p class="text-on-surface-variant font-label-eyebrow uppercase mt-1" style="color: rgb(var(--um-accent-rgb)); font-size:11px;">${s.subtitle}</p>` : ''}
+          <button class="car-arrow left" id="car-left" aria-label="Scroll left"><div class="arrow-circle"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div></button>
+          <button class="car-arrow right" id="car-right" aria-label="Scroll right"><div class="arrow-circle"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></button>
         </div>
-        `).join('')}
+        <div class="carousel-dots" id="scroll-dots"></div>
       </div>
-      <button id="car-left" class="carousel-arrows" style="position:absolute; z-index:60; top:0; bottom:24px; left:0; width:56px; display:flex; align-items:center; justify-content:flex-start; padding-left:4px; background:linear-gradient(to right, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
-        <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_left</span></span>
-      </button>
-      <button id="car-right" class="carousel-arrows" style="position:absolute; z-index:60; top:0; bottom:24px; right:0; width:56px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; background:linear-gradient(to left, var(--surface,#131313) 10%, transparent); border:none; color:#fff; cursor:pointer;">
-        <span style="width:36px;height:36px;border-radius:999px;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined">chevron_right</span></span>
-      </button>
-    </div>
-    <div id="scroll-dots" class="carousel-dots"></div>
-  </div>
-  <div class="menu-story-col">
-    <div id="story-panel" style="position:sticky; top:24px;"></div>
-  </div>
-</div>
-  `;
-
+      <div><div class="story-panel" id="story-panel"></div></div>
+    </div>`;
   renderStoryPanel();
   bindCardEvents();
 }
@@ -587,95 +410,58 @@ function renderPage() {
 function bindCardEvents() {
   const row = document.getElementById('cards-row');
   if (row) {
-    const isMobile = window.innerWidth <= 900;
-    const containerPadding = isMobile ? 48 : 380; // 380 ≈ ancho de la columna de la historia + separación en escritorio
-    // La página tiene un ancho máximo real de 1240px (max-w-max-width) —
-    // en monitores anchos, usar window.innerWidth directo se pasaba de
-    // ese límite y le daba al carrusel más espacio del que en verdad
-    // tiene visible, eliminando el desbordamiento necesario para
-    // desplazar. Este límite evita ese error de cálculo.
-    const pageMaxWidth = 1240;
-    const effectiveWidth = Math.min(window.innerWidth, pageMaxWidth);
-    const rawWidth = Math.max(280, effectiveWidth - containerPadding);
-    // Redondear hacia abajo al múltiplo exacto de una tarjeta completa
-    // (220px + 20px de separación = 240px) — así, sin importar el
-    // ancho exacto de la ventana, nunca se corta una tarjeta a la
-    // mitad en el borde derecho del carrusel.
-    const cardUnit = 240;
-    const wholeCards = Math.max(1, Math.floor(rawWidth / cardUnit));
-    row.style.width = (wholeCards * cardUnit - 20) + 'px'; // -20: el último no necesita separación después
+    const containerPadding = window.innerWidth <= 900 ? 48 : 380;
+    const effectiveWidth = Math.min(window.innerWidth, 1240);
+    const cardUnit = 216;
+    const wholeCards = Math.max(1, Math.floor(Math.max(280, effectiveWidth - containerPadding) / cardUnit));
+    row.style.width = (wholeCards * cardUnit - 16) + 'px';
   }
-  document.getElementById('car-left')?.addEventListener('click', () => row.scrollBy({ left: -260, behavior: 'smooth' }));
-  document.getElementById('car-right')?.addEventListener('click', () => row.scrollBy({ left: 260, behavior: 'smooth' }));
-
-  // Ocultar cada flecha cuando ya no hay nada más para ese lado — así
-  // nunca tapan visualmente el borde de la primera o última tarjeta
-  // cuando no hacen falta.
   const leftArrow = document.getElementById('car-left');
   const rightArrow = document.getElementById('car-right');
-  const updateArrowVisibility = () => {
+  leftArrow?.addEventListener('click', () => row.scrollBy({ left: -220, behavior: 'smooth' }));
+  rightArrow?.addEventListener('click', () => row.scrollBy({ left: 220, behavior: 'smooth' }));
+  const updateArrows = () => {
     if (!row || !leftArrow || !rightArrow) return;
     const maxScroll = row.scrollWidth - row.clientWidth;
     leftArrow.style.display = row.scrollLeft <= 10 ? 'none' : 'flex';
     rightArrow.style.display = row.scrollLeft >= maxScroll - 10 ? 'none' : 'flex';
   };
-  if (row) {
-    updateArrowVisibility();
-    row.addEventListener('scroll', updateArrowVisibility);
-  }
-
-  // Puntos de posición — solo se ven en móvil, como pista de que hay
-  // más platos deslizando el dedo, en vez de depender de las flechas.
+  if (row) { updateArrows(); row.addEventListener('scroll', updateArrows); }
   const cards = row ? Array.from(row.children) : [];
   const dotsWrap = document.getElementById('scroll-dots');
   if (dotsWrap && cards.length > 1) {
     dotsWrap.innerHTML = cards.map((_, i) => `<div class="carousel-dot${i === 0 ? ' active' : ''}"></div>`).join('');
     const dots = Array.from(dotsWrap.children);
-    let scrollTimeout;
+    let st;
     row.addEventListener('scroll', () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const cardWidth = cards[0].getBoundingClientRect().width + 20; // 20 = separación entre tarjetas
-        const activeIdx = Math.round(row.scrollLeft / cardWidth);
-        dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(activeIdx, dots.length - 1)));
+      clearTimeout(st);
+      st = setTimeout(() => {
+        const cw = (cards[0]?.getBoundingClientRect().width || 200) + 16;
+        const ai = Math.round(row.scrollLeft / cw);
+        dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(ai, dots.length - 1)));
       }, 80);
     });
   }
-
   document.querySelectorAll('[data-select]').forEach(el => {
     el.addEventListener('click', () => {
       const dish = ALL_VIDEOS.find(v => v.id === el.dataset.select);
       if (!dish) return;
       currentDish = dish;
-      const url = new URL(window.location);
-      url.searchParams.set('dish', dish.id);
-      window.history.replaceState({}, '', url);
+      const url = new URL(window.location); url.searchParams.set('dish', dish.id); window.history.replaceState({}, '', url);
       renderStoryPanel();
     });
   });
-  // Nada se reproduce automáticamente: cada tarjeta muestra un botón de
-  // play sobre el poster/miniatura, y el video (preload="none") solo
-  // empieza a descargarse cuando la persona hace click en ese botón. Esto
-  // reduce el cached egress más que limitar a un video a la vez — alguien
-  // que solo hace scroll sin detenerse en un plato nunca descarga ese video.
   const videos = document.querySelectorAll('#cards-row video');
   videos.forEach(v => { v.muted = true; });
-
-  function overlayBtnFor(video) {
-    const id = video.id.replace('video-', '');
-    return document.querySelector(`.play-overlay-btn[data-play="${id}"]`);
-  }
-
+  function overlayFor(video) { return document.querySelector(`.play-overlay-btn[data-play="${video.id.replace('video-', '')}"]`); }
   videos.forEach(v => {
-    v.addEventListener('play', () => { const b = overlayBtnFor(v); if (b) b.style.display = 'none'; });
-    v.addEventListener('pause', () => { const b = overlayBtnFor(v); if (b) b.style.display = 'flex'; });
+    v.addEventListener('play', () => { const b = overlayFor(v); if (b) b.style.display = 'none'; });
+    v.addEventListener('pause', () => { const b = overlayFor(v); if (b) b.style.display = 'flex'; });
   });
-
   document.querySelectorAll('.play-overlay-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      const id = btn.dataset.play;
-      const video = document.getElementById('video-' + id);
+      const video = document.getElementById('video-' + btn.dataset.play);
       if (!video) return;
       const wasPlaying = !video.paused;
       videos.forEach(v => { if (v !== video) v.pause(); });
@@ -685,30 +471,21 @@ function bindCardEvents() {
   });
 }
 
-
 function selectDish(dishId) {
   currentDish = ALL_VIDEOS.find(v => v.id === dishId);
   if (!currentDish) return;
   currentCategory = currentDish.category;
-  const url = new URL(window.location);
-  url.searchParams.set('dish', dishId);
-  window.history.replaceState({}, '', url);
-  renderCatNav();
-  renderPage();
-  renderReelsHome(); // vista mobile — ver bloque REELS más abajo, no toca lo de arriba
-  stripAutoplayOnMobile(); // idem — ver bloque REELS, no toca renderPage() en sí
+  const url = new URL(window.location); url.searchParams.set('dish', dishId); window.history.replaceState({}, '', url);
+  renderCatNav(); renderPage(); renderReelsHome(); stripAutoplayOnMobile();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function updateVenueSchema(venue) {
   const pageUrl = `https://app.unamesa.co.uk/menu-video/?venue=${venue.slug}`;
-  const schema = {
-    "@context": "https://schema.org",
-    "@graph": [
-      { "@type": "WebPage", "name": `${venue.name} — Video Menu | Una Mesa`, "url": pageUrl, "description": `Watch video clips of every dish at ${venue.name} before you visit.` },
-      { "@type": "FoodEstablishment", "name": venue.name, "url": pageUrl, "servesCuisine": venue.cuisine || "International", "address": { "@type": "PostalAddress", "addressLocality": venue.city || "London", "addressCountry": "GB" }, "hasMenu": pageUrl }
-    ]
-  };
+  const schema = { "@context": "https://schema.org", "@graph": [
+    { "@type": "WebPage", "name": `${venue.name} — Video Menu | Una Mesa`, "url": pageUrl },
+    { "@type": "FoodEstablishment", "name": venue.name, "url": pageUrl, "servesCuisine": venue.cuisine || "International", "address": { "@type": "PostalAddress", "addressLocality": venue.city || "London", "addressCountry": "GB" }, "hasMenu": pageUrl }
+  ]};
   const el = document.getElementById("uma-venue-schema");
   if (el) el.textContent = JSON.stringify(schema);
 }
@@ -722,204 +499,133 @@ function updatePageMeta(venue) {
 
 async function init() {
   if (!venueSlug) { renderMessage('Missing restaurant.'); return; }
-
   const venues = await sbSelect('venues', `slug=eq.${venueSlug}&select=id,name,slug,menu_video_access,category_order`);
-  if (venues === null) { renderMessage("Couldn't connect right now — please try again in a moment."); return; }
+  if (venues === null) { renderMessage("Couldn't connect right now."); return; }
   VENUE = venues[0];
   if (!VENUE || !VENUE.menu_video_access) { renderMessage("This restaurant's video menu isn't available yet."); return; }
-
-  updateVenueSchema(VENUE);
-  updatePageMeta(VENUE);
-
-  venueId = VENUE.id; // a partir de aquí, el resto del archivo sigue usando el uuid real tal cual antes
-  document.getElementById('back-link').href = profileUrl();
-
-  document.title = `${VENUE.name} — Video Menu — Una Mesa`;
+  updateVenueSchema(VENUE); updatePageMeta(VENUE);
+  venueId = VENUE.id;
+  document.getElementById('back-link').href = bookUrl();
   document.getElementById('venue-name').textContent = VENUE.name;
-
   ALL_VIDEOS = await sbSelect('menu_videos', `venue_id=eq.${venueId}&order=sort_order`);
-  if (ALL_VIDEOS === null) { renderMessage("Couldn't load the menu right now — please try again in a moment."); return; }
+  if (ALL_VIDEOS === null) { renderMessage("Couldn't load the menu right now."); return; }
   if (ALL_VIDEOS.length === 0) { renderMessage("This restaurant hasn't uploaded any dishes yet."); return; }
-
   const startDish = (requestedDishId && ALL_VIDEOS.find(v => v.id === requestedDishId)) || ALL_VIDEOS[0];
   selectDish(startDish.id);
 }
+init().catch(() => renderMessage('Something went wrong — please try again.'));
 
-init().catch(() => renderMessage('Something went wrong loading this page — please try again.'));
-
-// Modo claro/oscuro — se recuerda entre visitas con localStorage.
 (function initTheme() {
-  const themeToggle = document.getElementById('theme-toggle');
-  const themeIcon = document.getElementById('theme-icon');
-  // Same key/values as the rest of the site ('um-theme': 'crema' | 'noche'); light by default.
-  const isLightNow = () => { try { return localStorage.getItem('um-theme') !== 'noche'; } catch (e) { return true; } };
+  const btn = document.getElementById('theme-toggle');
+  const sun = document.getElementById('theme-icon-sun');
+  const moon = document.getElementById('theme-icon-moon');
+  const isLightNow = () => { try { return localStorage.getItem('um-theme') !== 'noche'; } catch(e) { return false; } };
   const applyTheme = () => {
     const isLight = isLightNow();
     document.documentElement.classList.toggle('light-mode', isLight);
     document.documentElement.classList.toggle('dark', !isLight);
-    themeIcon.textContent = isLight ? 'dark_mode' : 'light_mode';
+    sun.style.display = isLight ? 'none' : 'block';
+    moon.style.display = isLight ? 'block' : 'none';
   };
   applyTheme();
-  themeToggle.addEventListener('click', () => {
-    try { localStorage.setItem('um-theme', isLightNow() ? 'noche' : 'crema'); } catch (e) {}
-    applyTheme();
-  });
+  btn.addEventListener('click', () => { try { localStorage.setItem('um-theme', isLightNow() ? 'noche' : 'crema'); } catch(e) {} applyTheme(); });
   window.addEventListener('storage', e => { if (e.key === 'um-theme') applyTheme(); });
 })();
 
-// Micro-interactions — con delegación de eventos, ya que el contenido se genera dinámicamente.
 document.addEventListener('mousedown', e => { e.target.closest('a, button')?.classList.add('scale-95'); });
 document.addEventListener('mouseup', e => { e.target.closest('a, button')?.classList.remove('scale-95'); });
 document.addEventListener('mouseleave', e => { e.target.closest?.('a, button')?.classList.remove('scale-95'); }, true);
 </script>
 
 <script>
-/* ════ Vista REELS — solo mobile (ver @media (max-width:900px) en <style>) ════
-   Adaptado de menu-reels.html (claude.ai, versión final). Lee los mismos
-   ALL_VIDEOS/VENUE/requestedDishId ya cargados por el script de arriba —
-   no hace fetch propio, no toca renderPage/bindCardEvents/renderCatNav. */
-
 function reelsCategories() {
-  // Misma lógica que renderCatNav() de arriba, duplicada a propósito para
-  // no tocar esa función — ver nota en el bloque de estilos.
   const realCats = [...new Set(ALL_VIDEOS.map(v => v.category))];
   if (VENUE && VENUE.category_order) {
     const saved = VENUE.category_order.split(',').map(s => s.trim()).filter(Boolean);
-    const savedThatStillExist = saved.filter(c => realCats.includes(c));
-    const newOnes = realCats.filter(c => !saved.includes(c));
-    return [...savedThatStillExist, ...newOnes];
+    return [...saved.filter(c => realCats.includes(c)), ...realCats.filter(c => !saved.includes(c))];
   }
-  const extraCats = realCats.filter(c => !STANDARD_CATEGORIES.includes(c));
-  return [...STANDARD_CATEGORIES, ...extraCats];
+  return [...STANDARD_CATEGORIES.filter(c => realCats.includes(c)), ...realCats.filter(c => !STANDARD_CATEGORIES.includes(c))];
 }
-
 function stripAutoplayOnMobile() {
-  // renderPage() (arriba, sin tocar) escribe <video autoplay> para la
-  // categoría actual dentro de #content — autoplay dispara la descarga
-  // sin importar preload ni display:none. En mobile #content está oculto
-  // por CSS y ese carrusel nunca se ve, así que ahí ese autoplay es puro
-  // desperdicio (~19.6MB medidos en un caso real de 4 platos). En
-  // escritorio no se toca nada.
   if (window.innerWidth > 900) return;
-  document.querySelectorAll('#content video[autoplay]').forEach(v => {
-    v.removeAttribute('autoplay');
-    v.pause();
-  });
+  document.querySelectorAll('#content video[autoplay]').forEach(v => { v.removeAttribute('autoplay'); v.pause(); });
 }
-
-function reelsSlug(cat) {
-  return 'reels-cat-' + cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+function reelsSlug(cat) { return 'reels-cat-' + cat.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
+function reelsVideoTag(url, thumb) {
+  if (!url) return `<div class="reels-card-video" style="background-image:url('${thumb || DEMO_HERO_PHOTO}');background-size:cover;background-position:center;position:absolute;inset:0;"></div>`;
+  return `<video class="reels-card-video" data-src="${url}" muted loop playsinline preload="none"${thumb ? ` poster="${thumb}"` : ''}></video>`;
 }
-
-function reelsVideoTag(url, thumb, cls) {
-  if (!url) return `<div class="absolute inset-0 bg-cover bg-center" style="background-image:url('${thumb || DEMO_HERO_PHOTO}');"></div>`;
-  // preload="none": nada se descarga hasta que el IntersectionObserver
-  // llame a .play() — sin esto, el navegador decide por su cuenta cuánto
-  // precargar de cada plato, incluso los que nunca llegan a verse.
-  return `<video class="${cls}" data-src="${url}" muted loop playsinline preload="none"${thumb ? ` poster="${thumb}"` : ''}></video>`;
-}
-
 function renderReelsHome() {
   const view = document.getElementById('reels-view');
   if (!view || !VENUE || !ALL_VIDEOS.length) return;
-  // En escritorio esta vista nunca se muestra (oculta por CSS) — no
-  // construir sus <video> ahí evita que el navegador dispare peticiones
-  // preload=metadata de más por cada plato, sin ningún beneficio visual.
-  // Mismo criterio de recalcular solo por llamada, no reactivo a resize,
-  // que ya usa bindCardEvents() para el carrusel.
   if (window.innerWidth > 900) { view.innerHTML = ''; return; }
   const cats = reelsCategories();
-
   const cards = cats.map(cat => {
     const dishes = ALL_VIDEOS.filter(v => v.category === cat);
     const first = dishes[0];
     const badge = dishes.length ? `${dishes.length} DISH${dishes.length === 1 ? '' : 'ES'}` : 'COMING SOON';
     return `
-      <button data-reels-open="${reelsSlug(cat)}" class="group relative block w-full flex-1 min-h-[110px] overflow-hidden rounded-lg transition-all active:scale-[0.98] text-left">
-        ${first ? reelsVideoTag(first.video_url, first.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black reels-card-video') : `<div class="absolute inset-0" style="background:var(--surface-container-high,#2a2a2a);"></div>`}
-        <div class="absolute inset-0 reels-category-overlay"></div>
-        ${first ? `<span class="ai-preview-badge">AI-generated preview</span>` : ''}
-        <div class="absolute inset-0 p-4 flex flex-col justify-end">
-          <div class="inline-flex items-center px-2.5 py-0.5 mb-1.5 rounded-full w-fit" style="background:rgba(var(--um-accent-rgb),.2); backdrop-filter:blur(6px); border:1px solid rgba(var(--um-accent-rgb),.3);">
-            <span class="font-label-eyebrow text-label-eyebrow" style="color: rgb(var(--um-accent-rgb));">${badge}</span>
-          </div>
-          <h2 class="font-headline-md text-on-surface" style="font-size:19px; font-weight:700;">${cat}</h2>
+      <button data-reels-open="${reelsSlug(cat)}" class="reels-card-btn">
+        ${first ? reelsVideoTag(first.video_url, first.thumbnail_url) : `<div style="position:absolute;inset:0;background:var(--um-surface);"></div>`}
+        <div class="reels-card-overlay"></div>
+        ${first ? `<span class="ai-preview-badge">AI preview</span>` : ''}
+        <div class="reels-card-body">
+          <div class="reels-category-badge">${badge}</div>
+          <div class="reels-card-title">${cat}</div>
         </div>
       </button>`;
   }).join('');
-
   const overlays = cats.map(cat => {
     const dishes = ALL_VIDEOS.filter(v => v.category === cat);
     const slug = reelsSlug(cat);
-    if (!dishes.length) {
-      return `
+    if (!dishes.length) return `
       <div class="reels-empty-state" id="${slug}">
-        <button data-reels-close="${slug}" class="absolute top-4 left-4 w-10 h-10 flex items-center justify-center rounded-full" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-          <span class="material-symbols-outlined text-primary" style="color: rgb(var(--um-accent-rgb));">arrow_back</span>
-        </button>
-        <span class="material-symbols-outlined" style="font-size:38px; color: rgb(var(--um-accent-rgb));">restaurant</span>
-        <h2 class="font-headline-md text-on-surface" style="font-size:21px; font-weight:700;">${cat} — coming soon</h2>
-        <p class="text-on-surface-variant" style="max-width:280px;">No videos in this category yet. They'll be added once filmed.</p>
+        <button data-reels-close="${slug}" class="reels-back-btn" style="position:absolute;top:16px;left:16px;"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div class="section-title">${cat} — coming soon</div>
+        <p style="color:var(--um-text-muted);max-width:280px;font-size:14px;">No videos in this category yet.</p>
       </div>`;
-    }
     const slides = dishes.map(d => `
       <section class="reels-snap-item" data-reels-dish="${d.id}">
-        ${reelsVideoTag(d.video_url, d.thumbnail_url, 'absolute inset-0 w-full h-full object-cover bg-black')}
-        <div class="absolute inset-0 reels-gradient-overlay"></div>
-        <span class="ai-preview-badge">AI-generated preview</span>
-        <div class="absolute bottom-28 left-0 w-full px-5 flex justify-between items-end">
-          <div class="max-w-[70%]">
-            ${d.is_chefs_choice ? `<span class="inline-block px-3 py-1 mb-3 rounded-full font-label-eyebrow text-label-eyebrow text-on-primary" style="background-color: rgb(var(--um-accent-rgb)); font-size:10px;">CHEF'S CHOICE</span>` : ''}
-            <h1 class="font-headline-md text-on-surface mb-1" style="font-size:21px; font-weight:700;">${d.dish_name}</h1>
-            ${d.subtitle ? `<p class="font-label-eyebrow" style="color: rgb(var(--um-accent-rgb)); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;">${d.subtitle}</p>` : ''}
-            <p class="text-on-surface-variant" style="font-size:14.5px; line-height:1.5; opacity:.85;">${d.story_body || DEMO_STORY_BODY}</p>
+        ${d.video_url ? `<video data-src="${d.video_url}" muted loop playsinline preload="none"${d.thumbnail_url ? ` poster="${d.thumbnail_url}"` : ''}></video>` : `<div style="position:absolute;inset:0;background-image:url('${d.thumbnail_url || DEMO_HERO_PHOTO}');background-size:cover;background-position:center;"></div>`}
+        <div class="reels-gradient"></div>
+        <span class="ai-preview-badge">AI preview</span>
+        <div class="reels-item-info">
+          <div class="reels-item-text">
+            ${d.is_chefs_choice ? `<span class="chefs-choice-badge" style="position:relative;bottom:auto;left:auto;margin-bottom:10px;display:inline-block;">Chef's Choice</span><br>` : ''}
+            <div class="reels-item-name">${d.dish_name}</div>
+            ${d.subtitle ? `<div class="reels-item-subtitle">${d.subtitle}</div>` : ''}
+            <div class="reels-item-story">${d.story_body || DEMO_STORY_BODY}</div>
           </div>
-          <div class="flex flex-col gap-5 items-center">
-            <a href="${bookUrl()}" class="w-11 h-11 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-              <span class="material-symbols-outlined text-white">calendar_today</span>
-            </a>
-            <button data-reels-share="${d.id}" class="w-11 h-11 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-              <span class="material-symbols-outlined text-white">share</span>
-            </button>
+          <div class="reels-side-btns">
+            <a href="${bookUrl()}" class="reels-icon-btn" aria-label="Book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></a>
+            <button data-reels-share="${d.id}" class="reels-icon-btn" aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
           </div>
         </div>
+        <div class="reels-book-bar"><a href="${bookUrl()}" class="reels-book-btn">Reserve a table</a></div>
       </section>`).join('');
-
     return `
-    <div class="reels-cat-overlay" id="${slug}">
-      <header class="absolute top-0 left-0 z-10 p-4 w-full flex items-center justify-between">
-        <button data-reels-close="${slug}" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform" style="background:rgba(255,255,255,.1); backdrop-filter:blur(6px); border:.5px solid rgba(255,255,255,.2);">
-          <span class="material-symbols-outlined" style="color: rgb(var(--um-accent-rgb));">arrow_back</span>
-        </button>
-        <div class="absolute top-6 left-1/2 -translate-x-1/2 w-1/2 flex gap-1.5 reels-progress-rail"></div>
-      </header>
-      <main class="reels-snap-container" data-reels-feed="${slug}">${slides}</main>
-      <div class="absolute bottom-0 left-0 w-full z-10 px-5 pb-8">
-        <a href="${bookUrl()}" class="block w-full h-14 text-on-primary text-center rounded-full shadow-2xl active:scale-95 transition-transform uppercase font-label-eyebrow" style="background-color: rgb(var(--um-accent-rgb)); line-height:56px; letter-spacing:.12em; font-size:13px;">Reserve a table</a>
-      </div>
-    </div>`;
+      <div class="reels-cat-overlay" id="${slug}" style="display:none;">
+        <div class="reels-overlay-nav">
+          <button data-reels-close="${slug}" class="reels-back-btn"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#fff" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <div class="reels-progress-rail"></div>
+        </div>
+        <main class="reels-snap-container" data-reels-feed="${slug}">${slides}</main>
+      </div>`;
   }).join('');
-
   view.innerHTML = `
-    <div id="reels-home-inner" class="px-5 pt-6 pb-8 flex flex-col" style="min-height:60vh;">
-      <section class="mb-4">
-        <h1 class="font-headline-lg text-headline-lg text-on-surface" style="font-size:26px;">Video Menu</h1>
-        <p class="text-on-surface-variant" style="font-size:13.5px;">Tap a category to watch the dishes on video.</p>
-      </section>
-      <div class="flex flex-col gap-3 flex-1">${cards}</div>
+    <div style="padding: calc(var(--nav-h) + 24px) 16px 0;">
+      <div class="section-eyebrow" style="margin-bottom:4px;">Video Menu</div>
+      <div class="section-title" style="margin-bottom:8px;">${VENUE.name}</div>
+      <p style="font-size:13px;color:var(--um-text-muted);margin-bottom:20px;">Tap a category to watch the dishes on video.</p>
+      <div class="reels-grid">${cards}</div>
     </div>
-    ${overlays}
-  `;
-
-  bindReelsEvents();
-  observeReelsCardVideos();
-
+    ${overlays}`;
+  bindReelsEvents(); observeReelsCardVideos();
   if (requestedDishId) {
     const dish = ALL_VIDEOS.find(v => v.id === requestedDishId);
     if (dish) openReelsCategory(reelsSlug(dish.category), dish.id);
   }
 }
-
 function observeReelsCardVideos() {
   const videos = document.querySelectorAll('.reels-card-video');
   if (!videos.length) return;
@@ -932,9 +638,7 @@ function observeReelsCardVideos() {
   }, { threshold: 0.6 });
   videos.forEach(v => observer.observe(v));
 }
-
 const reelsFeedCleanup = {};
-
 function updateReelsProgress(rail, activeIdx) {
   Array.from(rail.children).forEach((bar, i) => {
     const fill = bar.querySelector('.reels-progress-fill');
@@ -943,19 +647,13 @@ function updateReelsProgress(rail, activeIdx) {
     else { fill.style.transition = 'none'; fill.style.width = '0%'; }
   });
 }
-
 function initReelsFeed(feed) {
   const rail = feed.closest('.reels-cat-overlay').querySelector('.reels-progress-rail');
-  rail.innerHTML = Array.from(feed.children).map(() => `<div class="flex-1 reels-progress-bar"><div class="reels-progress-fill"></div></div>`).join('');
+  rail.innerHTML = Array.from(feed.children).map(() => `<div class="reels-progress-bar"><div class="reels-progress-fill"></div></div>`).join('');
   let currentIndex = 0;
   updateReelsProgress(rail, 0);
-
-  const onScroll = () => {
-    const idx = Math.round(feed.scrollTop / feed.clientHeight);
-    if (idx !== currentIndex) { currentIndex = idx; updateReelsProgress(rail, idx); }
-  };
+  const onScroll = () => { const idx = Math.round(feed.scrollTop / feed.clientHeight); if (idx !== currentIndex) { currentIndex = idx; updateReelsProgress(rail, idx); } };
   feed.addEventListener('scroll', onScroll);
-
   const videos = feed.querySelectorAll('video');
   videos.forEach(v => { v.muted = true; });
   let observer = null;
@@ -967,20 +665,13 @@ function initReelsFeed(feed) {
       });
     }, { threshold: 0.6, root: feed });
     videos.forEach(v => observer.observe(v));
-  } else {
-    videos.forEach(v => { window.umLoadVideo(v); v.play().catch(() => {}); });
-  }
-
+  } else { videos.forEach(v => { window.umLoadVideo(v); v.play().catch(() => {}); }); }
   return () => {
     feed.removeEventListener('scroll', onScroll);
     if (observer) observer.disconnect();
-    videos.forEach(v => {
-      v.pause();
-      if (v._hls) { try { v._hls.destroy(); } catch (_) {} v._hls = null; delete v.dataset.umLoaded; }
-    });
+    videos.forEach(v => { v.pause(); if (v._hls) { try { v._hls.destroy(); } catch(_) {} v._hls = null; delete v.dataset.umLoaded; } });
   };
 }
-
 function openReelsCategory(slug, dishId) {
   const el = document.getElementById(slug);
   if (!el) return;
@@ -995,7 +686,6 @@ function openReelsCategory(slug, dishId) {
     reelsFeedCleanup[slug] = initReelsFeed(feed);
   }
 }
-
 function closeReelsCategory(slug) {
   const el = document.getElementById(slug);
   if (!el) return;
@@ -1005,32 +695,20 @@ function closeReelsCategory(slug) {
     if (e.propertyName === 'transform') { el.style.display = 'none'; el.removeEventListener('transitionend', handler); }
   });
 }
-
 function shareReelsDish(dish) {
-  const url = new URL(window.location);
-  url.searchParams.set('dish', dish.id);
+  const url = new URL(window.location); url.searchParams.set('dish', dish.id);
   const shareText = `${dish.dish_name} — ${VENUE.name} — Una Mesa`;
-  if (navigator.share) {
-    navigator.share({ title: dish.dish_name, text: shareText, url: url.toString() }).catch(() => {});
-  } else {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + url.toString())}`, '_blank', 'noopener');
-  }
+  if (navigator.share) { navigator.share({ title: dish.dish_name, text: shareText, url: url.toString() }).catch(() => {}); }
+  else { window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + url.toString())}`, '_blank', 'noopener'); }
 }
-
 function bindReelsEvents() {
-  document.querySelectorAll('[data-reels-open]').forEach(btn => {
-    btn.addEventListener('click', () => openReelsCategory(btn.dataset.reelsOpen));
-  });
-  document.querySelectorAll('[data-reels-close]').forEach(btn => {
-    btn.addEventListener('click', () => closeReelsCategory(btn.dataset.reelsClose));
-  });
+  document.querySelectorAll('[data-reels-open]').forEach(btn => { btn.addEventListener('click', () => openReelsCategory(btn.dataset.reelsOpen)); });
+  document.querySelectorAll('[data-reels-close]').forEach(btn => { btn.addEventListener('click', () => closeReelsCategory(btn.dataset.reelsClose)); });
   document.querySelectorAll('[data-reels-share]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const dish = ALL_VIDEOS.find(v => v.id === btn.dataset.reelsShare);
-      if (dish) shareReelsDish(dish);
-    });
+    btn.addEventListener('click', () => { const dish = ALL_VIDEOS.find(v => v.id === btn.dataset.reelsShare); if (dish) shareReelsDish(dish); });
   });
 }
 </script>
 
-</body></html>
+</body>
+</html>
