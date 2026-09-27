@@ -15,7 +15,7 @@
 </script>
 
 <script>
-  try { if (localStorage.getItem('um-theme') !== 'noche') { document.documentElement.classList.add('light-mode'); document.documentElement.classList.remove('dark'); } } catch (e) {}
+  try { var _t = localStorage.getItem('um-theme'); if (!_t) { localStorage.setItem('um-theme', 'noche'); } else if (_t !== 'noche') { document.documentElement.classList.add('light-mode'); document.documentElement.classList.remove('dark'); } } catch (e) {}
 </script>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
