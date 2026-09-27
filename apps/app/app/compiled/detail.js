@@ -389,7 +389,7 @@ function DetailScreen({
     href: `/menu-video/?venue=${r.slug}`,
     className: 'det-bw-cta',
     style: {
-      marginTop: 12,
+      marginTop: 24,
       textDecoration: 'none'
     }
   }, React.createElement(Icon, {
@@ -404,7 +404,7 @@ function DetailScreen({
     className: 'det-bw-cta',
     disabled: true,
     style: {
-      marginTop: 12,
+      marginTop: 24,
       background: 'var(--line)',
       color: 'var(--muted)',
       cursor: 'not-allowed'

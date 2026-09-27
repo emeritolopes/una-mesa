@@ -260,7 +260,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
             ? React.createElement('a', {
                 href:`/menu-video/?venue=${r.slug}`,
                 className:'det-bw-cta',
-                style:{ marginTop:12, textDecoration:'none' }
+                style:{ marginTop:24, textDecoration:'none' }
               },
                 React.createElement(Icon,{name:'play',fill:'currentColor',style:{width:17,height:17}}),
                 DT_T.menuVideoCta
@@ -269,7 +269,7 @@ function DetailScreen({ rid, back, favs, toggleFav, startBook }) {
                 type:'button',
                 className:'det-bw-cta',
                 disabled:true,
-                style:{ marginTop:12, background:'var(--line)', color:'var(--muted)', cursor:'not-allowed' },
+                style:{ marginTop:24, background:'var(--line)', color:'var(--muted)', cursor:'not-allowed' },
                 title: DT_T.menuVideoLocked
               },
                 React.createElement(Icon,{name:'play',fill:'currentColor',style:{width:17,height:17}}),
