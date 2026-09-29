@@ -269,6 +269,17 @@ function Reservas() {
       }
     }
     load();
+    /* Refresh so new online bookings appear without a manual reload:
+       every 30s, and whenever the tab regains focus */
+    const iv = setInterval(() => { if (document.visibilityState === 'visible') load(); }, 30000);
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onVis);
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('focus', onVis);
+    };
   }, []);
 
   /* Load customer profile + history when selected reservation changes */
