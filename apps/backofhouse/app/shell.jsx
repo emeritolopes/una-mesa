@@ -24,6 +24,18 @@ function ThemeToggle() {
     </button>
   );
 }
+function LangToggle() {
+  const [lang, setLang] = useState(() => window.UMI18n?.getLang() || 'es');
+  useEffect(() => window.UMI18n?.onChange(setLang), []);
+  const next = lang === 'en' ? 'es' : 'en';
+  return (
+    <button onClick={() => window.UMI18n?.setLang(next)}
+      className="w-full flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition text-gray-500 hover:text-gray-900 hover:bg-gray-50">
+      <i className="ti ti-language text-base opacity-80" />
+      <span data-um-notranslate>{lang === 'en' ? 'Español' : 'English'}</span>
+    </button>
+  );
+}
 const NAV_GROUPS = [
   { title: 'Principal', items: [
     { to: 'panel', icon: 'ti-layout-dashboard', label: 'Panel' },
@@ -81,6 +93,7 @@ function Sidebar({ view, go, user, onLogout }) {
 
       <div className="p-3 border-t border-black/7 flex flex-col gap-1">
         <ThemeToggle />
+        <LangToggle />
         <button onClick={() => go('ajustes')}
           className={`w-full flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition ${view === 'ajustes' ? 'text-brand font-medium bg-brand/10' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
           <i className="ti ti-settings text-base opacity-80" /> Ajustes

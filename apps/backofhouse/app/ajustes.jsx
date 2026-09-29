@@ -32,6 +32,18 @@ function Card({ title, sub, children }) {
   );
 }
 
+/* Interface language — a per-device preference (localStorage), applied instantly; not saved to the venue */
+function LangSelect() {
+  const [lang, setLang] = useState(() => window.UMI18n?.getLang() || 'es');
+  useEffect(() => window.UMI18n?.onChange(setLang), []);
+  return (
+    <select className={fieldCls} value={lang} onChange={e => window.UMI18n?.setLang(e.target.value)}>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+    </select>
+  );
+}
+
 function GeneralTab({ v, set }) {
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
@@ -57,7 +69,7 @@ function GeneralTab({ v, set }) {
 
       <Card title="Regional">
         <div className="grid grid-cols-3 gap-4">
-          <Field label="Idioma"><select className={fieldCls} value={v.locale} onChange={e => set('locale', e.target.value)}><option value="es-ES">Español</option><option value="ca-ES">Català</option><option value="en-GB">English</option></select></Field>
+          <Field label="Idioma"><LangSelect /></Field>
           <Field label="Moneda"><select className={fieldCls} value={v.currency} onChange={e => set('currency', e.target.value)}><option value="EUR">Euro (€)</option><option value="GBP">Libra (£)</option></select></Field>
           <Field label="Zona horaria"><select className={fieldCls} value={v.timezone} onChange={e => set('timezone', e.target.value)}><option value="Europe/Madrid">Europe/Madrid</option><option value="Atlantic/Canary">Atlantic/Canary</option></select></Field>
         </div>
