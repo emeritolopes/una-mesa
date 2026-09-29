@@ -332,7 +332,7 @@ function BookingScreen({
   const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
   const deposit = depositCents / 100; // unidades de la moneda del restaurante, para mostrar en UI y email
   const curSym = window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '€'; // símbolo real del restaurante, no del mercado del comensal
-  const skipDeposit = party < (r.depositMinPartySize || 1);
+  const skipDeposit = true;
   const goStep = n => {
     setPayError('');
     setStep(n);
@@ -878,17 +878,17 @@ function BookingScreen({
       className: 'k'
     }, BK_T.guests), React.createElement('span', {
       className: 'v'
-    }, party)), React.createElement('div', {
+    }, party)), !skipDeposit ? React.createElement('div', {
       className: 'cd-row'
     }, React.createElement('span', {
-      className: 'k'
+  className: 'k'
     }, BK_T.deposit), React.createElement('span', {
-      className: 'v',
-      style: {
-        color: 'var(--accent)'
-      }
-    }, BK_T.depositNote(deposit * party, curSym))), React.createElement('div', {
-      className: 'cd-row'
+  className: 'v',
+  style: {
+    color: 'var(--accent)'
+  }
+}, BK_T.depositNote(deposit * party, curSym))) : null, React.createElement('div', {
+  className: 'cd-row'
     }, React.createElement('span', {
       className: 'k'
     }, BK_T.confirmation), React.createElement('span', {
