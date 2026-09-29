@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const sbHeaders    = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' }
 
     const venueRes = await fetch(
-      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,deposit_min_party_size`,
+      `${supabaseUrl}/rest/v1/venues?id=eq.${restaurant_id}&select=id,name,deposit_min_party_size`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     )
     const venues = await venueRes.json()
@@ -111,17 +111,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (customer_email || customer_phone) {
+    if (customer_email) {
       try {
         const supaFunctions = `${supabaseUrl}/functions/v1`
-        await fetch(`${supaFunctions}/send-email`, {
+        const emailRes = await fetch(`${supaFunctions}/send-email`, {
           method:  'POST',
           headers: sbHeaders,
           body:    JSON.stringify({
-            reservation_id: reservation.id,
-            lang: lang === 'en' ? 'en' : 'es',
+            to:              customer_email,
+            customer_name:   customer_name || customer_email,
+            restaurant_name: venue.name,
+            date,
+            time,
+            pax:             party,
+            deposit_amount:  0,
+            lang:            lang === 'en' ? 'en' : 'es',
           }),
         })
+        if (!emailRes.ok) console.warn('[create-reservation] send-email', emailRes.status, await emailRes.text())
       } catch (e) {
         console.warn('[create-reservation] send-email failed (non-fatal):', e)
       }

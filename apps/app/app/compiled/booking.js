@@ -334,7 +334,7 @@ function BookingScreen({
   const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
   const deposit = depositCents / 100; // unidades de la moneda del restaurante, para mostrar en UI y email
   const curSym = window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '€'; // símbolo real del restaurante, no del mercado del comensal
-  const skipDeposit = true;
+  const skipDeposit = party < (r.depositMinPartySize || 1);
   const goStep = n => {
     setPayError('');
     setStep(n);
@@ -392,6 +392,8 @@ function BookingScreen({
   }
 };
   const stripeConfirm = async () => {
+    /* Safety: groups below deposit_min_party_size never go through Stripe */
+    if (skipDeposit) { confirmWithoutDeposit(); return; }
     /* non-card methods: skip Stripe for now */
     if (pay !== 'card' || !window.Stripe || !cardElRef.current) {
       finish(null);
@@ -986,7 +988,7 @@ function BookingScreen({
     onClick: () => {
       if (!guestName.trim() || !guestEmail.trim()) return;
       setShowGuestForm(false);
-      stripeConfirm();
+      if (skipDeposit) confirmWithoutDeposit(); else stripeConfirm();
     },
     style: {
       padding: '14px',
