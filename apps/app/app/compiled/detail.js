@@ -30,6 +30,7 @@ const DT_T = {
     depositPre: 'Depósito de ',
     depositAmountFn: r => (window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '€') + (r.deposit || 10) + '/persona',
     depositPost: ' — se descuenta del total.',
+    noDepositNote: r => 'Sin depósito para grupos de menos de ' + (r.depositMinPartySize || 15) + ' personas.',
     timesToday: 'Horarios disponibles hoy',
     noAvailability: 'Sin disponibilidad hoy. Prueba otra fecha.',
     chooseDateTime: 'Elegir fecha y hora'
@@ -61,6 +62,7 @@ const DT_T = {
     depositPre: 'Deposit of ',
     depositAmountFn: r => (window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '£') + (r.deposit || 10) + '/person',
     depositPost: ' — deducted from the total.',
+    noDepositNote: r => 'No deposit required for groups under ' + (r.depositMinPartySize || 15) + '.',
     timesToday: 'Available times today',
     noAvailability: 'No availability today. Try another date.',
     chooseDateTime: 'Choose date and time'
@@ -321,17 +323,13 @@ function DetailScreen({
   }, DT_T.bookTable), React.createElement('p', {
     className: 'det-bw-sub'
   }, DT_T.at, React.createElement('b', null, r.name)), /* Deposit note · coral */
-  React.createElement('div', {
-    className: 'det-bw-dep'
-  }, React.createElement(Icon, {
-    name: 'shield',
-    style: {
-      width: 16,
-      height: 16,
-      flexShrink: 0,
-      marginTop: 1
-    }
-  }), React.createElement('span', null, DT_T.depositPre, React.createElement('b', null, DT_T.depositAmountFn(r)), DT_T.depositPost)),
+  (r.depositMinPartySize && r.depositMinPartySize > 1)
+  ? React.createElement('div', { className: 'det-bw-dep', style: { background: 'var(--c-surface)', color: 'var(--c-text-2)', borderColor: 'var(--c-border)' } },
+      React.createElement(Icon, { name: 'info-circle', style: { width: 16, height: 16, flexShrink: 0, marginTop: 1 } }),
+      React.createElement('span', null, DT_T.noDepositNote(r)))
+  : React.createElement('div', { className: 'det-bw-dep' },
+      React.createElement(Icon, { name: 'shield', style: { width: 16, height: 16, flexShrink: 0, marginTop: 1 } }),
+      React.createElement('span', null, DT_T.depositPre, React.createElement('b', null, DT_T.depositAmountFn(r)), DT_T.depositPost)),
   /* Available time slots — o el aviso de "próximamente" si el
      restaurante todavía no completó Stripe Connect. Se sigue
      mostrando en el listado (visibilidad para restaurantes
