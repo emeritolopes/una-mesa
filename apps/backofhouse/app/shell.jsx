@@ -52,7 +52,7 @@ const NAV_GROUPS = [
   ] },
 ];
 
-function Sidebar({ view, go, user, onLogout }) {
+function Sidebar({ view, go, user, onLogout, hidden = [] }) {
   return (
     <aside className="w-52 bg-white border-r border-black/7 flex flex-col h-screen flex-shrink-0">
       <div className="px-5 py-5 border-b border-black/7">
@@ -74,7 +74,7 @@ function Sidebar({ view, go, user, onLogout }) {
       </div>
 
       <nav className="flex-1 py-1 overflow-y-auto">
-        {NAV_GROUPS.map(group => (
+        {NAV_GROUPS.map(g => ({ ...g, items: g.items.filter(n => !hidden.includes(n.to)) })).filter(g => g.items.length).map(group => (
           <div key={group.title}>
             <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400 px-5 pt-3 pb-1">{group.title}</div>
             {group.items.map(n => {
@@ -94,10 +94,10 @@ function Sidebar({ view, go, user, onLogout }) {
       <div className="p-3 border-t border-black/7 flex flex-col gap-1">
         <ThemeToggle />
         <LangToggle />
-        <button onClick={() => go('ajustes')}
+        {!hidden.includes('ajustes') && <button onClick={() => go('ajustes')}
           className={`w-full flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition ${view === 'ajustes' ? 'text-brand font-medium bg-brand/10' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
           <i className="ti ti-settings text-base opacity-80" /> Ajustes
-        </button>
+        </button>}
         <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 group">
           <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-[10px] font-bold text-brand flex-shrink-0">{user.initials}</div>
           <div className="min-w-0 flex-1">
@@ -238,6 +238,26 @@ function App() {
 
   const go = useCallback((v) => { setView(v); localStorage.setItem('unamesa.view', v); }, []);
 
+  /* Modules the admin hid for this venue (venues.backofhouse_hidden_modules,
+     set from the admin panel). Re-read on focus so admin changes show up
+     without logging out. Missing column / error → nothing hidden. */
+  const [hidden, setHidden] = useState([]);
+  useEffect(() => {
+    if (!user?.venue_id || !window.sb) return;
+    const load = async () => {
+      try {
+        const { data, error } = await window.sb.from('venues').select('backofhouse_hidden_modules').eq('id', user.venue_id).single();
+        if (!error) setHidden(Array.isArray(data?.backofhouse_hidden_modules) ? data.backofhouse_hidden_modules : []);
+      } catch (e) {}
+    };
+    load();
+    window.addEventListener('focus', load);
+    return () => window.removeEventListener('focus', load);
+  }, [user?.venue_id]);
+
+  const ALL_VIEWS = ['panel', 'reservas', 'tpv', 'cocina', 'carta', 'stock', 'personal', 'informes', 'analytics', 'ajustes'];
+  const activeView = hidden.includes(view) ? (ALL_VIEWS.find(v => !hidden.includes(v)) || 'panel') : view;
+
   // cross-tab theme sync
   useEffect(() => {
     const handler = (e) => {
@@ -259,9 +279,9 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
-      <Sidebar view={view} go={go} user={user} onLogout={logout} />
+      <Sidebar view={activeView} go={go} user={user} onLogout={logout} hidden={hidden} />
       <main className="flex-1 overflow-y-auto">
-        {(SCREENS[view] || SCREENS.panel)(go)}
+        {(SCREENS[activeView] || SCREENS.panel)(go)}
       </main>
       <ToastHost />
     </div>

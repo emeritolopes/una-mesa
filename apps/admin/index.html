@@ -329,8 +329,10 @@ async function renderOverview() {
 /* ── Restaurantes ── */
 const FILTER_LABELS = {
   all: 'Todos', active: 'Activos', pending: 'Pendientes de Stripe',
-  archived: 'Archivados', menuvideo: 'Con menú en video',
+  archived: 'Archivados', menuvideo: 'Con menú en video', backofhouse: 'Con backofhouse',
 };
+
+const escHtml = (str) => String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 async function renderRestaurants(initialFilter) {
   let currentFilter = initialFilter || 'all';
@@ -347,8 +349,8 @@ async function renderRestaurants(initialFilter) {
     <div class="filter-tabs" id="filter-tabs"></div>
     <div class="table-card">
       <table>
-        <thead><tr><th>Nombre</th><th>Ciudad</th><th>Stripe</th><th>Estado</th><th>Menú en video</th><th></th></tr></thead>
-        <tbody id="venues-tbody"><tr class="empty-row"><td colspan="6">Cargando…</td></tr></tbody>
+        <thead><tr><th>Nombre</th><th>Ciudad</th><th>Stripe</th><th>Estado</th><th>Menú en video</th><th>Backofhouse</th><th></th></tr></thead>
+        <tbody id="venues-tbody"><tr class="empty-row"><td colspan="7">Cargando…</td></tr></tbody>
       </table>
     </div>
   `;
@@ -379,9 +381,15 @@ async function renderRestaurants(initialFilter) {
     });
   });
 
-  const { data, error } = await sb.from('venues')
-    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access')
-    .order('name');
+  const [{ data, error }, { data: ruRows, error: ruErr }] = await Promise.all([
+    sb.from('venues')
+      .select('*') // '*' so the list still loads before migration 043 adds backofhouse_hidden_modules
+      .order('name'),
+    sb.from('restaurant_users').select('venue_id, email'),
+  ]);
+  // venue_id → [emails] of backofhouse logins (needs migration 043 for admins to read it)
+  const bohLogins = {};
+  (ruRows || []).forEach(r => { (bohLogins[r.venue_id] = bohLogins[r.venue_id] || []).push(r.email); });
 
   const allData = data || [];
 
@@ -390,6 +398,7 @@ async function renderRestaurants(initialFilter) {
     if (filter === 'pending') return allData.filter(v => !v.archived && !v.stripe_charges_enabled);
     if (filter === 'archived') return allData.filter(v => v.archived);
     if (filter === 'menuvideo') return allData.filter(v => v.menu_video_access);
+    if (filter === 'backofhouse') return allData.filter(v => bohLogins[v.id]);
     return allData;
   };
 
@@ -406,12 +415,12 @@ async function renderRestaurants(initialFilter) {
   const renderRows = () => {
     const tbody = document.getElementById('venues-tbody');
     if (error || allData.length === 0) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${error ? 'Error al cargar' : 'Sin restaurantes todavía'}</td></tr>`;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${error ? 'Error al cargar' : 'Sin restaurantes todavía'}</td></tr>`;
       return;
     }
     const filtered = applyFilter(currentFilter);
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Ningún restaurante en esta categoría</td></tr>`;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Ningún restaurante en esta categoría</td></tr>`;
       return;
     }
     tbody.innerHTML = filtered.map(v => `
@@ -427,6 +436,11 @@ async function renderRestaurants(initialFilter) {
         <td>${v.menu_video_access
           ? '<span class="pill on">Sí</span>'
           : '<span class="pill off">No</span>'}</td>
+        <td>${ruErr
+          ? '<span class="pill off" title="Aplica la migración 043 para ver este dato">—</span>'
+          : bohLogins[v.id]
+            ? `<span class="pill on" title="${escHtml(bohLogins[v.id].join(', '))}">Sí${(v.backofhouse_hidden_modules || []).length ? ` · ${v.backofhouse_hidden_modules.length} ocultos` : ''}</span>`
+            : '<span class="pill off">No</span>'}</td>
         <td>
           <button class="tbl-action" data-open="${v.id}">Editar</button>
           <button class="tbl-action" data-action="toggle-archive" data-id="${v.id}" data-archived="${v.archived}">
@@ -502,7 +516,7 @@ async function renderRestaurantDetail(id) {
   main.innerHTML = `<p class="loading-txt">Cargando…</p>`;
 
   const { data: venue, error } = await sb.from('venues')
-    .select('id, name, city, archived, stripe_charges_enabled, menu_video_access, category_order, photo_urls')
+    .select('*') // '*' so this still loads before migration 043 adds backofhouse_hidden_modules
     .eq('id', id).maybeSingle();
 
   if (error || !venue) {
@@ -561,6 +575,17 @@ async function renderRestaurantDetail(id) {
       </div>
     </div>
 
+    <div class="section-card" id="boh-section">
+      <div class="section-title">Backofhouse</div>
+      <div class="section-sub" id="boh-access">Cargando…</div>
+      <div class="section-sub" style="margin-top:14px;">Módulos visibles en el panel del restaurante. Desactiva los que no necesite — desaparecen de su menú.</div>
+      <div id="boh-modules"></div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:12px;">
+        <button class="btn-primary" id="boh-save">Guardar módulos</button>
+        <span id="boh-msg" style="font-size:13px;"></span>
+      </div>
+    </div>
+
     <div class="section-card">
       <div class="section-title">Orden de categorías en el menú</div>
       <div class="section-sub">Controla en qué orden aparecen las pestañas del menú en video para este restaurante (ej. mover "Rice" junto a "Mains").</div>
@@ -579,6 +604,7 @@ async function renderRestaurantDetail(id) {
   document.getElementById('back-to-list').addEventListener('click', () => navigate('restaurants'));
   renderCategoryOrder(venue, dishes || []);
   initPhotoSection(id, venue.photo_urls);
+  initBackofhouseSection(venue);
 
   document.getElementById('save-basic').addEventListener('click', async () => {
     const name = document.getElementById('ed-name').value.trim();
@@ -604,6 +630,58 @@ async function renderRestaurantDetail(id) {
   renderDishesList(dishes || [], id);
 
   document.getElementById('add-dish-btn').addEventListener('click', () => renderDishForm(id, null));
+}
+
+/* ── Backofhouse: acceso + módulos visibles ── */
+const BOH_MODULES = [
+  { id: 'panel',     label: 'Panel',       sub: 'Resumen del día' },
+  { id: 'reservas',  label: 'Reservas',    sub: 'Lista y timeline de reservas' },
+  { id: 'tpv',       label: 'TPV',         sub: 'Punto de venta y cobros' },
+  { id: 'cocina',    label: 'Cocina',      sub: 'Pantalla de comandas' },
+  { id: 'carta',     label: 'Carta',       sub: 'Platos y precios' },
+  { id: 'stock',     label: 'Inventario',  sub: 'Stock y reposición' },
+  { id: 'personal',  label: 'Personal',    sub: 'Turnos y fichajes' },
+  { id: 'informes',  label: 'Informes',    sub: 'Ventas y rendimiento' },
+  { id: 'analytics', label: 'Analytics',   sub: 'Reservas, canales y clientes' },
+  { id: 'ajustes',   label: 'Ajustes',     sub: 'Configuración del local' },
+];
+
+async function initBackofhouseSection(venue) {
+  const accessEl = document.getElementById('boh-access');
+  const { data: logins, error: ruErr } = await sb.from('restaurant_users').select('email').eq('venue_id', venue.id);
+  if (ruErr) accessEl.innerHTML = '<span class="pill off">—</span> No se pudo comprobar el acceso (¿migración 043 aplicada?).';
+  else if (!logins || logins.length === 0) accessEl.innerHTML = '<span class="pill off">Sin acceso</span> Este restaurante no tiene ninguna cuenta del backofhouse vinculada.';
+  else accessEl.innerHTML = `<span class="pill on">Con acceso</span> Cuenta${logins.length > 1 ? 's' : ''}: <strong>${logins.map(l => escHtml(l.email)).join(', ')}</strong>`;
+
+  const hasColumn = 'backofhouse_hidden_modules' in venue;
+  const hidden = new Set(venue.backofhouse_hidden_modules || []);
+  const wrap = document.getElementById('boh-modules');
+  wrap.innerHTML = BOH_MODULES.map(m => `
+    <div class="toggle-row">
+      <div><strong>${m.label}</strong><br><span class="page-sub" style="margin:0;">${m.sub}</span></div>
+      <label class="switch"><input type="checkbox" data-boh-module="${m.id}" ${hidden.has(m.id) ? '' : 'checked'} ${hasColumn ? '' : 'disabled'}><span class="switch-track"></span></label>
+    </div>`).join('');
+
+  const btn = document.getElementById('boh-save');
+  const msg = document.getElementById('boh-msg');
+  if (!hasColumn) {
+    btn.disabled = true;
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Aplica la migración 043 en Supabase para poder guardar.';
+    return;
+  }
+  btn.addEventListener('click', async () => {
+    const newHidden = [...wrap.querySelectorAll('[data-boh-module]')].filter(cb => !cb.checked).map(cb => cb.dataset.bohModule);
+    if (newHidden.length === BOH_MODULES.length) {
+      msg.style.color = 'var(--red)'; msg.textContent = 'Deja al menos un módulo visible.'; return;
+    }
+    btn.disabled = true;
+    const { error: updErr } = await sb.from('venues').update({ backofhouse_hidden_modules: newHidden }).eq('id', venue.id);
+    btn.disabled = false;
+    msg.style.color = updErr ? 'var(--red)' : 'var(--green)';
+    msg.textContent = updErr ? 'Error: ' + updErr.message : '✓ Guardado — el restaurante lo verá al recargar el panel';
+    setTimeout(() => { msg.textContent = ''; }, 4000);
+  });
 }
 
 function renderCategoryOrder(venue, dishes) {
