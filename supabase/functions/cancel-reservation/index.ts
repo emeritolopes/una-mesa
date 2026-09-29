@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     // the customer, so use the restaurant's market rather than the staff UI language
     if (langRaw !== 'en' && langRaw !== 'es' && reservation?.venues) {
       const v = reservation.venues
-      lang = v.currency === 'GBP' || (v.timezone || '').startsWith('Europe/London') ? 'en' : 'es'
+      lang = String(v.currency || '').toUpperCase() === 'GBP' || String(v.timezone || '').startsWith('Europe/London') ? 'en' : 'es'
       t = ET[lang]
     }
     if (!reservation) return new Response(JSON.stringify({ error: t.notFound }), { status: 404, headers: corsHeaders })

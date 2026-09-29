@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
           currency: reservation.venues?.currency,
           lang: ['en', 'es'].includes(url.searchParams.get('lang') || '')
             ? url.searchParams.get('lang')
-            : (reservation.venues?.currency === 'GBP' || (reservation.venues?.timezone || '').startsWith('Europe/London') ? 'en' : 'es'),
+            : (String(reservation.venues?.currency || '').toUpperCase() === 'GBP' || String(reservation.venues?.timezone || '').startsWith('Europe/London') ? 'en' : 'es'),
         }),
       })
     } catch (e) { console.warn('[cancel-reservation-guest] email:', e instanceof Error ? e.message : e) }
