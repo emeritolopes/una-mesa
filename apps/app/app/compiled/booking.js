@@ -166,6 +166,7 @@ const STRIPE_PK_TEST = 'pk_test_51TgPHRDK53YMaqEjST8vqddkOx4ha0Dqk9sFzAy6DV8qWgV
 const STRIPE_PK_LIVE = 'pk_live_51TgPHIDa8CHGM8FqmX54PydABYboY7wJc57yQ9M5Ji4xGUFLlTvN1CQ4sneaZzABSLPq2w657jb8fhH4opIGRX1500Q5Q6prhz';
 const SUPA_BASE = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1';
 const SUPA_PAY_FUNC = SUPA_BASE + '/stripe-payment';
+const SUPA_RES_FUNC = SUPA_BASE + '/create-reservation';
 const SUPA_EMAIL_FUNC = SUPA_BASE + '/send-email';
 const SUPA_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
 const nowMadrid = new Date(new Date().toLocaleString('en-US', {
@@ -331,7 +332,7 @@ function BookingScreen({
   const depositCents = r.deposit_amount || (r.deposit ? r.deposit * 100 : 1000);
   const deposit = depositCents / 100; // unidades de la moneda del restaurante, para mostrar en UI y email
   const curSym = window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(r.currency) : '€'; // símbolo real del restaurante, no del mercado del comensal
-
+  const skipDeposit = party < (r.depositMinPartySize || 1);
   const goStep = n => {
     setPayError('');
     setStep(n);
@@ -362,6 +363,32 @@ function BookingScreen({
   };
 
   /* ── Stripe payment orchestration ── */
+  const confirmWithoutDeposit = async () => {
+  if (!user && (!guestEmail || !guestName)) { setShowGuestForm(true); return; }
+  const nowCheck = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+  const requestedDT = new Date(`${selectedDate}T${(time||'').slice(0,5)}:00`);
+  if (requestedDT < nowCheck) { setPayError(BK_T.pastTimeError); return; }
+  setPayLoading(true); setPayError('');
+  try {
+    const reservationCode = 'UM-'+Math.random().toString(36).slice(2,7).toUpperCase();
+    const dateStr = day ? `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}` : todayStr;
+    const custName  = user ? (user.name || user.email) : guestName;
+    const custEmail = user ? (user.email || null) : guestEmail || null;
+    const custPhone = user ? null : guestPhone || null;
+    const res = await fetch(SUPA_RES_FUNC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
+      body: JSON.stringify({ restaurant_id: r.id, user_id: user?.id || '', reservation_id: reservationCode, party, date: dateStr, time, customer_name: custName, customer_phone: custPhone, customer_email: custEmail, lang: BK_LANG }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || BK_T.genericPayError);
+    finish(null, reservationCode);
+  } catch (err) {
+    setPayError(err.message || BK_T.genericPayError);
+  } finally {
+    setPayLoading(false);
+  }
+};
   const stripeConfirm = async () => {
     /* non-card methods: skip Stripe for now */
     if (pay !== 'card' || !window.Stripe || !cardElRef.current) {
@@ -615,7 +642,7 @@ function BookingScreen({
       onClick: () => goStep(1)
     }, BK_T.back), React.createElement('button', {
       className: 'btn btn-acc',
-      onClick: () => goStep(3)
+      onClick: skipDeposit ? confirmWithoutDeposit : () => goStep(3)
     }, BK_T.continue_)));
 
     /* ── Step 3 · Deposit & payment ── */
