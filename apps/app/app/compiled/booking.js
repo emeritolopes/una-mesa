@@ -189,7 +189,9 @@ function BookingScreen({
   React.useEffect(() => { if (window.umTrack) window.umTrack(rid, 'booking_start'); }, [rid]);
   const data = window.UM_DATA;
   const r = data.find(x => x.id === rid);
-  const startStep = presetTime && presetParty ? 3 : presetTime ? 2 : 0;
+  const presetPartyNum = presetParty || 2;
+  const wouldSkipDeposit = presetPartyNum < (r?.depositMinPartySize || 1);
+  const startStep = presetTime && presetParty && !wouldSkipDeposit ? 3 : presetTime ? 2 : 0;
   const today = new Date();
   // Parse presetDate (YYYY-MM-DD) at noon local time to avoid UTC-midnight timezone shift
   const initialDay = presetDate ? new Date(presetDate + 'T12:00:00') : startStep > 0 ? today : null;
