@@ -358,6 +358,7 @@ window.umTrack = function (venueId, event, dishId) {
       stripeChargesEnabled:   !!v.stripe_charges_enabled,
       menuVideoAccess:        !!v.menu_video_access,
       stripeMode: v.stripe_mode || 'live',
+      depositMinPartySize: parseInt(v.deposit_min_party_size, 10) || 1,
       photo_url: v.photo_url || v.image_url || v.photo || null,
       photo_urls: Array.isArray(v.photo_urls) ? v.photo_urls : [],
     };
