@@ -35,6 +35,16 @@ const ET = {
   },
 }
 
+const CURRENCY_SYMBOL: Record<string, string> = { GBP: '£', EUR: '€', USD: '$' }
+
+/* '2026-09-29' → 'Tuesday 29 September 2026' / 'martes, 29 de septiembre de 2026' */
+function fmtDate(d: string, lang: 'es' | 'en'): string {
+  if (!d || !/^\d{4}-\d{2}-\d{2}/.test(d)) return d || ''
+  const dt = new Date(d.slice(0, 10) + 'T12:00:00Z')
+  const s = dt.toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 function buildHtml(opts: {
   customer_name: string
   restaurant_name: string
@@ -44,12 +54,17 @@ function buildHtml(opts: {
   deposit_amount: number
   refunded: boolean
   lang: 'es' | 'en'
+  currency?: string
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, refunded, lang } = opts
+  const { customer_name, restaurant_name, pax, deposit_amount, refunded, lang } = opts
   const t = ET[lang] || ET.es
   const firstName = customer_name.split(' ')[0] || customer_name
-  const depositAmt = (deposit_amount / 100).toFixed(0)
-  const depositLabel = t.currency + depositAmt
+  const hasDeposit = deposit_amount > 0
+  const sym = CURRENCY_SYMBOL[(opts.currency || '').toUpperCase()] || t.currency
+  const depositAmt = (deposit_amount / 100).toFixed(deposit_amount % 100 ? 2 : 0)
+  const depositLabel = sym + depositAmt
+  const date = fmtDate(opts.date, lang)
+  const time = (opts.time || '').slice(0, 5)
 
   return `<!DOCTYPE html>
 <html lang="${t.htmlLang}">
@@ -124,10 +139,10 @@ function buildHtml(opts: {
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelPersonas}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${pax}</p>
                                     </td>
-                                    <td width="50%">
+                                    ${hasDeposit ? `<td width="50%">
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
                                       <p style="margin:0;font-size:16px;font-weight:700;color:#D8552E;">${depositLabel} <span style="font-size:12px;font-weight:500;color:#999;">· ${refunded ? t.refundable : t.forfeited}</span></p>
-                                    </td>
+                                    </td>` : ''}
                                   </tr>
                                 </table>
                               </td>
@@ -137,7 +152,7 @@ function buildHtml(opts: {
                       </tr>
                     </table>
 
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FDF3F0;border-radius:10px;border-left:3px solid #D8552E;">
+                    ${hasDeposit ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FDF3F0;border-radius:10px;border-left:3px solid #D8552E;">
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
@@ -145,14 +160,14 @@ function buildHtml(opts: {
                           </p>
                         </td>
                       </tr>
-                    </table>
+                    </table>` : ''}
 
                   </td>
                 </tr>
 
                 <tr>
                   <td style="padding:32px 48px 40px;" align="center">
-                    <a href="https://app.unamesa.co"
+                    <a href="${(opts.currency || '').toUpperCase() === 'GBP' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'}"
                        style="display:inline-block;background:#D8552E;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:700;padding:14px 36px;border-radius:50px;letter-spacing:0.2px;">
                       ${t.cta}
                     </a>
@@ -195,7 +210,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, refunded, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, refunded, currency, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -210,7 +225,7 @@ Deno.serve(async (req) => {
     const html   = buildHtml({
       customer_name: customer_name || to, restaurant_name, date, time,
       pax: pax || 1, deposit_amount: deposit_amount || 0,
-      refunded: refunded !== false, lang,
+      refunded: refunded !== false, lang, currency,
     })
 
     const resendRes = await fetch('https://api.resend.com/emails', {

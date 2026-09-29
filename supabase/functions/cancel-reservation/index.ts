@@ -62,17 +62,24 @@ Deno.serve(async (req) => {
     if (!caller?.id) return new Response(JSON.stringify({ error: 'invalid session' }), { status: 401, headers: corsHeaders })
 
     const { reservation_id, lang: langRaw } = await req.json()
-    const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
-    const t = ET[lang]
+    let lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
+    let t = ET[lang]
     if (!reservation_id) return new Response(JSON.stringify({ error: 'reservation_id required' }), { status: 400, headers: corsHeaders })
 
     // 2 · Traer la reserva + el restaurante (zona horaria real, no asumida)
     const resRes = await fetch(
-      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email,stripe_connect_account_id,stripe_mode)`,
+      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email,currency,stripe_connect_account_id,stripe_mode)`,
       { headers: h }
     )
     const reservations = await resRes.json()
     const reservation = reservations?.[0]
+    // Caller didn't say which language (e.g. the backofhouse): the email goes to
+    // the customer, so use the restaurant's market rather than the staff UI language
+    if (langRaw !== 'en' && langRaw !== 'es' && reservation?.venues) {
+      const v = reservation.venues
+      lang = v.currency === 'GBP' || (v.timezone || '').startsWith('Europe/London') ? 'en' : 'es'
+      t = ET[lang]
+    }
     if (!reservation) return new Response(JSON.stringify({ error: t.notFound }), { status: 404, headers: corsHeaders })
     if (reservation.status === 'cancelled') {
       return new Response(JSON.stringify({ error: t.alreadyCancelled }), { status: 409, headers: corsHeaders })
@@ -190,6 +197,7 @@ Deno.serve(async (req) => {
             pax: reservation.pax,
             deposit_amount: reservation.deposit_amount,
             refunded: depositStatus === 'refunded',
+            currency: reservation.venues?.currency,
             lang,
           }),
         })

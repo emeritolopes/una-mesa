@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,stripe_connect_account_id,stripe_mode)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,currency,stripe_connect_account_id,stripe_mode)`,
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
@@ -152,7 +152,10 @@ Deno.serve(async (req) => {
           pax: reservation.pax,
           deposit_amount: reservation.deposit_amount,
           refunded: depositStatus === 'refunded',
-          lang: url.searchParams.get('lang') === 'en' ? 'en' : 'es',
+          currency: reservation.venues?.currency,
+          lang: ['en', 'es'].includes(url.searchParams.get('lang') || '')
+            ? url.searchParams.get('lang')
+            : (reservation.venues?.currency === 'GBP' || (reservation.venues?.timezone || '').startsWith('Europe/London') ? 'en' : 'es'),
         }),
       })
     } catch (e) { console.warn('[cancel-reservation-guest] email:', e instanceof Error ? e.message : e) }
