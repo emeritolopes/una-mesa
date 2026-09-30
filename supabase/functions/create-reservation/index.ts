@@ -187,6 +187,8 @@ Deno.serve(async (req) => {
           date:                label,
           time:                shownTime,
           pax:                 party,
+          customer_phone:      customer_phone || null,
+          customer_email:      customer_email || null,
           respond_confirm_url: `${BACKOFHOUSE_URL}/?respond_token=${token}&action=confirm`,
           respond_decline_url: `${BACKOFHOUSE_URL}/?respond_token=${token}&action=decline`,
           lang:                l,

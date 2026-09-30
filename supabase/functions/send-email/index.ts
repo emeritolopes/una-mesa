@@ -116,7 +116,7 @@ const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) =>
 
 const NT = {
   es: {
-    htmlLang: 'es', labelCliente: 'Cliente', labelFecha: 'Fecha', labelHora: 'Hora', labelPersonas: 'Personas',
+    htmlLang: 'es', labelCliente: 'Cliente', labelFecha: 'Fecha', labelHora: 'Hora', labelPersonas: 'Personas', labelTelefono: 'Teléfono', labelEmail: 'Email',
     reqSubject: (name: string, date: string, time: string) => `Solicitud de reserva: ${name} · ${date} ${time}`,
     reqEyebrow: 'Solicitud de reserva',
     reqHeading: (name: string) => `${name} quiere reservar`,
@@ -139,7 +139,7 @@ const NT = {
     footer: 'Recibes este email por una solicitud de reserva hecha en Una Mesa.',
   },
   en: {
-    htmlLang: 'en', labelCliente: 'Customer', labelFecha: 'Date', labelHora: 'Time', labelPersonas: 'Guests',
+    htmlLang: 'en', labelCliente: 'Customer', labelFecha: 'Date', labelHora: 'Time', labelPersonas: 'Guests', labelTelefono: 'Phone', labelEmail: 'Email',
     reqSubject: (name: string, date: string, time: string) => `Booking request: ${name} · ${date} ${time}`,
     reqEyebrow: 'Booking request',
     reqHeading: (name: string) => `${name} would like to book`,
@@ -170,6 +170,8 @@ function buildManualNotice(opts: {
   date: string
   time: string
   pax: number
+  phone?: string | null
+  email?: string | null
   confirm_url?: string
   decline_url?: string
   lang: 'es' | 'en'
@@ -195,6 +197,7 @@ function buildManualNotice(opts: {
       <tr><td style="padding:16px 28px;"><table width="100%" cellpadding="0" cellspacing="0">
         <tr>${cell(n.labelCliente, cust)}${cell(n.labelPersonas, esc(pax))}</tr>
         <tr>${cell(n.labelFecha, esc(date))}${cell(n.labelHora, esc(time))}</tr>
+        ${kind === 'request' && (opts.phone || opts.email) ? `<tr>${cell(n.labelTelefono, esc(opts.phone || '—'))}${cell(n.labelEmail, esc(opts.email || '—'))}</tr>` : ''}
       </table></td></tr>
     </table>`
   const buttons = kind === 'request' && confirm_url && decline_url ? `
@@ -756,7 +759,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, respond_confirm_url, respond_decline_url, pending_notice, response_status, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -779,6 +782,7 @@ Deno.serve(async (req) => {
       ? buildManualNotice({
           kind: manualKind, customer_name: customer_name || to, restaurant_name,
           date: date || '', time: time || '', pax: pax || 1,
+          phone: customer_phone, email: customer_email,
           confirm_url: respond_confirm_url, decline_url: respond_decline_url, lang,
         })
       : null
