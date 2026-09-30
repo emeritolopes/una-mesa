@@ -197,25 +197,39 @@ Deno.serve(async (req) => {
     }
 
     // 1 · Crear la reserva — server-side, con datos verificados por Stripe, no por el cliente.
-    const insertRes = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
+    const baseRow = {
+      venue_id: venueId,
+      user_id: userId,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      pax: party,
+      date: meta.date,
+      time: meta.time,
+      status: 'confirmed',
+      payment_intent_id: pi.id,
+      deposit_status: 'pending',
+      source: 'web',
+    }
+    const acq = {
+      acquisition_source: meta.acq_source || null,
+      acquisition_medium: meta.acq_medium || null,
+      acquisition_campaign: meta.acq_campaign || null,
+    }
+    const hasAcq = !!(acq.acquisition_source || acq.acquisition_medium || acq.acquisition_campaign)
+    const doInsert = (row: Record<string, unknown>) => fetch(`${supabaseUrl}/rest/v1/reservations`, {
       method: 'POST',
       headers: { ...sbHeaders, 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        venue_id: venueId,
-        user_id: userId,
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        customer_email: customerEmail,
-        pax: party,
-        date: meta.date,
-        time: meta.time,
-        status: 'confirmed',
-        payment_intent_id: pi.id,
-        deposit_status: 'pending',
-        source: 'web',
-      }),
+      body: JSON.stringify(row),
     })
-    const inserted = await insertRes.json()
+    let insertRes = await doInsert(hasAcq ? { ...baseRow, ...acq } : baseRow)
+    let inserted = await insertRes.json()
+    // Si la migración 045 no está aplicada, el cobro ya está hecho: nunca perder la reserva por el origen.
+    if (!insertRes.ok && hasAcq) {
+      console.warn('[stripe-webhook] insert con origen falló, reintentando sin él:', JSON.stringify(inserted))
+      insertRes = await doInsert(baseRow)
+      inserted = await insertRes.json()
+    }
     const reservation = inserted?.[0]
     if (!insertRes.ok || !reservation?.id) {
       console.warn('[stripe-webhook] no se pudo crear la reserva:', JSON.stringify(inserted))

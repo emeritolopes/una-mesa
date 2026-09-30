@@ -285,6 +285,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
           customer_phone:  custPhone,
           customer_email:  custEmail,
           lang:            BK_LANG,
+          attribution:     window.umAttribution && window.umAttribution(),
         }),
       });
 

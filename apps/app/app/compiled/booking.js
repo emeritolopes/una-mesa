@@ -388,7 +388,7 @@ function BookingScreen({
     const res = await fetch(SUPA_RES_FUNC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_ANON_KEY },
-      body: JSON.stringify({ restaurant_id: r.id, user_id: user?.id || '', reservation_id: reservationCode, party, date: dateStr, time, customer_name: custName, customer_phone: custPhone, customer_email: custEmail, lang: BK_LANG }),
+      body: JSON.stringify({ restaurant_id: r.id, user_id: user?.id || '', reservation_id: reservationCode, party, date: dateStr, time, customer_name: custName, customer_phone: custPhone, customer_email: custEmail, lang: BK_LANG, attribution: window.umAttribution && window.umAttribution() }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -444,7 +444,8 @@ function BookingScreen({
           customer_name: custName,
           customer_phone: custPhone,
           customer_email: custEmail,
-          lang: BK_LANG
+          lang: BK_LANG,
+          attribution: window.umAttribution && window.umAttribution()
         })
       });
       const json = await res.json();
