@@ -28,6 +28,37 @@ window.umSessionId = (function () {
     return sid;
   } catch (e) { return null; }
 })();
+/* Origen de la visita (first-touch, por pestaña). Lee ?utm_source/medium/campaign
+   y, si no hay, clasifica document.referrer. Devuelve {source, medium, campaign}
+   (strings saneados) o null. Se guarda en sessionStorage 'um-attr'. */
+window.umAttribution = function () {
+  const clean = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 50) || null;
+  try {
+    const saved = sessionStorage.getItem('um-attr');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  let a = null;
+  try {
+    const q = new URLSearchParams(location.search);
+    const src = clean(q.get('utm_source'));
+    if (src) {
+      a = { source: src, medium: clean(q.get('utm_medium')), campaign: clean(q.get('utm_campaign')) };
+    } else if (document.referrer) {
+      const h = new URL(document.referrer).hostname.replace(/^www\./, '');
+      if (h && h !== location.hostname.replace(/^www\./, '')) {
+        if (/(^|\.)google\./.test(h)) a = { source: 'google', medium: 'organic', campaign: null };
+        else if (/instagram\.com$/.test(h)) a = { source: 'instagram', medium: 'social', campaign: null };
+        else if (/(facebook\.com|fb\.com)$/.test(h)) a = { source: 'facebook', medium: 'social', campaign: null };
+        else if (/(^|\.)t\.co$/.test(h)) a = { source: 'twitter', medium: 'social', campaign: null };
+        else a = { source: clean(h), medium: 'referral', campaign: null };
+      }
+    }
+  } catch (e) {}
+  try { if (a) sessionStorage.setItem('um-attr', JSON.stringify(a)); } catch (e) {}
+  return a;
+};
+window.umAttribution(); // captura la entrada al cargar, antes de que cambie la URL
+
 window.umTrack = function (venueId, event, dishId) {
   if (!/^[0-9a-f-]{36}$/i.test(String(venueId || ''))) return;
   const sb = window.UMAuth && window.UMAuth.sb;

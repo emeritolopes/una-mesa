@@ -34,7 +34,12 @@ Deno.serve(async (req) => {
     const {
       amount, restaurant_id, user_id, reservation_id, party,
       date, time, customer_name, customer_phone, customer_email, lang,
+      attribution,
     } = await req.json()
+
+    // Origen de la reserva: sanear (viene del cliente) y llevarlo en la metadata
+    // para que el webhook lo guarde al crear la reserva.
+    const acqClean = (v: unknown) => String(v ?? '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 50)
 
     if (!reservation_id) {
       return new Response(JSON.stringify({ error: 'reservation_id required' }), {
@@ -144,6 +149,9 @@ Deno.serve(async (req) => {
           customer_phone:  customer_phone ?? '',
           customer_email:  customer_email ?? '',
           lang:            lang === 'en' ? 'en' : 'es',
+          acq_source:      acqClean(attribution?.source),
+          acq_medium:      acqClean(attribution?.medium),
+          acq_campaign:    acqClean(attribution?.campaign),
         },
       },
       { stripeAccount: venue.stripe_connect_account_id } // direct charge — crítico, sin esto el pago se crearía en la cuenta de Una Mesa
