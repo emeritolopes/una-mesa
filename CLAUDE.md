@@ -66,6 +66,8 @@ Functions live in `supabase/functions/` and run on Deno. Each function is a stan
 | `send-email` | Send reservation confirmation HTML email via Resend |
 | `send-cancellation-email` | Send cancellation HTML email via Resend |
 | `update-reservation` | Patch reservation status in DB (only `'cancelled'` is allowed) |
+| `create-reservation` | Creates a reservation WITHOUT deposit (party below `venues.deposit_min_party_size`). Per-venue opt-ins (migration `044`, off by default): `manual_confirmation` → reservation is `'pending'` and the restaurant gets an email with Confirm / Decline buttons (rolls back + errors if that email can't be sent); `max_covers_per_service` → cap per day and service (lunch < 17:00, dinner ≥ 17:00), counting Una Mesa bookings only, not atomic. Rejects `party` > 100. Falls back to the old columns if migration `044` isn't applied yet. |
+| `respond-reservation` | Restaurant confirms/declines a `'pending'` reservation via single-use token (`reservation_response_tokens`). JSON API like `mark-noshow`: the screen lives in backofhouse (`?respond_token=…&action=confirm\|decline`, `RespondReservationScreen` in `shell.jsx`); opening the link only validates, a real click executes. Atomic PATCH only while still `pending`; emails the diner (`send-email` modes `response_status`, `pending_notice`, `respond_*_url`). `verify_jwt = false`. |
 | `upsert-customer` | Create or update a customer profile in the `customers` table; called after every reservation (web + phone) |
 | `vapi-availability` | Vapi tool webhook — checks hardcoded lunch/dinner slots; no DB calls (avoids Vapi's 20s timeout) |
 | `vapi-reservation` | Vapi tool webhook — creates reservation, calls `upsert-customer`, optionally sends payment link + email |

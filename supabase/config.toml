@@ -525,3 +525,8 @@ entrypoint = "./functions/submit-restaurant-lead/index.ts"
 [functions.monthly-report]
 enabled = true
 verify_jwt = true
+
+[functions.respond-reservation]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/respond-reservation/index.ts"
