@@ -534,6 +534,8 @@ input,select,textarea{font-family:inherit}
   font-size:24px;font-weight:700;color:var(--text);display:grid;place-items:center;transition:all .14s}
 .party-btn:hover{border-color:var(--accent);color:var(--accent)}
 .party-n{font-size:54px;font-weight:700;letter-spacing:-.02em;min-width:90px;text-align:center}
+.party-n::-webkit-outer-spin-button,.party-n::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.party-n{-moz-appearance:textfield;appearance:textfield}
 .party-lbl{text-align:center;color:var(--muted);font-size:14px}
 .dep-box{background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:22px;margin:8px 0 20px}
 .dep-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;font-size:14.5px}
