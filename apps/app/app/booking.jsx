@@ -123,6 +123,7 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
   const [day,     setDay]     = useState(initialDay);
   const [time,    setTime]    = useState(presetTime || null);
   const [party,   setParty]   = useState(presetParty || 2);
+  const [partyText, setPartyText] = useState(null); // texto mientras se escribe el nº de comensales
   const [pay,     setPay]     = useState('card');
   const [notify,  setNotify]  = useState('email');
   const [confCode,setConfCode]= useState('');
@@ -436,11 +437,11 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       React.createElement('div',{className:'bk-h'},BK_T.howMany),
       React.createElement('div',{className:'bk-sub'},BK_T.numGuests),
       React.createElement('div',{className:'partyrow'},
-        React.createElement('button',{className:'party-btn',onClick:()=>setParty(Math.max(1,party-1))},'−'),
+        React.createElement('button',{className:'party-btn',onClick:()=>{setPartyText(null);setParty(Math.max(1,party-1));}},'−'),
         React.createElement('div',null,
-          React.createElement('div',{className:'party-n display'},party),
+          React.createElement('input',{className:'party-n display',type:'number',inputMode:'numeric',min:1,max:100,value:partyText!==null?partyText:party,'aria-label':BK_T.numGuests,style:{width:'100%',maxWidth:130,border:'none',background:'transparent',outline:'none',color:'inherit',fontFamily:'inherit',MozAppearance:'textfield',padding:0},onChange:e=>{const v=e.target.value;setPartyText(v);const n=parseInt(v,10);if(!isNaN(n))setParty(Math.max(1,Math.min(100,n)));},onBlur:()=>setPartyText(null)}),
           React.createElement('div',{className:'party-lbl'}, party===1?BK_T.guestSingular:BK_T.guestPlural)),
-        React.createElement('button',{className:'party-btn',onClick:()=>setParty(Math.min(12,party+1))},'+')
+        React.createElement('button',{className:'party-btn',onClick:()=>{setPartyText(null);setParty(Math.min(100,party+1));}},'+')
       ),
       party>=9 ? React.createElement('p',{className:'muted',style:{textAlign:'center',fontSize:'13.5px'}},
         BK_T.largeGroupNote) : null,
