@@ -25,6 +25,9 @@ const BK_T = {
     guestSingular: 'comensal',
     guestPlural: 'comensales',
     largeGroupNote: 'Para grupos grandes podemos avisar al restaurante con antelación.',
+    requestSent: 'Solicitud enviada',
+    pendingNote: name => name + ' debe confirmar tu reserva. Te escribiremos por email en cuanto responda; hasta entonces tu mesa no está asegurada.',
+    serviceFull: 'Ese servicio está completo. Prueba con otro horario o día.',
     confirmSecure: 'Confirma y asegura tu mesa',
     depositIntro: 'Un pequeño depósito que se descuenta de tu cuenta final.',
     depositWhyTitle: '¿Por qué un depósito?',
@@ -104,6 +107,9 @@ const BK_T = {
     guestSingular: 'guest',
     guestPlural: 'guests',
     largeGroupNote: 'For large groups we can give the restaurant advance notice.',
+    requestSent: 'Request sent',
+    pendingNote: name => name + ' needs to confirm your booking. We\'ll email you as soon as they reply; until then your table is not secured.',
+    serviceFull: 'That service is fully booked. Please try another time or day.',
     confirmSecure: 'Confirm and secure your table',
     depositIntro: 'A small deposit that gets deducted from your final bill.',
     depositWhyTitle: 'Why a deposit?',
@@ -203,6 +209,7 @@ function BookingScreen({
   const [pay, setPay] = useState('card');
   const [notify, setNotify] = useState('email');
   const [confCode, setConfCode] = useState('');
+  const [confPending, setConfPending] = useState(false); // el restaurante aún debe confirmar (venues con manual_confirmation)
   const [hold, setHold] = useState(360);
   const [expired, setExpired] = useState(false);
 
@@ -384,7 +391,12 @@ function BookingScreen({
       body: JSON.stringify({ restaurant_id: r.id, user_id: user?.id || '', reservation_id: reservationCode, party, date: dateStr, time, customer_name: custName, customer_phone: custPhone, customer_email: custEmail, lang: BK_LANG }),
     });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.error || BK_T.genericPayError);
+    if (!res.ok) {
+      const code = json.error || '';
+      // Códigos internos (snake_case) nunca se muestran tal cual al comensal.
+      throw new Error(code === 'service_full' ? BK_T.serviceFull : (!code || /^[a-z_]+$/.test(code)) ? BK_T.genericPayError : code);
+    }
+    setConfPending(json.status === 'pending');
     finish(null, reservationCode);
   } catch (err) {
     setPayError(err.message || BK_T.genericPayError);
@@ -882,12 +894,12 @@ function BookingScreen({
       name: 'check'
     })), React.createElement('h2', {
       className: 'display'
-    }, BK_T.tableConfirmed), React.createElement('p', {
+    }, confPending ? BK_T.requestSent : BK_T.tableConfirmed), React.createElement('p', {
       className: 'muted',
       style: {
         marginBottom: '4px'
       }
-    }, BK_T.seeYouAt(r.name, notify === 'sms' ? BK_T.viaSms : BK_T.viaEmail)), React.createElement('div', {
+    }, confPending ? BK_T.pendingNote(r.name) : BK_T.seeYouAt(r.name, notify === 'sms' ? BK_T.viaSms : BK_T.viaEmail)), React.createElement('div', {
       className: 'confirm-detail'
     }, React.createElement('div', {
       className: 'cd-row'

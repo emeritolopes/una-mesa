@@ -223,7 +223,117 @@ function NoShowConfirmScreen({ token }) {
   );
 }
 
+/* ─── Confirmar / rechazar una reserva pendiente ──────────────────────────
+   Enlace del email al restaurante: ?respond_token=<uuid>&action=confirm|decline
+   (venues con manual_confirmation, ver create-reservation / respond-reservation).
+   Abrir el enlace solo valida el token; hay que pulsar un botón para ejecutar. */
+function RespondReservationScreen({ token, initialAction }) {
+  const L = ((navigator.language || 'es').toLowerCase().startsWith('es')) ? 'es' : 'en';
+  const T = {
+    es: {
+      loading: 'Cargando…', q: { confirm: '¿Confirmar esta reserva?', decline: '¿Rechazar esta reserva?' },
+      guests: 'pax', yes: { confirm: 'Sí, confirmar reserva', decline: 'Sí, rechazar reserva' },
+      other: { confirm: 'Prefiero rechazarla', decline: 'Prefiero confirmarla' },
+      declineNote: 'Se avisará al cliente de que no puedes atenderle.', confirmNote: 'Se avisará al cliente de que su mesa está confirmada.',
+      okTitle: { confirm: 'Reserva confirmada', decline: 'Reserva rechazada' },
+      okBody: { confirm: 'Hemos avisado al cliente de que su mesa está confirmada.', decline: 'Hemos avisado al cliente de que no puedes atenderle.' },
+      errTitle: 'No se pudo procesar',
+      resolved: { confirmed: 'confirmada', cancelled: 'cancelada' },
+      already: (x) => `Esta reserva ya estaba "${x}" antes de que usaras este enlace.`,
+      used: 'Este enlace ya se usó.', expired: 'Este enlace ha expirado.', invalid: 'Este enlace no es válido.',
+      generic: 'No se pudo procesar. Inténtalo de nuevo o contacta con Una Mesa.',
+    },
+    en: {
+      loading: 'Loading…', q: { confirm: 'Confirm this booking?', decline: 'Decline this booking?' },
+      guests: 'guests', yes: { confirm: 'Yes, confirm booking', decline: 'Yes, decline booking' },
+      other: { confirm: "I'd rather decline it", decline: "I'd rather confirm it" },
+      declineNote: "The customer will be told you can't host them.", confirmNote: 'The customer will be told their table is confirmed.',
+      okTitle: { confirm: 'Booking confirmed', decline: 'Booking declined' },
+      okBody: { confirm: 'We have told the customer their table is confirmed.', decline: "We have told the customer you can't host them." },
+      errTitle: 'Could not process this',
+      resolved: { confirmed: 'confirmed', cancelled: 'cancelled' },
+      already: (x) => `This booking was already "${x}" before you used this link.`,
+      used: 'This link has already been used.', expired: 'This link has expired.', invalid: 'This link is not valid.',
+      generic: 'Could not process this. Try again or contact Una Mesa.',
+    },
+  }[L];
+  const [state, setState] = useState('loading'); // loading | ask | done | error
+  const [action, setAction] = useState(initialAction === 'decline' ? 'decline' : 'confirm');
+  const [details, setDetails] = useState(null);
+  const [code, setCode] = useState(null);
+  const [doneAction, setDoneAction] = useState(null);
+  const ENDPOINT = 'https://rkaytcmyaaighozxatod.supabase.co/functions/v1/respond-reservation';
+
+  const call = (body) => fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json());
+
+  useEffect(() => {
+    call({ token, action })
+      .then(json => { setDetails(json); if (json.ok) setState('ask'); else { setCode(json.code); setState('error'); } })
+      .catch(() => { setCode('error'); setState('error'); });
+  }, [token]);
+
+  const run = () => {
+    setState('loading');
+    call({ token, action, execute: true })
+      .then(json => { setDetails(d => ({ ...d, ...json })); if (json.ok) { setDoneAction(action); setState('done'); } else { setCode(json.code); setState('error'); } })
+      .catch(() => { setCode('error'); setState('error'); });
+  };
+
+  const errorMsg = () => {
+    if (code === 'already_resolved') return T.already(T.resolved[details?.resolved_status] || details?.resolved_status || '');
+    return T[code] && typeof T[code] === 'string' ? T[code] : T.generic;
+  };
+  const isConfirm = action === 'confirm';
+
+  return (
+    <div style={{ fontFamily: 'sans-serif', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: 40, maxWidth: 420, width: '100%', textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,.07)' }}>
+        {state === 'loading' && <p style={{ fontSize: 14, color: '#777' }}>{T.loading}</p>}
+
+        {state === 'ask' && details && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>{isConfirm ? '🍽️' : '✋'}</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>{T.q[action]}</h1>
+            <p style={{ fontSize: 14, color: '#555', marginBottom: 4 }}>{details.customer_name}</p>
+            <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>{details.date} · {(details.time || '').slice(0, 5)} · {details.pax} {T.guests}</p>
+            <p style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>{isConfirm ? T.confirmNote : T.declineNote}</p>
+            <button onClick={run} style={{ width: '100%', background: isConfirm ? '#2e7d32' : '#D8552E', color: '#fff', border: 'none', padding: 14, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 12 }}>
+              {T.yes[action]}
+            </button>
+            <button onClick={() => setAction(isConfirm ? 'decline' : 'confirm')} style={{ background: 'none', border: 'none', color: '#777', fontSize: 13, textDecoration: 'underline', cursor: 'pointer' }}>
+              {T.other[action]}
+            </button>
+          </>
+        )}
+
+        {state === 'done' && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>{T.okTitle[doneAction]}</h1>
+            <p style={{ fontSize: 14, color: '#777' }}>{T.okBody[doneAction]}</p>
+          </>
+        )}
+
+        {state === 'error' && (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h1 style={{ fontSize: 20, marginBottom: 8 }}>{T.errTitle}</h1>
+            <p style={{ fontSize: 14, color: '#777' }}>{errorMsg()}</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [respond] = useState(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const t = q.get('respond_token');
+      return t ? { token: t, action: q.get('action') } : null;
+    } catch (e) { return null; }
+  });
   const [noshowToken] = useState(() => {
     try { return new URLSearchParams(window.location.search).get('noshow_token'); } catch (e) { return null; }
   });
@@ -274,6 +384,7 @@ function App() {
   const login = (u) => { setUser(u); window.currentVenueId = u?.venue_id || null; localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
   const logout = () => { window.sb?.auth?.signOut(); setUser(null); window.currentVenueId = null; localStorage.removeItem('unamesa.user'); };
 
+  if (respond) return <><RespondReservationScreen token={respond.token} initialAction={respond.action} /><ToastHost /></>;
   if (noshowToken) return <><NoShowConfirmScreen token={noshowToken} /><ToastHost /></>;
   if (!user) return <><Login onLogin={login} /><ToastHost /></>;
 

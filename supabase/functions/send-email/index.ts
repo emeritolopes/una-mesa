@@ -104,6 +104,140 @@ const ET = {
   },
 }
 
+/* ─── Avisos de confirmación manual ─────────────────────────────────────────
+   Usados cuando un restaurante tiene manual_confirmation = true (migración 044):
+   · solicitud al restaurante con botones Confirmar / Rechazar (respond_*_url)
+   · aviso "pendiente" al comensal (pending_notice)
+   · respuesta del restaurante al comensal (response_status: confirmed | declined)
+   Constructor compartido y compacto, con el mismo aspecto que el resto de emails.
+   Todo texto que viene del usuario se escapa: nombres y demás se insertan en HTML. */
+const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+
+const NT = {
+  es: {
+    htmlLang: 'es', labelCliente: 'Cliente', labelFecha: 'Fecha', labelHora: 'Hora', labelPersonas: 'Personas',
+    reqSubject: (name: string, date: string, time: string) => `Solicitud de reserva: ${name} · ${date} ${time}`,
+    reqEyebrow: 'Solicitud de reserva',
+    reqHeading: (name: string) => `${name} quiere reservar`,
+    reqIntro: (r: string) => `Has recibido una solicitud de reserva en <strong>${r}</strong>. Queda <strong>pendiente</strong> hasta que la confirmes o la rechaces.`,
+    confirmBtn: 'Confirmar reserva', declineBtn: 'Rechazar',
+    reqNote: 'El cliente ya sabe que su solicitud está pendiente y que aún no tiene la mesa asegurada. Responde lo antes posible. Enlace válido hasta 24 h después de la hora de la reserva; un solo uso.',
+    pendSubject: (r: string) => `Solicitud recibida en ${r} — pendiente de confirmación`,
+    pendEyebrow: 'Solicitud recibida',
+    pendHeading: (name: string) => `Hemos enviado tu solicitud, ${name}`,
+    pendIntro: (r: string) => `Tu solicitud en <strong>${r}</strong> está <strong>pendiente de confirmación</strong>. Te escribiremos en cuanto el restaurante responda.`,
+    pendNote: 'Todavía no tienes la mesa asegurada hasta recibir la confirmación.',
+    okSubject: (r: string) => `¡Tu mesa en ${r} está confirmada!`,
+    okEyebrow: 'Reserva confirmada',
+    okHeading: (name: string) => `¡Tu mesa está confirmada, ${name}!`,
+    okIntro: (r: string) => `<strong>${r}</strong> ha confirmado tu reserva. Aquí tienes los detalles.`,
+    noSubject: (r: string) => `${r} no ha podido confirmar tu reserva`,
+    noEyebrow: 'Reserva no confirmada',
+    noHeading: (name: string) => `Lo sentimos, ${name}`,
+    noIntro: (r: string) => `<strong>${r}</strong> no ha podido confirmar tu solicitud para esa fecha y hora. Puedes intentarlo con otro horario desde Una Mesa.`,
+    footer: 'Recibes este email por una solicitud de reserva hecha en Una Mesa.',
+  },
+  en: {
+    htmlLang: 'en', labelCliente: 'Customer', labelFecha: 'Date', labelHora: 'Time', labelPersonas: 'Guests',
+    reqSubject: (name: string, date: string, time: string) => `Booking request: ${name} · ${date} ${time}`,
+    reqEyebrow: 'Booking request',
+    reqHeading: (name: string) => `${name} would like to book`,
+    reqIntro: (r: string) => `You have received a booking request at <strong>${r}</strong>. It stays <strong>pending</strong> until you confirm or decline it.`,
+    confirmBtn: 'Confirm booking', declineBtn: 'Decline',
+    reqNote: "The customer already knows their request is pending and that the table is not yet secured. Please reply as soon as you can. Link valid until 24h after the booking time; single use.",
+    pendSubject: (r: string) => `Request received at ${r} — awaiting confirmation`,
+    pendEyebrow: 'Request received',
+    pendHeading: (name: string) => `We've sent your request, ${name}`,
+    pendIntro: (r: string) => `Your request at <strong>${r}</strong> is <strong>awaiting confirmation</strong>. We'll email you as soon as the restaurant replies.`,
+    pendNote: 'Your table is not secured until you receive the confirmation.',
+    okSubject: (r: string) => `Your table at ${r} is confirmed!`,
+    okEyebrow: 'Booking confirmed',
+    okHeading: (name: string) => `Your table is confirmed, ${name}!`,
+    okIntro: (r: string) => `<strong>${r}</strong> has confirmed your booking. Here are the details.`,
+    noSubject: (r: string) => `${r} couldn't confirm your booking`,
+    noEyebrow: 'Booking not confirmed',
+    noHeading: (name: string) => `We're sorry, ${name}`,
+    noIntro: (r: string) => `<strong>${r}</strong> couldn't confirm your request for that date and time. You can try another time on Una Mesa.`,
+    footer: 'You are receiving this email because of a booking request made on Una Mesa.',
+  },
+}
+
+function buildManualNotice(opts: {
+  kind: 'request' | 'pending' | 'confirmed' | 'declined'
+  customer_name: string
+  restaurant_name: string
+  date: string
+  time: string
+  pax: number
+  confirm_url?: string
+  decline_url?: string
+  lang: 'es' | 'en'
+}): { html: string; subject: string } {
+  const { kind, date, time, pax, confirm_url, decline_url, lang } = opts
+  const n = NT[lang] || NT.es
+  const cust = esc(opts.customer_name)
+  const rest = esc(opts.restaurant_name)
+  const eyebrow = kind === 'request' ? n.reqEyebrow : kind === 'pending' ? n.pendEyebrow : kind === 'confirmed' ? n.okEyebrow : n.noEyebrow
+  const heading = kind === 'request' ? n.reqHeading(cust) : kind === 'pending' ? n.pendHeading(cust) : kind === 'confirmed' ? n.okHeading(cust) : n.noHeading(cust)
+  const intro = kind === 'request' ? n.reqIntro(rest) : kind === 'pending' ? n.pendIntro(rest) : kind === 'confirmed' ? n.okIntro(rest) : n.noIntro(rest)
+  const note = kind === 'request' ? n.reqNote : kind === 'pending' ? n.pendNote : ''
+  const subject = kind === 'request' ? n.reqSubject(opts.customer_name, date, time)
+    : kind === 'pending' ? n.pendSubject(opts.restaurant_name)
+    : kind === 'confirmed' ? n.okSubject(opts.restaurant_name)
+    : n.noSubject(opts.restaurant_name)
+
+  const cell = (label: string, value: string) => `<td width="50%" style="padding:8px 0;">
+      <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${label}</p>
+      <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${value}</p></td>`
+  const details = kind === 'declined' ? '' : `
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F8F5;border-radius:12px;border:1px solid #EDECEA;margin:0 0 28px;">
+      <tr><td style="padding:16px 28px;"><table width="100%" cellpadding="0" cellspacing="0">
+        <tr>${cell(n.labelCliente, cust)}${cell(n.labelPersonas, esc(pax))}</tr>
+        <tr>${cell(n.labelFecha, esc(date))}${cell(n.labelHora, esc(time))}</tr>
+      </table></td></tr>
+    </table>`
+  const buttons = kind === 'request' && confirm_url && decline_url ? `
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+      <td style="padding-right:12px;"><a href="${esc(confirm_url)}" style="display:inline-block;background:#2E7D32;color:#FFFFFF;text-decoration:none;font-weight:700;font-size:15px;padding:14px 26px;border-radius:10px;">${n.confirmBtn}</a></td>
+      <td><a href="${esc(decline_url)}" style="display:inline-block;background:#FFFFFF;color:#D8552E;text-decoration:none;font-weight:700;font-size:15px;padding:12px 24px;border-radius:10px;border:2px solid #D8552E;">${n.declineBtn}</a></td>
+    </tr></table>` : ''
+
+  const html = `<!DOCTYPE html>
+<html lang="${n.htmlLang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(subject)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#F5F4F0;font-family:'Manrope',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4F0;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr><td align="center" style="padding:0 0 28px 0;">
+          <img src="https://app.unamesa.co/una-mesa-logo.png" width="232" height="64" alt="Una Mesa" style="display:block;border:0;">
+        </td></tr>
+        <tr><td style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#D8552E;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr></table>
+          <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:40px 48px 36px;">
+            <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#D8552E;">${eyebrow}</p>
+            <h1 style="margin:0 0 12px;font-size:26px;font-weight:800;color:#121212;line-height:1.2;letter-spacing:-0.5px;">${heading}</h1>
+            <p style="margin:0 0 28px;font-size:15px;color:#555;line-height:1.6;">${intro}</p>
+            ${details}
+            ${buttons}
+            ${note ? `<p style="margin:0;font-size:13px;color:#888;line-height:1.6;">${note}</p>` : ''}
+          </td></tr></table>
+        </td></tr>
+        <tr><td align="center" style="padding:24px 0 0;"><p style="margin:0;font-size:12px;color:#999;">${n.footer}</p></td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+  return { html, subject }
+}
+
 function buildRestaurantHtml(opts: {
   customer_name: string
   restaurant_name: string
@@ -622,7 +756,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, respond_confirm_url, respond_decline_url, pending_notice, response_status, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -635,11 +769,27 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get('RESEND_API_KEY') ?? ''
 
+    // Avisos de confirmación manual (tienen prioridad sobre el resto de modos).
+    const manualKind = (respond_confirm_url && respond_decline_url) ? 'request'
+      : pending_notice ? 'pending'
+      : response_status === 'confirmed' ? 'confirmed'
+      : response_status === 'declined' ? 'declined'
+      : null
+    const manual = manualKind
+      ? buildManualNotice({
+          kind: manualKind, customer_name: customer_name || to, restaurant_name,
+          date: date || '', time: time || '', pax: pax || 1,
+          confirm_url: respond_confirm_url, decline_url: respond_decline_url, lang,
+        })
+      : null
+
     const isLiveConfirmation = !!live_confirmation
     const isReminder = !isLiveConfirmation && !!onboarding_reminder_url
     const isStripeInvite = !isLiveConfirmation && !isReminder && !!stripe_invite_url
     const isRestaurant = !isLiveConfirmation && !isReminder && !isStripeInvite && !!noshow_url
-    const html = isLiveConfirmation
+    const html = manual
+      ? manual.html
+      : isLiveConfirmation
       ? buildLiveConfirmationHtml({ restaurant_name, lang })
       : isReminder
       ? buildReminderHtml({ restaurant_name, self_service_url: onboarding_reminder_url, lang })
@@ -649,7 +799,9 @@ Deno.serve(async (req) => {
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
       : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, lang })
 
-    const subject = isLiveConfirmation
+    const subject = manual
+      ? manual.subject
+      : isLiveConfirmation
       ? t.subjectLive(restaurant_name)
       : isReminder
       ? t.subjectReminder(restaurant_name)
