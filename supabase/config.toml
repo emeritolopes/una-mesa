@@ -535,3 +535,7 @@ entrypoint = "./functions/respond-reservation/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/expire-pending-reservations/index.ts"
+
+[functions.create-manual-reservation]
+enabled = true
+verify_jwt = true

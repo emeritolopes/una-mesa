@@ -251,6 +251,8 @@ function Reservas() {
   const [customerForm, setCustomerForm] = useState({});
   const [customerHistory, setCustomerHistory] = useState([]);
   const stripRef = useRef(null);
+  const reloadRef = useRef(null);
+  const [creating, setCreating] = useState(false);
 
   /* Load all reservations from Supabase on mount */
   useEffect(() => {
@@ -268,6 +270,7 @@ function Reservas() {
         console.warn('[BOH] loadReservations:', e.message);
       }
     }
+    reloadRef.current = load;
     load();
     /* Refresh so new online bookings appear without a manual reload:
        every 30s, and whenever the tab regains focus */
@@ -395,17 +398,36 @@ function Reservas() {
     }
     const cap = capOf(nr.table);
     if (cap && Number(nr.pax) > cap) { toast(`${nr.table} admite máximo ${cap} comensales`); return; }
-    const rec = { id: 'r' + Date.now(), ...nr, pax: Number(nr.pax), time: nr.time + ':00', status: 'confirmed', allergy_alert: '', date: selectedDate };
-    setList(arr => [...arr, rec]);
-    setShowForm(false); setNr({ customer_name: '', customer_phone: '', pax: 2, time: defaultTime, notes: '', table: '' });
-    toast('Reserva guardada');
+    if (creating) return;
+    setCreating(true);
+    window.sb.functions.invoke('create-manual-reservation', {
+      body: {
+        party: Number(nr.pax), date: selectedDate, time: nr.time,
+        customer_name: nr.customer_name, customer_phone: nr.customer_phone, notes: nr.notes, table_label: nr.table || null,
+      },
+    }).then(async ({ data, error }) => {
+      if (error || !data?.ok) {
+        let msg = error?.message || data?.error || 'error desconocido';
+        try { const j = await error?.context?.json?.(); if (j?.error) msg = j.error; } catch (e) {}
+        toast('No se pudo guardar la reserva: ' + msg);
+        return;
+      }
+      setShowForm(false);
+      setNr({ customer_name: '', customer_phone: '', pax: 2, time: defaultTime, notes: '', table: '' });
+      toast(data.over_capacity ? 'Reserva guardada — ojo: supera el aforo del servicio' : 'Reserva guardada');
+      if (reloadRef.current) await reloadRef.current();
+    }).catch(e => toast('No se pudo guardar la reserva: ' + (e.message || 'error de red')))
+      .finally(() => setCreating(false));
   };
   const patch = async (id, fields) => {
     setList(arr => arr.map(r => r.id === id ? { ...r, ...fields } : r));
     setSelectedRes(s => s && s.id === id ? { ...s, ...fields } : s);
     if (window.sb) {
       try {
-        const { error } = await window.sb.from('reservations').update(fields).eq('id', id);
+        // La columna real es table_label ('table' no existe en la base de datos).
+        const { table, ...rest } = fields;
+        const dbFields = ('table' in fields) ? { ...rest, table_label: table || null } : fields;
+        const { error } = await window.sb.from('reservations').update(dbFields).eq('id', id);
         if (error) console.warn('[BOH] patch reservation:', error.message);
       } catch(e) {
         console.warn('[BOH] patch reservation:', e.message);
@@ -818,7 +840,7 @@ function Reservas() {
                 {(() => { const c = tableClash(selectedDate, nr.time, nr.table); return c && (
                   <div className="flex items-start gap-1.5 bg-red-50 text-red-600 text-[11px] font-semibold px-2.5 py-2 rounded-lg"><i className="ti ti-alert-triangle mt-px" /> <span>{nr.table} ya está reservada — {c.customer_name} a las {c.time.slice(0, 5)}</span></div>
                 ); })()}
-                <button onClick={() => create()} disabled={!!tableClash(selectedDate, nr.time, nr.table) || (() => { const c = capOf(nr.table); return c && Number(nr.pax) > c; })()} className="w-full bg-brand text-white text-xs font-bold py-2.5 rounded-lg hover:bg-brand/90 transition disabled:opacity-40 disabled:hover:bg-brand">Guardar reserva</button>
+                <button onClick={() => create()} disabled={creating || !!tableClash(selectedDate, nr.time, nr.table) || (() => { const c = capOf(nr.table); return c && Number(nr.pax) > c; })()} className="w-full bg-brand text-white text-xs font-bold py-2.5 rounded-lg hover:bg-brand/90 transition disabled:opacity-40 disabled:hover:bg-brand">Guardar reserva</button>
               </div>
             </div>
           )}
