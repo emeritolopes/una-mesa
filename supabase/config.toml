@@ -530,3 +530,8 @@ verify_jwt = true
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/respond-reservation/index.ts"
+
+[functions.expire-pending-reservations]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/expire-pending-reservations/index.ts"
