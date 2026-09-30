@@ -9,6 +9,12 @@
 // pantalla; hace falta un clic real en ella (execute: true). Así un
 // escáner de correo que abra el enlace no confirma ni rechaza nada.
 //
+// Dos formas de llamarla:
+//   A) desde el email: { token, action, execute? } — sin sesión, el token es la credencial.
+//   B) desde el panel backofhouse (bandeja de pendientes): { reservation_id, action, execute: true }
+//      con el JWT del usuario en Authorization. Se comprueba contra restaurant_users que la
+//      reserva es de SU restaurante. Misma lógica de ejecución (PATCH atómico, email al comensal).
+//
 // POST { token, action: 'confirm' | 'decline', execute?: boolean }
 //   execute ausente/false → solo valida el token y devuelve los datos.
 //   execute: true → PATCH atómico (solo si sigue 'pending'), marca el token
@@ -32,30 +38,56 @@ Deno.serve(async (req) => {
   const out = (body: unknown, status = 200) => new Response(JSON.stringify(body), { headers: jsonHeaders, status })
 
   let token: string | undefined
+  let reservationIdIn: string | undefined
   let action: 'confirm' | 'decline' | null = null
   let execute = false
   try {
     const body = await req.json()
     token = body.token
+    reservationIdIn = body.reservation_id
     action = body.action === 'confirm' ? 'confirm' : body.action === 'decline' ? 'decline' : null
     execute = body.execute === true
   } catch (_) {
     return out({ ok: false, code: 'invalid' }, 400)
   }
 
-  if (!token || !UUID.test(token)) return out({ ok: false, code: 'invalid' }, 400)
+  const useSession = !token && !!reservationIdIn
+  if (useSession) {
+    if (!UUID.test(String(reservationIdIn))) return out({ ok: false, code: 'invalid' }, 400)
+    if (!execute || !action) return out({ ok: false, code: 'invalid', error: 'execute and action required' }, 400)
+  } else if (!token || !UUID.test(token)) {
+    return out({ ok: false, code: 'invalid' }, 400)
+  }
   if (execute && !action) return out({ ok: false, code: 'invalid', error: 'action required' }, 400)
 
-  // 1. Token válido, no usado, no expirado
-  const tRes = await fetch(`${supabaseUrl}/rest/v1/reservation_response_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
-  const tk = (await tRes.json())?.[0]
-  if (!tk) return out({ ok: false, code: 'invalid' }, 404)
-  if (tk.used_at) return out({ ok: false, code: 'used' }, 409)
-  if (new Date(tk.expires_at) < new Date()) return out({ ok: false, code: 'expired' }, 410)
+  let reservationId: string
+  if (useSession) {
+    // B) Sesión de restaurante
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+    if (!jwt) return out({ ok: false, code: 'unauthorized' }, 401)
+    const uRes = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: serviceKey, Authorization: `Bearer ${jwt}` } })
+    const user = uRes.ok ? await uRes.json() : null
+    if (!user?.id) return out({ ok: false, code: 'unauthorized' }, 401)
+    const ruRes = await fetch(`${supabaseUrl}/rest/v1/restaurant_users?user_id=eq.${encodeURIComponent(user.id)}&select=venue_id&limit=1`, { headers: h })
+    const callerVenue = (await ruRes.json())?.[0]?.venue_id
+    if (!callerVenue) return out({ ok: false, code: 'forbidden' }, 403)
+    const vRes = await fetch(`${supabaseUrl}/rest/v1/reservations?id=eq.${reservationIdIn}&select=venue_id`, { headers: h })
+    const resVenue = (await vRes.json())?.[0]?.venue_id
+    if (!resVenue || resVenue !== callerVenue) return out({ ok: false, code: 'forbidden' }, 403)
+    reservationId = String(reservationIdIn)
+  } else {
+    // A) Token del email: válido, no usado, no expirado
+    const tRes = await fetch(`${supabaseUrl}/rest/v1/reservation_response_tokens?token=eq.${token}&select=token,reservation_id,used_at,expires_at`, { headers: h })
+    const tk = (await tRes.json())?.[0]
+    if (!tk) return out({ ok: false, code: 'invalid' }, 404)
+    if (tk.used_at) return out({ ok: false, code: 'used' }, 409)
+    if (new Date(tk.expires_at) < new Date()) return out({ ok: false, code: 'expired' }, 410)
+    reservationId = tk.reservation_id
+  }
 
   // 2. Datos de la reserva
   const rRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,customer_name,customer_email,date,time,pax,status,venues(name,city)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${reservationId}&select=id,customer_name,customer_email,date,time,pax,status,venues(name,city)`,
     { headers: h },
   )
   const reservation = (await rRes.json())?.[0]
@@ -86,7 +118,8 @@ Deno.serve(async (req) => {
     return out({ ok: false, code: 'already_resolved', ...details }, 409)
   }
 
-  await fetch(`${supabaseUrl}/rest/v1/reservation_response_tokens?token=eq.${token}`, {
+  const tokenFilter = token ? `token=eq.${token}` : `reservation_id=eq.${reservation.id}&used_at=is.null`
+  await fetch(`${supabaseUrl}/rest/v1/reservation_response_tokens?${tokenFilter}`, {
     method: 'PATCH', headers: h, body: JSON.stringify({ used_at: new Date().toISOString() }),
   }).catch(() => {})
 
