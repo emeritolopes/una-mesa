@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
     if (!name) return json({ error: 'customer_name required' }, 400)
     const phone = clean(b.customer_phone, 40)
     const notes = clean(b.notes, 500)
+    const tableLabel = clean(b.table_label, 40)
 
     // 3. Aviso de aforo (no bloquea)
     let overCapacity = false
@@ -78,17 +79,18 @@ Deno.serve(async (req) => {
     const row = {
       venue_id: venueId, customer_name: name, customer_phone: phone, pax: party,
       date, time: time.length === 5 ? time + ':00' : time, status: 'confirmed',
-      deposit_status: null, source: 'backofhouse', notes,
+      deposit_status: null, source: 'backofhouse', notes, table_label: tableLabel,
     }
     let insRes = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
       method: 'POST', headers: { ...sbHeaders, Prefer: 'return=representation' }, body: JSON.stringify(row),
     })
     let ins = await insRes.json()
     if (!insRes.ok) {
-      // Por si la columna notes no existiera en algún entorno: no perder la reserva.
-      const { notes: _n, ...noNotes } = row
+      // Si alguna columna opcional (notes, table_label: migración 049) no existiera en este
+      // entorno, reintentar sin ellas: nunca perder la reserva.
+      const { notes: _n, table_label: _t, ...minimal } = row
       insRes = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
-        method: 'POST', headers: { ...sbHeaders, Prefer: 'return=representation' }, body: JSON.stringify(noNotes),
+        method: 'POST', headers: { ...sbHeaders, Prefer: 'return=representation' }, body: JSON.stringify(minimal),
       })
       ins = await insRes.json()
     }

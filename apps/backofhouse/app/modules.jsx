@@ -403,7 +403,7 @@ function Reservas() {
     window.sb.functions.invoke('create-manual-reservation', {
       body: {
         party: Number(nr.pax), date: selectedDate, time: nr.time,
-        customer_name: nr.customer_name, customer_phone: nr.customer_phone, notes: nr.notes,
+        customer_name: nr.customer_name, customer_phone: nr.customer_phone, notes: nr.notes, table_label: nr.table || null,
       },
     }).then(async ({ data, error }) => {
       if (error || !data?.ok) {
@@ -424,7 +424,10 @@ function Reservas() {
     setSelectedRes(s => s && s.id === id ? { ...s, ...fields } : s);
     if (window.sb) {
       try {
-        const { error } = await window.sb.from('reservations').update(fields).eq('id', id);
+        // La columna real es table_label ('table' no existe en la base de datos).
+        const { table, ...rest } = fields;
+        const dbFields = ('table' in fields) ? { ...rest, table_label: table || null } : fields;
+        const { error } = await window.sb.from('reservations').update(dbFields).eq('id', id);
         if (error) console.warn('[BOH] patch reservation:', error.message);
       } catch(e) {
         console.warn('[BOH] patch reservation:', e.message);
