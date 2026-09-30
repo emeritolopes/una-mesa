@@ -317,8 +317,8 @@ function Reservas() {
     }
   }, [customerProfile]);
 
-  const STATUS_LABEL = { confirmed: 'Confirmada', unconfirmed: 'Sin confirmar', no_show: 'No show', completed: 'Completada', cancelled: 'Cancelada' };
-  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', unconfirmed: 'bg-gray-100 text-gray-600 border-gray-300', no_show: 'bg-red-100 text-red-700 border-red-200', completed: 'bg-blue-100 text-blue-700 border-blue-300', cancelled: 'bg-gray-100 text-gray-500 border-gray-300' };
+  const STATUS_LABEL = { confirmed: 'Confirmada', pending: 'Pendiente', unconfirmed: 'Sin confirmar', no_show: 'No show', completed: 'Completada', cancelled: 'Cancelada' };
+  const STATUS_CLASS = { confirmed: 'bg-green-100 text-green-800 border-green-300', pending: 'bg-amber-100 text-amber-800 border-amber-300', unconfirmed: 'bg-gray-100 text-gray-600 border-gray-300', no_show: 'bg-red-100 text-red-700 border-red-200', completed: 'bg-blue-100 text-blue-700 border-blue-300', cancelled: 'bg-gray-100 text-gray-500 border-gray-300' };
 
   const sel = new Date(selectedDate + 'T12:00:00');
   // Strip shows today + future days of the selected month only
@@ -464,6 +464,34 @@ function Reservas() {
      un update directo a la tabla que nunca tocaba Stripe — el depósito se
      quedaba retenido para siempre porque auto-capture excluye status
      no_show/completed asumiendo que ya se procesaron. */
+  /* Confirmar / rechazar una reserva 'pending' (venues con confirmación manual).
+     Pasa por respond-reservation: PATCH atómico solo si sigue pending + email al comensal. */
+  const [responding, setResponding] = useState(null);
+  const respondPending = async (r, action) => {
+    if (responding) return;
+    setResponding(r.id);
+    try {
+      const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/respond-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': await authHeader() },
+        body: JSON.stringify({ reservation_id: r.id, action, execute: true }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.ok) {
+        toast(action === 'confirm' ? 'Reserva confirmada — avisamos al comensal' : 'Reserva rechazada — avisamos al comensal');
+        setSelectedRes(null);
+      } else if (json.code === 'already_resolved') {
+        toast('Esta reserva ya estaba resuelta (el comensal la canceló o ya respondiste)');
+      } else {
+        toast('No se pudo actualizar la reserva: ' + (json.error || json.code || res.status));
+      }
+      if (reloadRef.current) await reloadRef.current();
+    } catch (e) {
+      toast('No se pudo actualizar la reserva: ' + (e.message || 'error de red'));
+    } finally {
+      setResponding(null);
+    }
+  };
   const markStatus = async (id, status) => {
     try {
       const res = await fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/mark-completed', {
@@ -619,7 +647,7 @@ function Reservas() {
             <div className="font-['Syne'] text-sm font-bold text-gray-900 mb-3">Resumen del día</div>
             {[
               { label: 'Confirmadas', val: reservations.filter(r => r.status === 'confirmed').length, color: 'text-brand' },
-              { label: 'Sin confirmar', val: reservations.filter(r => r.status === 'unconfirmed').length, color: 'text-gray-500' },
+              { label: 'Sin confirmar', val: reservations.filter(r => r.status === 'pending' || r.status === 'unconfirmed').length, color: 'text-gray-500' },
               { label: 'No show', val: reservations.filter(r => r.status === 'no_show').length, color: 'text-red-500' },
               { label: 'Total comensales', val: reservations.reduce((s, r) => s + r.pax, 0), color: 'text-gray-900' },
             ].map(s => (
@@ -628,6 +656,33 @@ function Reservas() {
               </div>
             ))}
           </div>
+
+          {(() => {
+            const pend = list.filter(r => r.status === 'pending').sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+            if (pend.length === 0) return null;
+            return (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-amber-200 flex items-center gap-2">
+                  <i className="ti ti-bell-ringing text-amber-600" />
+                  <div className="font-['Syne'] text-sm font-bold text-amber-900 flex items-center gap-2"><span>Esperan tu respuesta</span><span className="text-[11px] bg-amber-200 text-amber-900 rounded-full px-2 py-0.5">{pend.length}</span></div>
+                </div>
+                <div className="divide-y divide-amber-100">
+                  {pend.map(r => (
+                    <div key={r.id} className="px-4 py-3">
+                      <button onClick={() => { setSelectedDate(r.date); setSelectedRes(r); }} className="text-left w-full">
+                        <div className="text-xs font-semibold text-gray-900 truncate">{r.customer_name}</div>
+                        <div className="text-[11px] text-gray-500">{r.date} · {r.time.slice(0, 5)} · {r.pax} pax{r.customer_phone ? ' · ' + r.customer_phone : ''}</div>
+                      </button>
+                      <div className="flex gap-2 mt-2">
+                        <button disabled={responding === r.id} onClick={() => respondPending(r, 'confirm')} className="flex-1 bg-brand text-white text-[11px] font-semibold py-1.5 rounded-lg hover:bg-brand/90 transition disabled:opacity-50">Confirmar</button>
+                        <button disabled={responding === r.id} onClick={() => respondPending(r, 'decline')} className="flex-1 border border-red-200 text-red-600 text-[11px] font-semibold py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-50">Rechazar</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {selectedRes && !showForm && (
             <div className="bg-white border border-black/7 rounded-xl overflow-hidden">
@@ -788,18 +843,22 @@ function Reservas() {
                   </label>
                 </div>
                 <div className="flex gap-2 mt-1">
-                  {selectedRes.status !== 'confirmed'
+                  {selectedRes.status === 'pending'
+                    ? (
+                      <>
+                        <button disabled={responding === selectedRes.id} onClick={() => respondPending(selectedRes, 'confirm')} className="flex-1 bg-brand text-white text-xs font-semibold py-2 rounded-lg hover:bg-brand/90 transition disabled:opacity-50">Confirmar</button>
+                        <button disabled={responding === selectedRes.id} onClick={() => respondPending(selectedRes, 'decline')} className="flex-1 border border-red-200 text-red-600 text-xs font-semibold py-2 rounded-lg hover:bg-red-50 transition disabled:opacity-50">Rechazar</button>
+                      </>
+                    )
+                    : selectedRes.status !== 'confirmed'
                     ? <button onClick={() => { patch(selectedRes.id, { status: 'confirmed' }); toast('Reserva confirmada'); }} className="flex-1 bg-brand text-white text-xs font-semibold py-2 rounded-lg hover:bg-brand/90 transition">Confirmar</button>
                     : (
                       <div className="flex-1 relative">
                         <button onClick={() => setShowStatusMenu(v => !v)} className="w-full border border-black/10 text-gray-600 text-xs font-semibold py-2 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-1">
-                          Marcar sin confirmar <i className={`ti ti-chevron-${showStatusMenu ? 'up' : 'down'} text-[10px]`} />
+                          Más acciones <i className={`ti ti-chevron-${showStatusMenu ? 'up' : 'down'} text-[10px]`} />
                         </button>
                         {showStatusMenu && (
                           <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-black/10 rounded-xl shadow-lg overflow-hidden z-20">
-                            <button onClick={() => { patch(selectedRes.id, { status: 'unconfirmed' }); setShowStatusMenu(false); toast('Marcada sin confirmar'); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span> Sin confirmar
-                            </button>
                             <button onClick={() => { markStatus(selectedRes.id, 'no_show'); setShowStatusMenu(false); }} className="w-full text-left px-3 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-black/5">
                               <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span> No show
                             </button>
