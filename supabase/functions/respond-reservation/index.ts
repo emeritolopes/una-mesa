@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
   // 2. Datos de la reserva
   const rRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,customer_name,customer_email,date,time,pax,status,venues(name)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=id,customer_name,customer_email,date,time,pax,status,venues(name,city)`,
     { headers: h },
   )
   const reservation = (await rRes.json())?.[0]
@@ -93,7 +93,10 @@ Deno.serve(async (req) => {
   // 4. Avisar al comensal — no bloqueante: la decisión ya está tomada.
   if (reservation.customer_email) {
     try {
-      const label = new Date(reservation.date + 'T00:00:00Z').toLocaleDateString('es-ES', {
+      // Idioma del email al comensal: por la ciudad del restaurante (Londres → inglés),
+      // igual que expire-pending-reservations. No depende del navegador de quien responde.
+      const lang: 'es' | 'en' = reservation.venues?.city === 'London' ? 'en' : 'es'
+      const label = new Date(reservation.date + 'T00:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
         timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long',
       })
       await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -106,7 +109,7 @@ Deno.serve(async (req) => {
           time: String(reservation.time || '').slice(0, 5),
           pax: reservation.pax,
           response_status: action === 'confirm' ? 'confirmed' : 'declined',
-          lang: 'es',
+          lang,
         }),
       })
     } catch (e) { console.warn('[respond-reservation] email al comensal falló:', e instanceof Error ? e.message : e) }
