@@ -11,6 +11,12 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+// Origen de la reserva (utm / referrer). Se sanea aquí porque viene del cliente.
+const cleanAcq = (v: unknown) => {
+  const s = String(v ?? '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 50)
+  return s || null
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -28,6 +34,7 @@ Deno.serve(async (req) => {
       restaurant_id, user_id, reservation_id,
       party, date, time,
       customer_name, customer_phone, customer_email, lang,
+      attribution,
     } = await req.json()
 
     if (!restaurant_id || !party || !date || !time) {
@@ -65,24 +72,40 @@ Deno.serve(async (req) => {
 
     const code = reservation_id || ('UM-' + Math.random().toString(36).slice(2, 7).toUpperCase())
 
-    const insertRes = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
+    const baseRow = {
+      venue_id:       restaurant_id,
+      user_id:        user_id || null,
+      customer_name:  customer_name  || null,
+      customer_phone: customer_phone || null,
+      customer_email: customer_email || null,
+      pax:            party,
+      date,
+      time,
+      status:         'confirmed',
+      deposit_status: null,
+      source:         'web',
+    }
+    const acq = {
+      acquisition_source:   cleanAcq(attribution?.source),
+      acquisition_medium:   cleanAcq(attribution?.medium),
+      acquisition_campaign: cleanAcq(attribution?.campaign),
+    }
+    const hasAcq = !!(acq.acquisition_source || acq.acquisition_medium || acq.acquisition_campaign)
+
+    const doInsert = (row: Record<string, unknown>) => fetch(`${supabaseUrl}/rest/v1/reservations`, {
       method:  'POST',
       headers: { ...sbHeaders, 'Prefer': 'return=representation' },
-      body:    JSON.stringify({
-        venue_id:       restaurant_id,
-        user_id:        user_id || null,
-        customer_name:  customer_name  || null,
-        customer_phone: customer_phone || null,
-        customer_email: customer_email || null,
-        pax:            party,
-        date,
-        time,
-        status:         'confirmed',
-        deposit_status: null,
-        source:         'web',
-      }),
+      body:    JSON.stringify(row),
     })
-    const inserted    = await insertRes.json()
+
+    let insertRes = await doInsert(hasAcq ? { ...baseRow, ...acq } : baseRow)
+    let inserted  = await insertRes.json()
+    // Si la migración 045 aún no está aplicada, nunca perdemos la reserva por el origen.
+    if (!insertRes.ok && hasAcq) {
+      console.warn('[create-reservation] insert con origen falló, reintentando sin él:', JSON.stringify(inserted))
+      insertRes = await doInsert(baseRow)
+      inserted  = await insertRes.json()
+    }
     const reservation = inserted?.[0]
 
     if (!insertRes.ok || !reservation?.id) {
