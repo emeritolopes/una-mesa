@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,currency,stripe_connect_account_id,stripe_mode)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,email,currency,stripe_connect_account_id,stripe_mode)`,
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
@@ -169,6 +169,36 @@ Deno.serve(async (req) => {
       JSON.stringify({ ok: false, code: 'already_resolved', resolved_status: finalStatus }),
       { headers: jsonHeaders, status: 409 }
     )
+  }
+
+  // 9. Avisar al restaurante de que un comensal ha cancelado — informativo y no bloqueante.
+  //    Aquí ya sabemos que la reserva quedó cancelada de verdad (el caso contrario devolvió arriba).
+  {
+    const v = reservation.venues
+    if (v?.email) {
+      try {
+        const rl: 'es' | 'en' = String(v.currency || '').toUpperCase() === 'GBP' || String(v.timezone || '').startsWith('Europe/London') ? 'en' : 'es'
+        const label = new Date(reservation.date + 'T00:00:00Z').toLocaleDateString(rl === 'en' ? 'en-GB' : 'es-ES', {
+          timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long',
+        })
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: 'POST', headers: h,
+          body: JSON.stringify({
+            to: v.email,
+            customer_name: reservation.customer_name || reservation.customer_email || reservation.customer_phone || 'Cliente',
+            restaurant_name: v.name,
+            date: label,
+            time: String(reservation.time || '').slice(0, 5),
+            pax: reservation.pax,
+            customer_phone: reservation.customer_phone || null,
+            customer_email: reservation.customer_email || null,
+            guest_cancelled: true,
+            late_cancellation: withinPenaltyWindow,
+            lang: rl,
+          }),
+        })
+      } catch (e) { console.warn('[cancel-reservation-guest] aviso al restaurante falló:', e instanceof Error ? e.message : e) }
+    }
   }
 
   return new Response(
