@@ -29,7 +29,7 @@ const corsHeaders = {
 // Fecha + hora locales del restaurante → instante UTC (ms). La expresión anterior
 // (new Date(...).toLocaleString(tz) reinterpretado como hora local del servidor)
 // aplicaba el desfase horario en sentido contrario: con Londres en BST la ventana de
-// 24 h se desplazaba 1 h (2 h en Madrid con CEST) a favor del comensal.
+// 24 h se desplazaba 2 h (4 h en Madrid con CEST) a favor del comensal: el error era el doble del desfase.
 function zonedToUtcMs(date: string, time: string, tz: string): number {
   const [y, m, d] = date.split('-').map(Number)
   const [hh, mm, ss] = String(time).split(':').map(Number)
