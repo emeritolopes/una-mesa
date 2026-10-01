@@ -37,6 +37,7 @@ const PR_T = {
     cancelModalTitle: '¿Cancelar esta reserva?',
     cancelModalBodyNoDeposit: 'Tu reserva quedará cancelada y el restaurante liberará la mesa.',
     cancelModalBody: 'Si cancelas con más de 24h de antelación, el depósito se reembolsa en 5-10 días hábiles. Con menos de 24h, el depósito no se reembolsa.',
+    cancelledOk: 'Reserva cancelada. Te hemos enviado un email de confirmación.',
     cancelGenericErr: 'No se pudo cancelar la reserva. Inténtalo de nuevo.',
     goBack: 'Volver', yesCancel: 'Sí, cancelar',
     hello: name => '¡Hola, '+name+'!',
@@ -84,6 +85,7 @@ const PR_T = {
     noFavs: 'No favourites yet. Tap the heart on any restaurant.', explore: 'Explore',
     cancelBtn: 'Cancel',
     cancelModalTitle: 'Cancel this booking?',
+    cancelledOk: 'Booking cancelled. We have sent you a confirmation email.',
     cancelGenericErr: 'Could not cancel the booking. Please try again.',
     cancelModalBodyNoDeposit: 'Your booking will be cancelled and the restaurant will release the table.',
     cancelModalBody: 'If you cancel more than 24h in advance, the deposit is refunded within 5-10 business days. With less than 24h\'s notice, the deposit is not refunded.',
@@ -245,6 +247,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
   const [tab, setTab] = useState('reservas');
   const [supaBookings, setSupaBookings] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelNotice, setCancelNotice] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -311,6 +314,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
 
     /* Update local UI */
     setSupaBookings(prev => prev.filter(x => x.rawId !== b.rawId));
+    setCancelNotice(true);
     setCancelTarget(null);
     setCancelBusy(false);
   };
@@ -512,6 +516,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},PR_T.tabPassport),
           React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},PR_T.tabFavs),
           React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},PR_T.tabRewards)),
+        (cancelNotice && tab==='reservas') ? React.createElement('div',{role:'status',style:{ background: 'rgba(80,160,100,0.15)', border: '1px solid rgba(80,160,100,0.5)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14 }},PR_T.cancelledOk) : null,
         panel,
         React.createElement('div', { style: { marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #FEE2E2' } },
           React.createElement('p', { style: { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' } }, PR_T.dangerZone),
