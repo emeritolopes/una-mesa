@@ -686,13 +686,25 @@ function BookingScreen({
         textAlign: 'center',
         fontSize: '13.5px'
       }
-    }, BK_T.largeGroupNote) : null, React.createElement('div', {
+    }, BK_T.largeGroupNote) : null, /* Error de la reserva sin depósito: antes solo se mostraba en el paso 3, y aquí parecía que Continue no hacía nada */
+    payError ? React.createElement('p', {
+      role: 'alert',
+      style: {
+        color: 'var(--coral,#973312)',
+        fontSize: '13px',
+        margin: '10px 0 0',
+        lineHeight: 1.4,
+        textAlign: 'center'
+      }
+    }, payError) : null, React.createElement('div', {
       className: 'bk-actions'
     }, React.createElement('button', {
       className: 'btn btn-ghost',
-      onClick: () => goStep(1)
+      onClick: () => goStep(1),
+      disabled: payLoading
     }, BK_T.back), React.createElement('button', {
       className: 'btn btn-acc',
+      disabled: payLoading,
       onClick: skipDeposit ? confirmWithoutDeposit : () => goStep(3)
     }, BK_T.continue_)));
 
