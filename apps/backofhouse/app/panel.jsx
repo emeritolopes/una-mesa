@@ -15,17 +15,19 @@ function Panel({ go }) {
     const firstOfMonth = today.slice(0, 8) + '01';
     Promise.all([
       window.sb.from('reservations').select('pax, status').eq('date', today).neq('status', 'cancelled'),
-      window.sb.from('reservations').select('status').gte('date', firstOfMonth).lte('date', today).neq('status', 'cancelled'),
-    ]).then(([todayRes, monthRes]) => {
+      /* Conteos en servidor (head): traer filas toparía en 1000 (max_rows) y el total del mes saldría por debajo del real. */
+      window.sb.from('reservations').select('id', { count: 'exact', head: true }).gte('date', firstOfMonth).lte('date', today).neq('status', 'cancelled'),
+      window.sb.from('reservations').select('id', { count: 'exact', head: true }).gte('date', firstOfMonth).lte('date', today).eq('status', 'no_show'),
+    ]).then(([todayRes, monthRes, noShowRes]) => {
       const td = todayRes.data || [];
-      const mo = monthRes.data || [];
-      const noShows = mo.filter(r => r.status === 'no_show').length;
+      const monthTotal = monthRes.error ? 0 : (monthRes.count || 0);
+      const noShows = noShowRes.error ? 0 : (noShowRes.count || 0);
       setRealMetrics({
         totalToday: td.length,
         totalPax: td.reduce((s, r) => s + (r.pax || 0), 0),
-        noShowRate: mo.length > 0 ? Math.round((noShows / mo.length) * 100) : 0,
+        noShowRate: monthTotal > 0 ? Math.round((noShows / monthTotal) * 100) : 0,
         noShows,
-        monthTotal: mo.length,
+        monthTotal,
         occupancy: Math.round(occupied / Math.max(D.tables.length, 1) * 100),
       });
     }).catch(() => {});
