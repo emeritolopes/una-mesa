@@ -536,6 +536,11 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/expire-pending-reservations/index.ts"
 
+[functions.send-reservation-reminders]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/send-reservation-reminders/index.ts"
+
 [functions.create-manual-reservation]
 enabled = true
 verify_jwt = true
