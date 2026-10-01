@@ -388,6 +388,8 @@ function ProfileScreen({
   spoons,
   onRedeem
 }) {
+  // Programa de recompensas oculto: puntos y visitas se calculan con reservas hechas (no visitas reales). Reactivar cuando exista un programa real.
+  const SHOW_REWARDS = false;
   const [tab, setTab] = useState('reservas');
   const [supaBookings, setSupaBookings] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -797,7 +799,7 @@ function ProfileScreen({
     className: 'prof-name display'
   }, PR_T.hello(formatName(user).split(' ')[0])), React.createElement('div', {
     className: 'prof-mail'
-  }, user.email)), React.createElement('div', {
+  }, user.email)), SHOW_REWARDS && React.createElement('div', {
     className: 'loyalty',
     style: {
       marginTop: 60
@@ -825,7 +827,7 @@ function ProfileScreen({
   }, PR_T.tabPassport), React.createElement('div', {
     className: 'tab' + (tab === 'favoritos' ? ' on' : ''),
     onClick: () => setTab('favoritos')
-  }, PR_T.tabFavs), React.createElement('div', {
+  }, PR_T.tabFavs), SHOW_REWARDS && React.createElement('div', {
     className: 'tab' + (tab === 'fidelidad' ? ' on' : ''),
     onClick: () => setTab('fidelidad')
   }, PR_T.tabRewards)), cancelNotice && tab === 'reservas' ? React.createElement('div', {

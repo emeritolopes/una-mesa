@@ -244,6 +244,8 @@ function mapSupaBooking(r) {
 }
 
 function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startBook, go, spoons, onRedeem }) {
+  // Programa de recompensas oculto: puntos y visitas se calculan con reservas hechas (no visitas reales). Reactivar cuando exista un programa real.
+  const SHOW_REWARDS = false;
   const [tab, setTab] = useState('reservas');
   const [supaBookings, setSupaBookings] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -505,7 +507,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           React.createElement('div',null,
             React.createElement('div',{className:'prof-name display'}, PR_T.hello(formatName(user).split(' ')[0])),
             React.createElement('div',{className:'prof-mail'}, user.email)),
-          React.createElement('div',{className:'loyalty', style:{marginTop:60}},
+          SHOW_REWARDS && React.createElement('div',{className:'loyalty', style:{marginTop:60}},
             React.createElement('div',{className:'ll'},PR_T.loyaltyProgram),
             React.createElement('div',{className:'lv'}, points+PR_T.pts),
             React.createElement('div',{className:'lbar'},React.createElement('i',{style:{width:Math.max(8,points)+'%'}})),
@@ -515,7 +517,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
           React.createElement('div',{className:'tab'+(tab==='reservas'?' on':''),onClick:()=>setTab('reservas')},PR_T.tabReservas),
           React.createElement('div',{className:'tab'+(tab==='pasaporte'?' on':''),onClick:()=>setTab('pasaporte')},PR_T.tabPassport),
           React.createElement('div',{className:'tab'+(tab==='favoritos'?' on':''),onClick:()=>setTab('favoritos')},PR_T.tabFavs),
-          React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},PR_T.tabRewards)),
+          SHOW_REWARDS && React.createElement('div',{className:'tab'+(tab==='fidelidad'?' on':''),onClick:()=>setTab('fidelidad')},PR_T.tabRewards)),
         (cancelNotice && tab==='reservas') ? React.createElement('div',{role:'status',style:{ background: 'rgba(80,160,100,0.15)', border: '1px solid rgba(80,160,100,0.5)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14 }},PR_T.cancelledOk) : null,
         panel,
         React.createElement('div', { style: { marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #FEE2E2' } },
