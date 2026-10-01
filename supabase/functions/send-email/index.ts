@@ -48,6 +48,10 @@ const ET = {
     cancelButton: 'Cancelar mi reserva',
     cancelNote: '¿No puedes venir? Cancela con más de 24h de antelación para recuperar tu depósito.',
     cancelNoteFree: '¿No puedes venir? Cancela para que el restaurante pueda liberar tu mesa.',
+    drEyebrow: 'Recordatorio de reserva',
+    drHeading: (name: string) => `¡Te esperamos pronto, ${name}!`,
+    drIntro: (r: string) => `Te recordamos tu reserva en <strong style="color:#121212;">${r}</strong>. Estos son los detalles.`,
+    drSubject: (r: string, date: string, time: string) => `Recordatorio: tu mesa en ${r} · ${date} ${time}`,
     pendingTitle: '⏳ Reserva pendiente de confirmación',
     pendingBody: (dep: string) => `Para <strong>garantizar tu mesa</strong>, completa el pago del depósito de <strong>${dep}€</strong> antes de <strong>2 horas</strong>. Si no se recibe el pago, la reserva se cancelará automáticamente.`,
     payButton: (dep: string) => `Confirmar mesa — Pagar ${dep}€`,
@@ -96,6 +100,10 @@ const ET = {
     cancelButton: 'Cancel my booking',
     cancelNote: "Can't make it? Cancel more than 24h in advance to get your deposit back.",
     cancelNoteFree: "Can't make it? Please cancel so the restaurant can free up your table.",
+    drEyebrow: 'Booking reminder',
+    drHeading: (name: string) => `See you soon, ${name}!`,
+    drIntro: (r: string) => `A reminder of your booking at <strong style="color:#121212;">${r}</strong>. Here are the details.`,
+    drSubject: (r: string, date: string, time: string) => `Reminder: your table at ${r} · ${date} ${time}`,
     pendingTitle: '⏳ Booking pending confirmation',
     pendingBody: (dep: string) => `To <strong>secure your table</strong>, complete the £${dep} deposit payment within <strong>2 hours</strong>. If payment isn't received, the booking will be cancelled automatically.`,
     payButton: (dep: string) => `Confirm table — Pay £${dep}`,
@@ -447,9 +455,10 @@ function buildHtml(opts: {
   menu_url?: string
   cancel_url?: string
   show_view_booking?: boolean
+  diner_reminder?: boolean
   lang: 'es' | 'en'
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, show_view_booking, lang } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder, lang } = opts
   // Mercado según el idioma (igual que cancelUrl en stripe-webhook). #profile abre «Mis reservas» si hay sesión.
   const viewUrl = `${lang === 'en' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'}/#profile`
   const hasDeposit = Number(deposit_amount) > 0
@@ -494,13 +503,13 @@ function buildHtml(opts: {
                   <td style="padding:40px 48px 0;">
 
                     <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FF5733;">
-                      ${t.confirmEyebrow}
+                      ${diner_reminder ? t.drEyebrow : t.confirmEyebrow}
                     </p>
                     <h1 style="margin:0 0 12px;font-size:28px;font-weight:800;color:#121212;line-height:1.2;letter-spacing:-0.5px;">
-                      ${t.confirmHeading(firstName)}
+                      ${diner_reminder ? t.drHeading(firstName) : t.confirmHeading(firstName)}
                     </h1>
                     <p style="margin:0 0 32px;font-size:15px;color:#555;line-height:1.6;">
-                      ${t.confirmIntro(restaurant_name)}
+                      ${diner_reminder ? t.drIntro(restaurant_name) : t.confirmIntro(restaurant_name)}
                     </p>
 
                     <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F8F5;border-radius:12px;border:1px solid #EDECEA;">
@@ -812,7 +821,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, show_view_booking, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, show_view_booking, diner_reminder, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -857,7 +866,7 @@ Deno.serve(async (req) => {
       ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
       : isRestaurant
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
-      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, show_view_booking, lang })
+      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder: diner_reminder === true, lang })
 
     const subject = manual
       ? manual.subject
@@ -869,6 +878,8 @@ Deno.serve(async (req) => {
       ? t.subjectStripeInvite(restaurant_name)
       : isRestaurant
       ? t.subjectRestaurant(customer_name, date, time)
+      : diner_reminder === true
+      ? t.drSubject(restaurant_name, date, time)
       : t.subjectCustomer(restaurant_name)
 
     const resendRes = await fetch('https://api.resend.com/emails', {
