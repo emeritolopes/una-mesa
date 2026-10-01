@@ -20,6 +20,18 @@ Deno.serve(async (req) => {
     const field = customer_email ? 'email' : 'phone';
 
     if (lookup) {
+      // Fecha de "hoy" en la hora local del venue (nunca UTC — ver CLAUDE.md).
+      let tz = 'Europe/Madrid';
+      try {
+        const venueRes = await fetch(
+          `${supabaseUrl}/rest/v1/venues?id=eq.${venue_id}&select=city,timezone`,
+          { headers }
+        );
+        const [venue] = await venueRes.json();
+        tz = venue?.city === 'London' ? 'Europe/London' : (venue?.timezone || 'Europe/Madrid');
+      } catch { /* mantiene el fallback de Madrid */ }
+      const todayLocal = new Date().toLocaleDateString('en-CA', { timeZone: tz });
+
       const findRes = await fetch(
         `${supabaseUrl}/rest/v1/customers?${field}=eq.${encodeURIComponent(lookup)}&venue_id=eq.${venue_id}&select=id,visits`,
         { headers }
@@ -34,7 +46,7 @@ Deno.serve(async (req) => {
           headers: { ...headers, 'Prefer': 'return=minimal' },
           body: JSON.stringify({
             visits: (found[0].visits || 0) + 1,
-            last_visit: new Date().toISOString().split('T')[0],
+            last_visit: todayLocal,
             name: customer_name,
             phone: customer_phone || undefined,
             email: customer_email || undefined,
@@ -53,7 +65,7 @@ Deno.serve(async (req) => {
             allergies: allergies || [],
             notes: notes || null,
             visits: 1,
-            last_visit: new Date().toISOString().split('T')[0],
+            last_visit: todayLocal,
             vip: false
           })
         });

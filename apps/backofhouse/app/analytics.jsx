@@ -23,12 +23,12 @@ function Analytics() {
         // Periodo actual
         const fromCurrent = new Date(now);
         fromCurrent.setDate(fromCurrent.getDate() - days);
-        const fromCurrentISO = fromCurrent.toISOString().split('T')[0];
+        const fromCurrentISO = fromCurrent.toLocaleDateString('en-CA');
 
         // Periodo anterior (para comparativa)
         const fromPrev = new Date(fromCurrent);
         fromPrev.setDate(fromPrev.getDate() - days);
-        const fromPrevISO = fromPrev.toISOString().split('T')[0];
+        const fromPrevISO = fromPrev.toLocaleDateString('en-CA');
 
         // Reservas periodo actual
         const { data: current } = await sb
@@ -91,7 +91,7 @@ function Analytics() {
         for (let i = 6; i >= 0; i--) {
           const d = new Date(now);
           d.setDate(d.getDate() - i);
-          const iso = d.toISOString().split('T')[0];
+          const iso = d.toLocaleDateString('en-CA');
           const label = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()];
           last7.push({ iso, label, value: 0 });
           byDay[iso] = last7[last7.length - 1];
@@ -113,7 +113,7 @@ function Analytics() {
         // MEJORA 3 — Clientes perdidos (reservaron hace 30+ días y no han vuelto)
         const cutoff30 = new Date(now);
         cutoff30.setDate(cutoff30.getDate() - 30);
-        const cutoff30ISO = cutoff30.toISOString().split('T')[0];
+        const cutoff30ISO = cutoff30.toLocaleDateString('en-CA');
 
         const { data: allRes } = await sb
           .from('reservations')

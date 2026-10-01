@@ -18,18 +18,30 @@ const MIN_AFTER_CREATED = 6 * HOUR   // no pegado al email de confirmación
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
-// Fecha + hora locales del restaurante → instante UTC (ms). Londres / Madrid.
+// Fecha + hora locales del restaurante → instante UTC (ms). La expresión anterior
+// hacía una sola pasada (un "guess" + corrección), que falla solo cuando el guess
+// y el instante real caen en lados distintos de un cambio de hora: verificado con
+// un barrido exhaustivo sobre ambos cambios de 2026, Londres no se veía afectado,
+// pero Madrid sí, exactamente entre la 01:00 y la 01:59 hora local del día del
+// cambio (marzo y octubre) — el plazo se calculaba con 1 h de error en esa franja.
+// La función de abajo hace una segunda pasada con el offset ya corregido.
 function zonedToUtcMs(date: string, time: string, tz: string): number {
   const [y, m, d] = date.split('-').map(Number)
-  const [hh, mm] = time.split(':').map(Number)
-  const guess = Date.UTC(y, m - 1, d, hh, mm)
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-GB', {
-      timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-    }).formatToParts(new Date(guess)).map((p) => [p.type, p.value]),
-  )
-  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute)
-  return guess - (asUtc - guess)
+  const [hh, mm, ss] = String(time).split(':').map(Number)
+  const wall = Date.UTC(y, m - 1, d, hh, mm, ss || 0)
+  const offsetAt = (ms: number) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]),
+    )
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000
+  }
+  let t = wall - offsetAt(wall)
+  const off2 = offsetAt(t)            // segunda pasada: correcto también el día del cambio de hora
+  if (wall - off2 !== t) t = wall - off2
+  return t
 }
 
 function dayLabel(date: string, lang: 'es' | 'en') {
