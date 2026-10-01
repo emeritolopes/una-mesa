@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const now = Date.now()
     // Solo reservas de ayer a pasado mañana (UTC): cubre cualquier zona horaria sin barrer toda la tabla.
     const query = new URLSearchParams({
-      select: 'id,user_id,status,date,time,pax,customer_name,customer_email,deposit_amount,created_at,reminder_sent_at,venues(name,city,timezone)',
+      select: 'id,user_id,status,date,time,pax,customer_name,customer_email,deposit_amount,payment_intent_id,created_at,reminder_sent_at,venues(name,city,timezone,deposit_amount)',
       status: 'eq.confirmed',
       reminder_sent_at: 'is.null',
       customer_email: 'not.is.null',
@@ -112,7 +112,12 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           to: r.customer_email, customer_name: r.customer_name || r.customer_email,
           restaurant_name: venue.name, date: dayLabel(r.date, lang), time: shownTime, pax: r.pax,
-          deposit_amount: Number(r.deposit_amount) || 0,
+          // deposit_amount solo se escribe al capturar el pago; con depósito autorizado y sin capturar
+          // es null. Entonces se usa el importe esperado (depósito del local × comensales), igual que
+          // en el email de confirmación del webhook.
+          deposit_amount: Number(r.deposit_amount) > 0
+            ? Number(r.deposit_amount)
+            : (r.payment_intent_id ? (Number(venue.deposit_amount) || 1000) * (Number(r.pax) || 1) : 0),
           diner_reminder: true, show_view_booking: !!r.user_id, cancel_url: cancelUrl, lang,
         }),
       }).catch(() => null)
