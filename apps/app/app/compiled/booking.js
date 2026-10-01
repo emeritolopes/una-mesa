@@ -949,7 +949,7 @@ function BookingScreen({
     }, React.createElement('button', {
       className: 'btn btn-ghost',
       onClick: back
-    }, BK_T.backHome), React.createElement('button', {
+    }, BK_T.backHome), user && React.createElement('button', {
       className: 'btn btn-acc',
       onClick: () => onConfirm._goProfile && onConfirm._goProfile()
     }, BK_T.seeMyBookings)));

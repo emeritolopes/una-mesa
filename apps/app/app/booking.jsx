@@ -604,7 +604,8 @@ function BookingScreen({ rid, presetTime, presetParty, presetDate, back, user, r
       ),
       React.createElement('div',{className:'bk-actions',style:{justifyContent:'center'}},
         React.createElement('button',{className:'btn btn-ghost',onClick:back},BK_T.backHome),
-        React.createElement('button',{className:'btn btn-acc',
+        // Un invitado no tiene perfil: ir al perfil sin sesión lo devuelve a la home.
+        user && React.createElement('button',{className:'btn btn-acc',
           onClick:()=>onConfirm._goProfile&&onConfirm._goProfile()},BK_T.seeMyBookings))
     );
   }
