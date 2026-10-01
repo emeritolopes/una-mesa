@@ -444,9 +444,13 @@ function buildHtml(opts: {
   payment_link?: string
   menu_url?: string
   cancel_url?: string
+  show_view_booking?: boolean
   lang: 'es' | 'en'
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, lang } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, show_view_booking, lang } = opts
+  // Mercado según el idioma (igual que cancelUrl en stripe-webhook). #profile abre «Mis reservas» si hay sesión.
+  const viewUrl = `${lang === 'en' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'}/#profile`
+  const hasDeposit = Number(deposit_amount) > 0
   const t = ET[lang] || ET.es
   const firstName = customer_name.split(' ')[0] || customer_name
   const depositAmt = (deposit_amount / 100).toFixed(0)
@@ -531,9 +535,9 @@ function buildHtml(opts: {
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelPersonas}</p>
                                       <p style="margin:0;font-size:16px;font-weight:600;color:#121212;">${pax}</p>
                                     </td>
-                                    <td width="50%">
+                                    <td width="50%">${hasDeposit ? `
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${t.reembolsable}</span></p>
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${t.reembolsable}</span></p>` : '&nbsp;'}
                                     </td>
                                   </tr>
                                 </table>
@@ -544,7 +548,7 @@ function buildHtml(opts: {
                       </tr>
                     </table>
 
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FFF5F2;border-radius:10px;border-left:3px solid #FF5733;">
+                    ${hasDeposit ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#FFF5F2;border-radius:10px;border-left:3px solid #FF5733;">
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
@@ -552,7 +556,7 @@ function buildHtml(opts: {
                           </p>
                         </td>
                       </tr>
-                    </table>
+                    </table>` : ''}
 
                   </td>
                 </tr>
@@ -596,14 +600,14 @@ function buildHtml(opts: {
                 </tr>
                 ` : ''}
 
-                <tr>
+                ${show_view_booking === false ? '' : `<tr>
                   <td style="padding:32px 48px 0;" align="center">
-                    <a href="https://app.unamesa.co"
+                    <a href="${viewUrl}"
                        style="display:inline-block;background:#FF5733;color:#FFFFFF;text-decoration:none;font-family:'Manrope',Arial,sans-serif;font-size:15px;font-weight:700;padding:14px 36px;border-radius:50px;letter-spacing:0.2px;">
                       ${t.viewBooking}
                     </a>
                   </td>
-                </tr>
+                </tr>`}
 
                 ${cancel_url ? `
                 <tr>
@@ -806,7 +810,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, show_view_booking, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -851,7 +855,7 @@ Deno.serve(async (req) => {
       ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
       : isRestaurant
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
-      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, lang })
+      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, show_view_booking, lang })
 
     const subject = manual
       ? manual.subject

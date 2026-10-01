@@ -319,6 +319,7 @@ Deno.serve(async (req) => {
             deposit_amount: depositAmount,
             menu_url: menuUrl,
             cancel_url: cancelUrl,
+            show_view_booking: !!userId,
             lang,
           }),
         })
