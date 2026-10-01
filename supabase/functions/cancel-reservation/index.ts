@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
     // 2 · Traer la reserva + el restaurante (zona horaria real, no asumida)
     const resRes = await fetch(
-      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email,currency,stripe_connect_account_id,stripe_mode)`,
+      `${supabaseUrl}/rest/v1/reservations?id=eq.${reservation_id}&select=*,venues(name,timezone,email,currency,deposit_amount,stripe_connect_account_id,stripe_mode)`,
       { headers: h }
     )
     const reservations = await resRes.json()
@@ -107,6 +107,12 @@ Deno.serve(async (req) => {
     )
     const hoursUntil = (reservationDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
     const withinPenaltyWindow = hoursUntil < 24
+    // deposit_amount solo se escribe al CAPTURAR el pago (stripe-webhook): una reserva con depósito
+    // autorizado pero sin capturar lo tiene null. El indicador fiable es el PaymentIntent.
+    const hadDeposit = Number(reservation.deposit_amount) > 0 || !!reservation.payment_intent_id
+    const depositCents = Number(reservation.deposit_amount) > 0
+      ? Number(reservation.deposit_amount)
+      : (hadDeposit ? (Number(reservation.venues?.deposit_amount) || 1000) * (Number(reservation.pax) || 1) : 0)
 
     // 5 · Resolver el depósito en Stripe — con el mismo lock atómico que usan
     //    auto-capture y mark-noshow, para no chocar con ellos si ya estaban procesándolo
@@ -178,7 +184,7 @@ Deno.serve(async (req) => {
         reservation_id,
         user_id: reservation.user_id,
         reason: withinPenaltyWindow ? 'late_cancellation' : 'user_cancelled',
-        refund_amount: depositStatus === 'refunded' ? reservation.deposit_amount : 0,
+        refund_amount: depositStatus === 'refunded' ? depositCents : 0,
       }),
     })
 
@@ -203,7 +209,7 @@ Deno.serve(async (req) => {
             customer_phone: reservation.customer_phone || null,
             customer_email: reservation.customer_email || null,
             guest_cancelled: true,
-            late_cancellation: withinPenaltyWindow,
+            late_cancellation: withinPenaltyWindow && hadDeposit,
             lang: rl,
           }),
         })
@@ -226,7 +232,7 @@ Deno.serve(async (req) => {
             date: reservation.date,
             time: reservation.time,
             pax: reservation.pax,
-            deposit_amount: reservation.deposit_amount,
+            deposit_amount: depositCents,
             refunded: depositStatus === 'refunded',
             currency: reservation.venues?.currency,
             lang,
@@ -235,7 +241,7 @@ Deno.serve(async (req) => {
       } catch (e) { console.warn('[cancel-reservation] email:', e instanceof Error ? e.message : e) }
     }
 
-    return new Response(JSON.stringify({ success: true, deposit_status: depositStatus, late_cancellation: withinPenaltyWindow }), {
+    return new Response(JSON.stringify({ success: true, deposit_status: depositStatus, late_cancellation: withinPenaltyWindow && hadDeposit }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {

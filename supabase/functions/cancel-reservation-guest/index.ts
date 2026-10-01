@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
   // 2. Traer la reserva + zona horaria real del restaurante
   const resRes = await fetch(
-    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,email,currency,stripe_connect_account_id,stripe_mode)`,
+    `${supabaseUrl}/rest/v1/reservations?id=eq.${tk.reservation_id}&select=*,venues(name,timezone,email,currency,deposit_amount,stripe_connect_account_id,stripe_mode)`,
     { headers: h }
   )
   const reservation = (await resRes.json())?.[0]
@@ -69,6 +69,11 @@ Deno.serve(async (req) => {
   // con depósito autorizado pero aún sin capturar lo tiene null. El indicador fiable de que
   // hay depósito es el PaymentIntent, no el importe.
   const hadDeposit = Number(reservation.deposit_amount) > 0 || !!reservation.payment_intent_id
+  // Importe para emails y registro: el guardado si ya se capturó; si no, el mismo cálculo
+  // que usó stripe-webhook al confirmar (depósito del local × comensales).
+  const depositCents = Number(reservation.deposit_amount) > 0
+    ? Number(reservation.deposit_amount)
+    : (hadDeposit ? (Number(reservation.venues?.deposit_amount) || 1000) * (Number(reservation.pax) || 1) : 0)
 
   // 4. Resolver el depósito — mismo lock atómico que cancel-reservation / auto-capture / mark-noshow
   let depositStatus: string | null = reservation.deposit_status
@@ -137,7 +142,7 @@ Deno.serve(async (req) => {
       reservation_id: tk.reservation_id,
       user_id: null,
       reason: withinPenaltyWindow ? 'late_cancellation_guest' : 'guest_cancelled',
-      refund_amount: depositStatus === 'refunded' ? reservation.deposit_amount : 0,
+      refund_amount: depositStatus === 'refunded' ? depositCents : 0,
     }),
   })
 
@@ -154,7 +159,7 @@ Deno.serve(async (req) => {
           date: reservation.date,
           time: reservation.time,
           pax: reservation.pax,
-          deposit_amount: reservation.deposit_amount,
+          deposit_amount: depositCents,
           refunded: depositStatus === 'refunded',
           currency: reservation.venues?.currency,
           lang: ['en', 'es'].includes(url.searchParams.get('lang') || '')
