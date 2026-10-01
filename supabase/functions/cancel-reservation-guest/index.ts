@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
             customer_phone: reservation.customer_phone || null,
             customer_email: reservation.customer_email || null,
             guest_cancelled: true,
-            late_cancellation: withinPenaltyWindow,
+            late_cancellation: withinPenaltyWindow && Number(reservation.deposit_amount) > 0,
             lang: rl,
           }),
         })
@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, code: 'success', refunded: depositStatus === 'refunded' }),
+    JSON.stringify({ ok: true, code: 'success', refunded: depositStatus === 'refunded', had_deposit: Number(reservation.deposit_amount) > 0 }),
     { headers: jsonHeaders }
   )
 })

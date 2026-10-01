@@ -47,6 +47,7 @@ const ET = {
     menuNote: 'Consulta el menú antes de llegar y llega listo para pedir.',
     cancelButton: 'Cancelar mi reserva',
     cancelNote: '¿No puedes venir? Cancela con más de 24h de antelación para recuperar tu depósito.',
+    cancelNoteFree: '¿No puedes venir? Cancela para que el restaurante pueda liberar tu mesa.',
     pendingTitle: '⏳ Reserva pendiente de confirmación',
     pendingBody: (dep: string) => `Para <strong>garantizar tu mesa</strong>, completa el pago del depósito de <strong>${dep}€</strong> antes de <strong>2 horas</strong>. Si no se recibe el pago, la reserva se cancelará automáticamente.`,
     payButton: (dep: string) => `Confirmar mesa — Pagar ${dep}€`,
@@ -94,6 +95,7 @@ const ET = {
     menuNote: 'Check the menu before you arrive and come ready to order.',
     cancelButton: 'Cancel my booking',
     cancelNote: "Can't make it? Cancel more than 24h in advance to get your deposit back.",
+    cancelNoteFree: "Can't make it? Please cancel so the restaurant can free up your table.",
     pendingTitle: '⏳ Booking pending confirmation',
     pendingBody: (dep: string) => `To <strong>secure your table</strong>, complete the £${dep} deposit payment within <strong>2 hours</strong>. If payment isn't received, the booking will be cancelled automatically.`,
     payButton: (dep: string) => `Confirm table — Pay £${dep}`,
@@ -617,7 +619,7 @@ function buildHtml(opts: {
                       ${t.cancelButton}
                     </a>
                     <p style="margin:8px 0 0;font-size:11px;color:#BBB;">
-                      ${t.cancelNote}
+                      ${hasDeposit ? t.cancelNote : t.cancelNoteFree}
                     </p>
                   </td>
                 </tr>

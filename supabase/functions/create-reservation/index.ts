@@ -264,6 +264,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Enlace de cancelación para el comensal (también sin depósito): sin él, un grupo que ya no va
+    // no tiene forma de liberar la mesa. Solo en reservas confirmadas al instante; no bloqueante.
+    let cancelUrl: string | null = null
+    if (customer_email && !manual) {
+      try {
+        const ctRes = await fetch(`${supabaseUrl}/rest/v1/rpc/generate_cancel_token`, {
+          method: 'POST', headers: sbHeaders, body: JSON.stringify({ p_reservation_id: reservation.id }),
+        })
+        const ct = await ctRes.json()
+        if (ctRes.ok && typeof ct === 'string' && ct) {
+          cancelUrl = `${l === 'en' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'}/?cancel_token=${ct}&lang=${l}`
+        } else console.warn('[create-reservation] cancel-token', ctRes.status)
+      } catch (e) { console.warn('[create-reservation] cancel-token failed (non-fatal):', e) }
+    }
+
     if (customer_email) {
       try {
         const emailRes = await fetch(`${supaFunctions}/send-email`, {
@@ -289,6 +304,7 @@ Deno.serve(async (req) => {
                 pax:             party,
                 deposit_amount:  0,
                 show_view_booking: !!user_id,
+                cancel_url:      cancelUrl,
                 lang:            l,
               }),
         })
