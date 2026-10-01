@@ -35,6 +35,7 @@ const PR_T = {
     noFavs: 'Sin favoritos todavía. Toca el corazón en cualquier restaurante.', explore: 'Explorar',
     cancelBtn: 'Cancelar',
     cancelModalTitle: '¿Cancelar esta reserva?',
+    cancelModalBodyNoDeposit: 'Tu reserva quedará cancelada y el restaurante liberará la mesa.',
     cancelModalBody: 'Si cancelas con más de 24h de antelación, el depósito se reembolsa en 5-10 días hábiles. Con menos de 24h, el depósito no se reembolsa.',
     cancelGenericErr: 'No se pudo cancelar la reserva. Inténtalo de nuevo.',
     goBack: 'Volver', yesCancel: 'Sí, cancelar',
@@ -84,6 +85,7 @@ const PR_T = {
     cancelBtn: 'Cancel',
     cancelModalTitle: 'Cancel this booking?',
     cancelGenericErr: 'Could not cancel the booking. Please try again.',
+    cancelModalBodyNoDeposit: 'Your booking will be cancelled and the restaurant will release the table.',
     cancelModalBody: 'If you cancel more than 24h in advance, the deposit is refunded within 5-10 business days. With less than 24h\'s notice, the deposit is not refunded.',
     goBack: 'Go back', yesCancel: 'Yes, cancel',
     hello: name => 'Hi, '+name+'!',
@@ -364,7 +366,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     React.createElement('div',{className:'br-main'},
       React.createElement('div',{className:'br-name'},b.name),
       React.createElement('div',{className:'br-meta'}, (b.dayLabel||PR_T.today)+' · '+b.time+' · '+b.party+(b.party===1?PR_T.guestSingular:PR_T.guestPlural)),
-      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+(b.deposit*(b.party||1)))),
+      React.createElement('div',{className:'br-meta',style:{marginTop:'2px'}},PR_T.bookingLabel+' '+b.id+(b.paymentIntentId?' · '+PR_T.depositLabelLower+' '+(window.UM_CURRENCY_SYMBOL?window.UM_CURRENCY_SYMBOL(b.currency):'€')+b.deposit:''))),
     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'8px',alignItems:'flex-end'}},
       React.createElement('span',{className:'br-status '+(isPast?'st-past':'st-up')}, isPast?PR_T.statusCompleted:PR_T.statusConfirmed),
       React.createElement('button',{className:'btn btn-soft btn-sm',onClick:()=>openRest(b.rid)}, isPast?PR_T.bookAgain:PR_T.viewRestaurant),
@@ -393,7 +395,7 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
     },
       React.createElement('h3', { style: { fontFamily: 'Newsreader', marginBottom: 12 } }, PR_T.cancelModalTitle),
       React.createElement('p', { style: { color: '#666', marginBottom: 24, fontSize: 14 } },
-        PR_T.cancelModalBody
+        cancelTarget.paymentIntentId ? PR_T.cancelModalBody : PR_T.cancelModalBodyNoDeposit
       ),
       React.createElement('div', { style: { display: 'flex', gap: 12, justifyContent: 'center' } },
         React.createElement('button', {

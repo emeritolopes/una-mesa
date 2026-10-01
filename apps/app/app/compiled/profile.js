@@ -51,6 +51,7 @@ const PR_T = {
     explore: 'Explorar',
     cancelBtn: 'Cancelar',
     cancelModalTitle: '¿Cancelar esta reserva?',
+    cancelModalBodyNoDeposit: 'Tu reserva quedará cancelada y el restaurante liberará la mesa.',
     cancelModalBody: 'Si cancelas con más de 24h de antelación, el depósito se reembolsa en 5-10 días hábiles. Con menos de 24h, el depósito no se reembolsa.',
     cancelGenericErr: 'No se pudo cancelar la reserva. Inténtalo de nuevo.',
     goBack: 'Volver',
@@ -124,6 +125,7 @@ const PR_T = {
     cancelBtn: 'Cancel',
     cancelModalTitle: 'Cancel this booking?',
     cancelGenericErr: 'Could not cancel the booking. Please try again.',
+    cancelModalBodyNoDeposit: 'Your booking will be cancelled and the restaurant will release the table.',
     cancelModalBody: 'If you cancel more than 24h in advance, the deposit is refunded within 5-10 business days. With less than 24h\'s notice, the deposit is not refunded.',
     goBack: 'Go back',
     yesCancel: 'Yes, cancel',
@@ -539,7 +541,7 @@ function ProfileScreen({
       style: {
         marginTop: '2px'
       }
-    }, PR_T.bookingLabel + ' ' + b.id + ' · ' + PR_T.depositLabelLower + ' ' + (window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(b.currency) : '€') + b.deposit * (b.party || 1))), React.createElement('div', {
+    }, PR_T.bookingLabel + ' ' + b.id + (b.paymentIntentId ? ' · ' + PR_T.depositLabelLower + ' ' + (window.UM_CURRENCY_SYMBOL ? window.UM_CURRENCY_SYMBOL(b.currency) : '€') + b.deposit : ''))), React.createElement('div', {
       style: {
         display: 'flex',
         flexDirection: 'column',
@@ -599,7 +601,7 @@ function ProfileScreen({
       marginBottom: 24,
       fontSize: 14
     }
-  }, PR_T.cancelModalBody), React.createElement('div', {
+  }, cancelTarget.paymentIntentId ? PR_T.cancelModalBody : PR_T.cancelModalBodyNoDeposit), React.createElement('div', {
     style: {
       display: 'flex',
       gap: 12,
