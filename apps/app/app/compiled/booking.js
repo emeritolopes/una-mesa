@@ -6,6 +6,7 @@ const BK_T = {
   es: {
     notFound: 'Restaurante no encontrado.',
     comingSoon: 'Este restaurante todavía no puede recibir reservas — se está incorporando a Una Mesa.',
+    dowsFull: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
     dows: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
     today: 'Hoy',
     dowRowHeader: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
@@ -88,6 +89,7 @@ const BK_T = {
   en: {
     notFound: 'Restaurant not found.',
     comingSoon: "This restaurant can't take bookings yet — it's joining Una Mesa soon.",
+    dowsFull: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     dows: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
     today: 'Today',
     dowRowHeader: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
@@ -319,6 +321,7 @@ function BookingScreen({
   const mmss = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   const holdLow = hold <= 60;
   const dows = BK_T.dows;
+  const dowsFull = BK_T.dowsFull;
   const days = Array.from({
     length: 14
   }, (_, i) => {
@@ -358,7 +361,7 @@ function BookingScreen({
       glyph: r.glyph,
       area: r.area,
       day: day ? day.toISOString() : today.toISOString(),
-      dayLabel: day ? dows[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today,
+      dayLabel: day ? dowsFull[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today,
       time,
       party,
       deposit,
@@ -616,7 +619,7 @@ function BookingScreen({
       className: 'bk-h'
     }, BK_T.whatTime), React.createElement('div', {
       className: 'bk-sub'
-    }, (day ? dows[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today) + BK_T.realtimeAvail), filteredTimes.length ? React.createElement(React.Fragment, null, makeTimeSection(BK_T.lunch, filteredLunch), makeTimeSection(BK_T.dinner, filteredDinner)) : React.createElement('p', {
+    }, (day ? dowsFull[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today) + BK_T.realtimeAvail), filteredTimes.length ? React.createElement(React.Fragment, null, makeTimeSection(BK_T.lunch, filteredLunch), makeTimeSection(BK_T.dinner, filteredDinner)) : React.createElement('p', {
       className: 'muted'
     }, BK_T.noSlotsForDay), React.createElement('div', {
       className: 'bk-actions'
@@ -733,7 +736,7 @@ function BookingScreen({
       style: {
         fontWeight: 700
       }
-    }, day ? dows[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today)), React.createElement('div', {
+    }, day ? dowsFull[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today)), React.createElement('div', {
       className: 'dep-row'
     }, React.createElement('span', null, BK_T.hour), React.createElement('span', {
       style: {
@@ -920,7 +923,7 @@ function BookingScreen({
       className: 'k'
     }, BK_T.dayTime), React.createElement('span', {
       className: 'v'
-    }, (day ? dows[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today) + ' · ' + time)), React.createElement('div', {
+    }, (day ? dowsFull[day.getDay()] + ' ' + day.getDate() + '/' + (day.getMonth() + 1) : BK_T.today) + ' · ' + time)), React.createElement('div', {
       className: 'cd-row'
     }, React.createElement('span', {
       className: 'k'
