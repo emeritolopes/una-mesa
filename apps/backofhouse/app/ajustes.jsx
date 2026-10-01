@@ -401,7 +401,7 @@ function Ajustes() {
         setV(prev => ({
           ...prev,
           ...Object.fromEntries(
-            Object.entries(data).map(([k, v]) => [k, v ?? prev[k] ?? ''])
+            Object.entries(data).map(([k, v]) => [k, v ?? ''])
           )
         }));
       }

@@ -45,7 +45,7 @@ function BrandPanel() {
 
       <div className="relative flex items-center gap-2.5 text-white/55 text-xs">
         <i className="ti ti-map-pin text-sm" />
-        El Bodegón Central · Madrid · Plan Profesional
+        Una Mesa · Restaurant manager
       </div>
     </div>
   );
@@ -229,22 +229,13 @@ function Login({ onLogin }) {
           <h2 className="font-['Syne'] text-2xl font-black text-gray-900 tracking-tight">Bienvenido de nuevo</h2>
           <p className="text-sm text-gray-500 mt-1 mb-6">Inicia sesión para gestionar tu local.</p>
 
-          <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
-            {[{ k: 'password', l: 'Contraseña', i: 'ti-lock' }, { k: 'pin', l: 'PIN de equipo', i: 'ti-grid-dots' }].map(t => (
-              <button key={t.k} onClick={() => setMode(t.k)}
-                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${mode === t.k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                <i className={`ti ${t.i}`} />{t.l}
-              </button>
-            ))}
-          </div>
-
-          {mode === 'password' ? <PasswordForm onLogin={onLogin} /> : <PinForm onLogin={onLogin} />}
+          <PasswordForm onLogin={onLogin} />
 
           <div className="text-center text-xs text-gray-400 mt-7">
             ¿No tienes cuenta? <button className="text-brand font-semibold hover:underline">Solicita una demo</button>
           </div>
         </div>
-        <div className="text-[10px] text-gray-300 mt-8">© 2026 Una Mesa · Hecho en Madrid</div>
+        <div className="text-[10px] text-gray-300 mt-8">© 2026 Una Mesa</div>
       </div>
     </div>
   );
