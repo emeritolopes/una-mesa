@@ -136,6 +136,11 @@ const NT = {
     noEyebrow: 'Reserva no confirmada',
     noHeading: (name: string) => `Lo sentimos, ${name}`,
     noIntro: (r: string) => `<strong>${r}</strong> no ha podido confirmar tu solicitud para esa fecha y hora. Puedes intentarlo con otro horario desde Una Mesa.`,
+    newSubject: (name: string, date: string, time: string) => `Nueva reserva confirmada: ${name} · ${date} ${time}`,
+    newEyebrow: 'Nueva reserva',
+    newHeading: (name: string) => `${name} ha reservado`,
+    newIntro: (r: string) => `Has recibido una nueva reserva en <strong>${r}</strong>. Ya está <strong>confirmada</strong>; no tienes que responder nada.`,
+    newNote: 'Esta reserva también aparece en tu panel de Una Mesa. Si necesitas anularla, hazlo desde el panel.',
     remSubject: (name: string, date: string, time: string) => `Recordatorio: reserva pendiente de ${name} · ${date} ${time}`,
     remEyebrow: 'Recordatorio',
     remHeading: (name: string) => `${name} sigue esperando tu respuesta`,
@@ -168,6 +173,11 @@ const NT = {
     noEyebrow: 'Booking not confirmed',
     noHeading: (name: string) => `We're sorry, ${name}`,
     noIntro: (r: string) => `<strong>${r}</strong> couldn't confirm your request for that date and time. You can try another time on Una Mesa.`,
+    newSubject: (name: string, date: string, time: string) => `New confirmed booking: ${name} · ${date} ${time}`,
+    newEyebrow: 'New booking',
+    newHeading: (name: string) => `${name} has booked`,
+    newIntro: (r: string) => `You have a new booking at <strong>${r}</strong>. It is already <strong>confirmed</strong>; there is nothing for you to reply to.`,
+    newNote: 'This booking also appears in your Una Mesa panel. If you need to cancel it, do so from the panel.',
     remSubject: (name: string, date: string, time: string) => `Reminder: pending booking from ${name} · ${date} ${time}`,
     remEyebrow: 'Reminder',
     remHeading: (name: string) => `${name} is still waiting for your reply`,
@@ -182,7 +192,7 @@ const NT = {
 }
 
 function buildManualNotice(opts: {
-  kind: 'request' | 'reminder' | 'pending' | 'confirmed' | 'declined' | 'expired'
+  kind: 'request' | 'reminder' | 'pending' | 'confirmed' | 'declined' | 'expired' | 'newbooking'
   customer_name: string
   restaurant_name: string
   date: string
@@ -199,11 +209,13 @@ function buildManualNotice(opts: {
   const cust = esc(opts.customer_name)
   const rest = esc(opts.restaurant_name)
   const isReq = kind === 'request' || kind === 'reminder'
-  const eyebrow = kind === 'request' ? n.reqEyebrow : kind === 'reminder' ? n.remEyebrow : kind === 'pending' ? n.pendEyebrow : kind === 'confirmed' ? n.okEyebrow : kind === 'expired' ? n.expEyebrow : n.noEyebrow
-  const heading = kind === 'request' ? n.reqHeading(cust) : kind === 'reminder' ? n.remHeading(cust) : kind === 'pending' ? n.pendHeading(cust) : kind === 'confirmed' ? n.okHeading(cust) : kind === 'expired' ? n.expHeading(cust) : n.noHeading(cust)
-  const intro = kind === 'request' ? n.reqIntro(rest) : kind === 'reminder' ? n.remIntro(rest) : kind === 'pending' ? n.pendIntro(rest) : kind === 'confirmed' ? n.okIntro(rest) : kind === 'expired' ? n.expIntro(rest) : n.noIntro(rest)
-  const note = kind === 'request' ? n.reqNote : kind === 'reminder' ? n.remNote : kind === 'pending' ? n.pendNote : ''
-  const subject = kind === 'request' ? n.reqSubject(opts.customer_name, date, time)
+  const showContact = isReq || kind === 'newbooking'
+  const eyebrow = kind === 'newbooking' ? n.newEyebrow : kind === 'request' ? n.reqEyebrow : kind === 'reminder' ? n.remEyebrow : kind === 'pending' ? n.pendEyebrow : kind === 'confirmed' ? n.okEyebrow : kind === 'expired' ? n.expEyebrow : n.noEyebrow
+  const heading = kind === 'newbooking' ? n.newHeading(cust) : kind === 'request' ? n.reqHeading(cust) : kind === 'reminder' ? n.remHeading(cust) : kind === 'pending' ? n.pendHeading(cust) : kind === 'confirmed' ? n.okHeading(cust) : kind === 'expired' ? n.expHeading(cust) : n.noHeading(cust)
+  const intro = kind === 'newbooking' ? n.newIntro(rest) : kind === 'request' ? n.reqIntro(rest) : kind === 'reminder' ? n.remIntro(rest) : kind === 'pending' ? n.pendIntro(rest) : kind === 'confirmed' ? n.okIntro(rest) : kind === 'expired' ? n.expIntro(rest) : n.noIntro(rest)
+  const note = kind === 'newbooking' ? n.newNote : kind === 'request' ? n.reqNote : kind === 'reminder' ? n.remNote : kind === 'pending' ? n.pendNote : ''
+  const subject = kind === 'newbooking' ? n.newSubject(opts.customer_name, date, time)
+    : kind === 'request' ? n.reqSubject(opts.customer_name, date, time)
     : kind === 'reminder' ? n.remSubject(opts.customer_name, date, time)
     : kind === 'expired' ? n.expSubject(opts.restaurant_name)
     : kind === 'pending' ? n.pendSubject(opts.restaurant_name)
@@ -218,7 +230,7 @@ function buildManualNotice(opts: {
       <tr><td style="padding:16px 28px;"><table width="100%" cellpadding="0" cellspacing="0">
         <tr>${cell(n.labelCliente, cust)}${cell(n.labelPersonas, esc(pax))}</tr>
         <tr>${cell(n.labelFecha, esc(date))}${cell(n.labelHora, esc(time))}</tr>
-        ${isReq && (opts.phone || opts.email) ? `<tr>${cell(n.labelTelefono, esc(opts.phone || '—'))}${cell(n.labelEmail, esc(opts.email || '—'))}</tr>` : ''}
+        ${showContact && (opts.phone || opts.email) ? `<tr>${cell(n.labelTelefono, esc(opts.phone || '—'))}${cell(n.labelEmail, esc(opts.email || '—'))}</tr>` : ''}
       </table></td></tr>
     </table>`
   const buttons = isReq && confirm_url && decline_url ? `
@@ -780,7 +792,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -795,6 +807,7 @@ Deno.serve(async (req) => {
 
     // Avisos de confirmación manual (tienen prioridad sobre el resto de modos).
     const manualKind = (respond_confirm_url && respond_decline_url) ? (reminder ? 'reminder' : 'request')
+      : new_booking ? 'newbooking'
       : pending_notice ? 'pending'
       : response_status === 'confirmed' ? 'confirmed'
       : response_status === 'declined' ? 'declined'
