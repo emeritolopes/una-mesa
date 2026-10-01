@@ -464,9 +464,10 @@ function buildHtml(opts: {
   cancel_url?: string
   show_view_booking?: boolean
   diner_reminder?: boolean
+  deposit_nonrefundable?: boolean   // reserva hecha con <24 h de margen: el depósito no se devuelve al cancelar
   lang: 'es' | 'en'
 }): string {
-  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder, lang } = opts
+  const { customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder, deposit_nonrefundable, lang } = opts
   // Mercado según el idioma (igual que cancelUrl en stripe-webhook). #profile abre «Mis reservas» si hay sesión.
   const viewUrl = `${lang === 'en' ? 'https://app.unamesa.co.uk' : 'https://app.unamesa.co'}/#profile`
   const hasDeposit = Number(deposit_amount) > 0
@@ -556,7 +557,7 @@ function buildHtml(opts: {
                                     </td>
                                     <td width="50%">${hasDeposit ? `
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${diner_reminder ? t.drDepositTag : t.reembolsable}</span></p>` : '&nbsp;'}
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${(diner_reminder || deposit_nonrefundable) ? t.drDepositTag : t.reembolsable}</span></p>` : '&nbsp;'}
                                     </td>
                                   </tr>
                                 </table>
@@ -571,7 +572,7 @@ function buildHtml(opts: {
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            ${diner_reminder ? t.drDepositNote(depositAmt) : t.depositNote(depositAmt)}
+                            ${(diner_reminder || deposit_nonrefundable) ? t.drDepositNote(depositAmt) : t.depositNote(depositAmt)}
                           </p>
                         </td>
                       </tr>
@@ -636,7 +637,7 @@ function buildHtml(opts: {
                       ${t.cancelButton}
                     </a>
                     <p style="margin:8px 0 0;font-size:11px;color:#BBB;">
-                      ${hasDeposit ? (diner_reminder ? t.drCancelNote : t.cancelNote) : t.cancelNoteFree}
+                      ${hasDeposit ? ((diner_reminder || deposit_nonrefundable) ? t.drCancelNote : t.cancelNote) : t.cancelNoteFree}
                     </p>
                   </td>
                 </tr>
@@ -829,7 +830,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, show_view_booking, diner_reminder, lang: langRaw } = await req.json()
+    const { to, customer_name, restaurant_name, date, time, pax, deposit_amount, payment_link, menu_url, noshow_url, cancel_url, stripe_invite_url, live_confirmation, onboarding_reminder_url, customer_phone, customer_email, respond_confirm_url, respond_decline_url, pending_notice, response_status, reminder, new_booking, guest_cancelled, late_cancellation, show_view_booking, diner_reminder, deposit_nonrefundable, lang: langRaw } = await req.json()
     const lang: 'es' | 'en' = langRaw === 'en' ? 'en' : 'es'
     const t = ET[lang]
 
@@ -874,7 +875,7 @@ Deno.serve(async (req) => {
       ? buildStripeInviteHtml({ restaurant_name, self_service_url: stripe_invite_url, lang })
       : isRestaurant
       ? buildRestaurantHtml({ customer_name: customer_name || to, restaurant_name, date: date || '', time: time || '', pax: pax || 1, deposit_amount: deposit_amount || 0, noshow_url, lang })
-      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder: diner_reminder === true, lang })
+      : buildHtml({ customer_name: customer_name || to, restaurant_name, date, time, pax: pax || 1, deposit_amount: deposit_amount || 0, payment_link, menu_url, cancel_url, show_view_booking, diner_reminder: diner_reminder === true, deposit_nonrefundable: deposit_nonrefundable === true, lang })
 
     const subject = manual
       ? manual.subject
