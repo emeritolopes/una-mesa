@@ -259,13 +259,25 @@ function Reservas() {
     async function load() {
       if (!window.sb) return;
       try {
-        const { data, error } = await window.sb
-          .from('reservations')
-          .select('*')
-          .neq('status', 'cancelled')
-          .order('date', { ascending: true });
-        if (error) { console.warn('[BOH] loadReservations:', error.message); return; }
-        setList((data || []).map(mapSupaRes));
+        /* PostgREST corta cada respuesta en max_rows (1000 por defecto). Orden por fecha
+           ascendente: sin paginar, al pasar de 1000 reservas desaparecerían las MÁS FUTURAS.
+           Pedimos por páginas hasta recibir una incompleta. */
+        const PAGE = 1000;
+        let all = [];
+        for (let from = 0; from < 50000; from += PAGE) {
+          const { data, error } = await window.sb
+            .from('reservations')
+            .select('*')
+            .neq('status', 'cancelled')
+            .order('date', { ascending: true })
+            .order('time', { ascending: true })
+            .order('id', { ascending: true })
+            .range(from, from + PAGE - 1);
+          if (error) { console.warn('[BOH] loadReservations:', error.message); return; }
+          all = all.concat(data || []);
+          if (!data || data.length < PAGE) break;
+        }
+        setList(all.map(mapSupaRes));
       } catch(e) {
         console.warn('[BOH] loadReservations:', e.message);
       }
