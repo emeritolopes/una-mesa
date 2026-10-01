@@ -284,10 +284,11 @@ Deno.serve(async (req) => {
                 to:              customer_email,
                 customer_name:   customer_name || customer_email,
                 restaurant_name: venue.name,
-                date,
-                time,
+                date:            label,
+                time:            shownTime,
                 pax:             party,
                 deposit_amount:  0,
+                show_view_booking: !!user_id,
                 lang:            l,
               }),
         })
