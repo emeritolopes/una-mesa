@@ -48,6 +48,10 @@ const ET = {
     cancelButton: 'Cancelar mi reserva',
     cancelNote: '¿No puedes venir? Cancela con más de 24h de antelación para recuperar tu depósito.',
     cancelNoteFree: '¿No puedes venir? Cancela para que el restaurante pueda liberar tu mesa.',
+    // Recordatorio (se envía con 24 h o menos): cancelar ya no devuelve el depósito.
+    drDepositTag: 'se descuenta de tu cuenta',
+    drDepositNote: (dep: string) => `Tu depósito de <strong style="color:#121212;">${dep}€</strong> se descuenta del total de tu ticket cuando llegas al restaurante. Si cancelas ahora, con menos de 24h de antelación, el depósito no se devuelve.`,
+    drCancelNote: '¿No puedes venir? Cancela para que el restaurante pueda liberar tu mesa (con menos de 24h el depósito no se devuelve).',
     drEyebrow: 'Recordatorio de reserva',
     drHeading: (name: string) => `¡Te esperamos pronto, ${name}!`,
     drIntro: (r: string) => `Te recordamos tu reserva en <strong style="color:#121212;">${r}</strong>. Estos son los detalles.`,
@@ -100,6 +104,10 @@ const ET = {
     cancelButton: 'Cancel my booking',
     cancelNote: "Can't make it? Cancel more than 24h in advance to get your deposit back.",
     cancelNoteFree: "Can't make it? Please cancel so the restaurant can free up your table.",
+    // Reminder (sent 24h or less before): cancelling no longer refunds the deposit.
+    drDepositTag: 'deducted from your bill',
+    drDepositNote: (dep: string) => `Your <strong style="color:#121212;">£${dep}</strong> deposit is deducted from your bill total when you arrive at the restaurant. If you cancel now, less than 24h before your booking, the deposit is not refunded.`,
+    drCancelNote: "Can't make it? Please cancel so the restaurant can free up your table (deposits aren't refunded within 24h).",
     drEyebrow: 'Booking reminder',
     drHeading: (name: string) => `See you soon, ${name}!`,
     drIntro: (r: string) => `A reminder of your booking at <strong style="color:#121212;">${r}</strong>. Here are the details.`,
@@ -548,7 +556,7 @@ function buildHtml(opts: {
                                     </td>
                                     <td width="50%">${hasDeposit ? `
                                       <p style="margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;">${t.labelDeposito}</p>
-                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${t.reembolsable}</span></p>` : '&nbsp;'}
+                                      <p style="margin:0;font-size:16px;font-weight:700;color:#FF5733;">${t.currency}${depositAmt} <span style="font-size:12px;font-weight:500;color:#999;">· ${diner_reminder ? t.drDepositTag : t.reembolsable}</span></p>` : '&nbsp;'}
                                     </td>
                                   </tr>
                                 </table>
@@ -563,7 +571,7 @@ function buildHtml(opts: {
                       <tr>
                         <td style="padding:14px 18px;">
                           <p style="margin:0;font-size:13px;color:#555;line-height:1.5;">
-                            ${t.depositNote(depositAmt)}
+                            ${diner_reminder ? t.drDepositNote(depositAmt) : t.depositNote(depositAmt)}
                           </p>
                         </td>
                       </tr>
@@ -628,7 +636,7 @@ function buildHtml(opts: {
                       ${t.cancelButton}
                     </a>
                     <p style="margin:8px 0 0;font-size:11px;color:#BBB;">
-                      ${hasDeposit ? t.cancelNote : t.cancelNoteFree}
+                      ${hasDeposit ? (diner_reminder ? t.drCancelNote : t.cancelNote) : t.cancelNoteFree}
                     </p>
                   </td>
                 </tr>
