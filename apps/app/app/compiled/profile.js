@@ -593,11 +593,12 @@ function ProfileScreen({
   }, React.createElement('h3', {
     style: {
       fontFamily: 'Newsreader',
-      marginBottom: 12
+      marginBottom: 12,
+      color: '#1F1A17'
     }
   }, PR_T.cancelModalTitle), React.createElement('p', {
     style: {
-      color: '#666',
+      color: '#4A4039',
       marginBottom: 24,
       fontSize: 14
     }
