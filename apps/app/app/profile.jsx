@@ -393,8 +393,8 @@ function ProfileScreen({ user, bookings, favs, data, openRest, toggleFav, startB
         maxWidth: 400, width: '90%', textAlign: 'center'
       }
     },
-      React.createElement('h3', { style: { fontFamily: 'Newsreader', marginBottom: 12 } }, PR_T.cancelModalTitle),
-      React.createElement('p', { style: { color: '#666', marginBottom: 24, fontSize: 14 } },
+      React.createElement('h3', { style: { fontFamily: 'Newsreader', marginBottom: 12, color: '#1F1A17' } }, PR_T.cancelModalTitle),
+      React.createElement('p', { style: { color: '#4A4039', marginBottom: 24, fontSize: 14 } },
         cancelTarget.paymentIntentId ? PR_T.cancelModalBody : PR_T.cancelModalBodyNoDeposit
       ),
       React.createElement('div', { style: { display: 'flex', gap: 12, justifyContent: 'center' } },
