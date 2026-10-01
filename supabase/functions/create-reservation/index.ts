@@ -238,6 +238,32 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Reserva confirmada al instante (sin confirmación manual): avisar al restaurante por email.
+    // Informativo, no hay nada que responder. No bloqueante: la reserva ya existe.
+    if (!manual && venue.email) {
+      try {
+        const noteRes = await fetch(`${supaFunctions}/send-email`, {
+          method:  'POST',
+          headers: sbHeaders,
+          body:    JSON.stringify({
+            to:              venue.email,
+            customer_name:   customer_name || customer_email || customer_phone || 'Cliente',
+            restaurant_name: venue.name,
+            date:            label,
+            time:            shownTime,
+            pax:             party,
+            customer_phone:  customer_phone || null,
+            customer_email:  customer_email || null,
+            new_booking:     true,
+            lang:            l,
+          }),
+        })
+        if (!noteRes.ok) console.warn('[create-reservation] new-booking email to restaurant', noteRes.status, await noteRes.text())
+      } catch (e) {
+        console.warn('[create-reservation] new-booking email failed (non-fatal):', e)
+      }
+    }
+
     if (customer_email) {
       try {
         const emailRes = await fetch(`${supaFunctions}/send-email`, {
