@@ -505,7 +505,8 @@ function Reservas() {
         return;
       }
       patch(id, { status: json.status, deposit_status: json.deposit_status });
-      toast(status === 'no_show' ? 'Marcada como no show — depósito cobrado' : 'Marcada como completada — depósito cobrado');
+      const cobrado = json.deposit_status === 'captured' ? ' — depósito cobrado' : '';
+      toast((status === 'no_show' ? 'Marcada como no show' : 'Marcada como completada') + cobrado);
     } catch (e) {
       toast('No se pudo actualizar la reserva');
     }

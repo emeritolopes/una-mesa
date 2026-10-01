@@ -382,7 +382,7 @@ function App() {
     return () => window.removeEventListener('storage', handler);
   }, []);
   const login = (u) => { setUser(u); window.currentVenueId = u?.venue_id || null; localStorage.setItem('unamesa.user', JSON.stringify(u)); go('panel'); };
-  const logout = () => { window.sb?.auth?.signOut(); setUser(null); window.currentVenueId = null; localStorage.removeItem('unamesa.user'); };
+  const logout = () => { window.sb?.auth?.signOut(); setUser(null); window.currentVenueId = null; localStorage.removeItem('unamesa.user'); try { localStorage.removeItem('unamesa.store.v8'); localStorage.removeItem('unamesa.store.seeddate'); localStorage.removeItem('unamesa.view'); } catch (e) {} window.location.reload(); };
 
   if (respond) return <><RespondReservationScreen token={respond.token} initialAction={respond.action} /><ToastHost /></>;
   if (noshowToken) return <><NoShowConfirmScreen token={noshowToken} /><ToastHost /></>;
