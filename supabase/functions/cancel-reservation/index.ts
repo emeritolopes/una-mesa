@@ -44,6 +44,29 @@ const ET = {
   },
 }
 
+// Fecha + hora locales del restaurante → instante UTC (ms). La expresión anterior
+// (new Date(...).toLocaleString(tz) reinterpretado como hora local del servidor)
+// aplicaba el desfase horario en sentido contrario: con Londres en BST la ventana de
+// 24 h se desplazaba 1 h (2 h en Madrid con CEST) a favor del comensal.
+function zonedToUtcMs(date: string, time: string, tz: string): number {
+  const [y, m, d] = date.split('-').map(Number)
+  const [hh, mm, ss] = String(time).split(':').map(Number)
+  const wall = Date.UTC(y, m - 1, d, hh, mm, ss || 0)
+  const offsetAt = (ms: number) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]),
+    )
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000
+  }
+  let t = wall - offsetAt(wall)
+  const off2 = offsetAt(t)            // segunda pasada: correcto también el día del cambio de hora
+  if (wall - off2 !== t) t = wall - off2
+  return t
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders })
@@ -102,10 +125,7 @@ Deno.serve(async (req) => {
 
     // 4 · Ventana de 24h, calculada con la zona horaria real del restaurante
     const tz = reservation.venues?.timezone || 'Europe/Madrid'
-    const reservationDateTime = new Date(
-      new Date(`${reservation.date}T${reservation.time}`).toLocaleString('en-US', { timeZone: tz })
-    )
-    const hoursUntil = (reservationDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
+    const hoursUntil = (zonedToUtcMs(reservation.date, reservation.time, tz) - Date.now()) / (1000 * 60 * 60)
     const withinPenaltyWindow = hoursUntil < 24
     // deposit_amount solo se escribe al CAPTURAR el pago (stripe-webhook): una reserva con depósito
     // autorizado pero sin capturar lo tiene null. El indicador fiable es el PaymentIntent.
