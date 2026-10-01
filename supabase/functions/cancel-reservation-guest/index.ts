@@ -65,6 +65,10 @@ Deno.serve(async (req) => {
   )
   const hoursUntil = (reservationDateTime.getTime() - Date.now()) / (1000 * 60 * 60)
   const withinPenaltyWindow = hoursUntil < 24
+  // deposit_amount solo se escribe al CAPTURAR el pago (stripe-webhook), así que una reserva
+  // con depósito autorizado pero aún sin capturar lo tiene null. El indicador fiable de que
+  // hay depósito es el PaymentIntent, no el importe.
+  const hadDeposit = Number(reservation.deposit_amount) > 0 || !!reservation.payment_intent_id
 
   // 4. Resolver el depósito — mismo lock atómico que cancel-reservation / auto-capture / mark-noshow
   let depositStatus: string | null = reservation.deposit_status
@@ -193,7 +197,7 @@ Deno.serve(async (req) => {
             customer_phone: reservation.customer_phone || null,
             customer_email: reservation.customer_email || null,
             guest_cancelled: true,
-            late_cancellation: withinPenaltyWindow && Number(reservation.deposit_amount) > 0,
+            late_cancellation: withinPenaltyWindow && hadDeposit,
             lang: rl,
           }),
         })
@@ -202,7 +206,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, code: 'success', refunded: depositStatus === 'refunded', had_deposit: Number(reservation.deposit_amount) > 0 }),
+    JSON.stringify({ ok: true, code: 'success', refunded: depositStatus === 'refunded', had_deposit: hadDeposit }),
     { headers: jsonHeaders }
   )
 })
