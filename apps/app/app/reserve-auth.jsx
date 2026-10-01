@@ -62,6 +62,7 @@ const RA_T = {
     resetGoHome: 'Volver al inicio',
     cancelScreenLoading: 'Cancelando tu reserva…',
     cancelScreenSuccessRefunded: 'Tu reserva se canceló. El depósito se reembolsará en 5-10 días hábiles.',
+    cancelScreenSuccessFree: 'Tu reserva se canceló. El restaurante ya puede liberar tu mesa.',
     cancelScreenSuccessForfeited: 'Tu reserva se canceló. Como fue con menos de 24 horas de antelación, el depósito no es reembolsable.',
     cancelScreenInvalid: 'Este enlace no es válido.',
     cancelScreenUsed: 'Este enlace ya se usó. Si fue un error, contacta con el restaurante.',
@@ -133,6 +134,7 @@ const RA_T = {
     resetGoHome: 'Back to home',
     cancelScreenLoading: 'Cancelling your booking…',
     cancelScreenSuccessRefunded: 'Your booking has been cancelled. The deposit will be refunded within 5-10 business days.',
+    cancelScreenSuccessFree: 'Your booking has been cancelled. The restaurant can now free up your table.',
     cancelScreenSuccessForfeited: "Your booking has been cancelled. Since it was less than 24 hours in advance, the deposit isn't refundable.",
     cancelScreenInvalid: "This link isn't valid.",
     cancelScreenUsed: 'This link was already used. If this was a mistake, contact the restaurant.',
@@ -411,13 +413,14 @@ function CancelBookingScreen({ token, onDone }){
   const [state, setState] = useState('loading'); // loading | success | error
   const [code, setCode] = useState(null);
   const [refunded, setRefunded] = useState(false);
+  const [hadDeposit, setHadDeposit] = useState(true);
 
   useEffect(() => {
     if (!token) { setState('error'); setCode('invalid'); return; }
     fetch('https://rkaytcmyaaighozxatod.supabase.co/functions/v1/cancel-reservation-guest?token=' + encodeURIComponent(token))
       .then(r => r.json())
       .then(json => {
-        if (json.ok) { setState('success'); setRefunded(!!json.refunded); }
+        if (json.ok) { setState('success'); setRefunded(!!json.refunded); setHadDeposit(json.had_deposit !== false); }
         else { setState('error'); setCode(json.code || 'error'); }
       })
       .catch(() => { setState('error'); setCode('error'); });
@@ -440,7 +443,7 @@ function CancelBookingScreen({ token, onDone }){
         : null,
       React.createElement('h2', null,
         state === 'loading' ? RA_T.cancelScreenLoading
-        : state === 'success' ? (refunded ? RA_T.cancelScreenSuccessRefunded : RA_T.cancelScreenSuccessForfeited)
+        : state === 'success' ? (!hadDeposit ? RA_T.cancelScreenSuccessFree : refunded ? RA_T.cancelScreenSuccessRefunded : RA_T.cancelScreenSuccessForfeited)
         : errorMsg()
       )
     ),
