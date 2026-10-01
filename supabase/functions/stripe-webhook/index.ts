@@ -31,6 +31,26 @@ const ET = {
   en: { restaurantFallback: 'Restaurant', guestFallback: 'Guest' },
 }
 
+// Fecha + hora locales del restaurante → instante UTC (ms). Misma lógica que cancel-reservation.
+function zonedToUtcMs(date: string, time: string, tz: string): number {
+  const [y, m, d] = date.split('-').map(Number)
+  const [hh, mm, ss] = String(time).split(':').map(Number)
+  const wall = Date.UTC(y, m - 1, d, hh, mm, ss || 0)
+  const offsetAt = (ms: number) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]),
+    )
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000
+  }
+  let t = wall - offsetAt(wall)
+  const off2 = offsetAt(t)
+  if (wall - off2 !== t) t = wall - off2
+  return t
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
@@ -187,7 +207,7 @@ Deno.serve(async (req) => {
     // conectada que mandó el evento sea de verdad la de este restaurante.
     // El metadata ya viene firmado por Stripe (no se puede fabricar), pero
     // este cruce es una capa extra barata contra cualquier desalineación.
-    const venueRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venueId}&select=name,email,deposit_amount,menu_url,stripe_connect_account_id`, { headers: sbHeaders })
+    const venueRes = await fetch(`${supabaseUrl}/rest/v1/venues?id=eq.${venueId}&select=name,email,city,timezone,deposit_amount,menu_url,stripe_connect_account_id`, { headers: sbHeaders })
     const venues = await venueRes.json()
     const venue = venues?.[0]
 
@@ -256,6 +276,11 @@ Deno.serve(async (req) => {
     const restaurantName = venue?.name || t.restaurantFallback
     const depositAmount = (venue?.deposit_amount || 1000) * party
     const menuUrl = venue?.menu_url || null
+    // Con menos de 24 h de margen al reservar, cancelar ya no devuelve el depósito:
+    // el email de confirmación no debe prometer lo contrario.
+    const venueTz = venue?.city === 'London' ? 'Europe/London' : (venue?.timezone || 'Europe/Madrid')
+    let depositNonRefundable = false
+    try { depositNonRefundable = (zonedToUtcMs(meta.date, meta.time, venueTz) - Date.now()) / 36e5 < 24 } catch { /* si la fecha no se puede leer, se deja el texto normal */ }
 
     const dayLabel = new Date(meta.date + 'T00:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
       timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long',
@@ -320,6 +345,7 @@ Deno.serve(async (req) => {
             menu_url: menuUrl,
             cancel_url: cancelUrl,
             show_view_booking: !!userId,
+            deposit_nonrefundable: depositNonRefundable,
             lang,
           }),
         })
