@@ -66,7 +66,26 @@ function parseRouteFromHash() {
     query: '',
     presetTime: null
   };
+  if (view === 'profile') return {
+    view: 'profile',
+    rid: null,
+    query: '',
+    presetTime: null
+  };
   return null; // hash vacío o no reconocido — usar el respaldo de sessionStorage
+}
+
+/* Ruta → hash de la URL. Cada ruta visible tiene su propio hash para que
+   refrescar la página (o compartir el enlace) vuelva a la misma pantalla —
+   antes solo go() escribía el hash, y además el arranque lo pisaba con
+   #home, así que un refresh en la ficha de un restaurante, en resultados o
+   en la reserva mandaba siempre a la página principal. */
+function routeToHash(r) {
+  if (!r || !r.view) return '#home';
+  if ((r.view === 'detail' || r.view === 'booking') && r.rid) return '#' + r.view + '/' + r.rid;
+  if (r.view === 'results' || r.view === 'concierge') return '#' + r.view + (r.query ? '/' + encodeURIComponent(r.query) : '');
+  if (r.view === 'profile') return '#profile';
+  return '#home';
 }
 document.title = AP_LANG === 'en' ? 'Una Mesa — Reserve your table in London' : 'Una Mesa — Reserva tu mesa en Madrid';
 (function setSeoLinks() {
@@ -139,16 +158,19 @@ function App() {
   const [restaurants, setRestaurants] = useState(window.UM_DATA);
   const [route, setRouteRaw] = useState(() => {
     const fromHash = parseRouteFromHash();
-    if (fromHash) return fromHash;
+    if (fromHash) {
+      // Mismo destino que lo guardado en esta pestaña → usamos lo guardado,
+      // que conserva datos que no caben en el hash (hora/personas/fecha de la
+      // reserva, búsqueda de la que venías).
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('um-route') || 'null');
+        if (saved && saved.view === fromHash.view && (saved.rid || null) === (fromHash.rid || null) && (fromHash.view === 'detail' || fromHash.view === 'booking' || (saved.query || '') === (fromHash.query || ''))) return saved;
+      } catch (e) {}
+      return fromHash;
+    }
     try {
       const saved = sessionStorage.getItem('um-route');
       const parsed = saved ? JSON.parse(saved) : null;
-      if (parsed?.view === 'profile') return {
-        view: 'home',
-        rid: null,
-        query: '',
-        presetTime: null
-      };
       return parsed || {
         view: 'home',
         rid: null,
@@ -165,6 +187,13 @@ function App() {
     }
   });
   const setRoute = (next, dir) => umNavigate(setRouteRaw, next, dir);
+  // true cuando el cambio de ruta viene del propio navegador (atrás/adelante,
+  // hash cambiado a mano) o es una redirección: la URL se reemplaza en vez de
+  // añadir otra entrada al historial.
+  // empieza en true: la primera sincronización marca la entrada actual del
+  // historial en vez de añadir una nueva.
+  const replaceUrlRef = useRef(true);
+  const [authChecked, setAuthChecked] = useState(!window.UMAuth);
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('um-theme');
@@ -276,7 +305,10 @@ function App() {
   useEffect(() => {
     const onHashChange = () => {
       const parsed = parseRouteFromHash();
-      if (parsed) setRoute(parsed);
+      if (parsed) {
+        replaceUrlRef.current = true;
+        setRoute(parsed);
+      }
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -340,6 +372,7 @@ function App() {
         setUser(null);
         wasSignedInRef.current = false;
       }
+      setAuthChecked(true);
     });
     return () => sub && sub.unsubscribe();
   }, []);
@@ -396,29 +429,41 @@ function App() {
     toastTimer.current = setTimeout(() => setToast(''), 2200);
   };
 
+  /* ruta → URL (hash + historial) y sessionStorage, para TODAS las formas de
+     navegar (go, openRest, search, startBook, askConcierge, login…) */
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('um-route', JSON.stringify(route));
+    } catch (e) {}
+    const replace = replaceUrlRef.current;
+    replaceUrlRef.current = false;
+    const hash = routeToHash(route);
+    if (window.location.hash === hash && window.history.state?.route) return;
+    try {
+      window.history[replace ? 'replaceState' : 'pushState']({
+        route
+      }, '', hash);
+    } catch (e) {}
+  }, [route]);
   /* browser back/forward button support */
   useEffect(() => {
     const onPopState = e => {
-      if (e.state?.route) {
-        setRoute(e.state.route, 'back');
-      } else {
-        setRoute({
-          view: 'home',
-          rid: null,
-          query: '',
-          presetTime: null
-        }, 'back');
-      }
-    };
-    window.addEventListener('popstate', onPopState);
-    window.history.replaceState({
-      route: {
+      replaceUrlRef.current = true;
+      // Sin estado (p. ej. el hash se cambió a mano): manda el hash, no la portada.
+      const target = e.state?.route || parseRouteFromHash() || {
         view: 'home',
         rid: null,
         query: '',
         presetTime: null
-      }
-    }, '', '#home');
+      };
+      setRoute(target, 'back');
+    };
+    window.addEventListener('popstate', onPopState);
+    // Marca la entrada actual con la ruta en la que arrancamos (la del hash o
+    // la de sessionStorage) — antes la pisaba siempre con #home.
+    window.history.replaceState({
+      route
+    }, '', routeToHash(route));
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
   const toggleTheme = () => {
@@ -438,12 +483,6 @@ function App() {
       ...params
     };
     setRoute(newRoute, dir);
-    try {
-      sessionStorage.setItem('um-route', JSON.stringify(newRoute));
-    } catch (e) {}
-    window.history.pushState({
-      route: newRoute
-    }, '', `#${view}`);
   };
   const goWithGuard = view => go(view);
   const openRest = rid => setRoute({
@@ -601,8 +640,13 @@ function App() {
     requireAuth,
     onConfirm
   });else if (route.view === 'profile') {
+    // Al refrescar en #profile la sesión aún se está comprobando: esperamos
+    // en vez de mandar a la portada; solo redirigimos si de verdad no hay sesión.
     if (!user) {
-      go('home');
+      if (authChecked) {
+        replaceUrlRef.current = true;
+        go('home');
+      }
       screen = null;
     } else screen = React.createElement(window.ProfileScreen, {
       user,
