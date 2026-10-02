@@ -6,6 +6,8 @@
   <script>try{var t=localStorage.getItem('um-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Una Mesa — Gestión de local</title>
+  <link rel="icon" type="image/svg+xml" href="app/brand/unamesa-icon.svg">
+  <link rel="apple-touch-icon" href="app/brand/apple-touch-icon.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -50,7 +52,12 @@
     /* boot splash */
     #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--boot-bg,#fff); z-index: 99; }
     #boot .wm { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -0.02em; color: #D8552E; }
-    #boot .wm span { color: #A99F92; font-weight: 700; }
+    #boot .wm { display: flex; align-items: flex-end; }
+    #boot .wm img { height: 44px; width: auto; display: block; animation: um-boot-pulse 1.2s ease-in-out infinite; }
+    @keyframes um-boot-pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+    #boot .boot-on-dark, .boh-logo-on-dark { display: none !important; }
+    [data-theme="noche"] #boot .boot-on-light, [data-theme="noche"] .boh-logo-on-light { display: none !important; }
+    [data-theme="noche"] #boot .boot-on-dark, [data-theme="noche"] .boh-logo-on-dark { display: block !important; }
     #boot .dot { width: 6px; height: 6px; border-radius: 9999px; background: #D8552E; display: inline-block; margin-left: 6px; animation: blink 1s infinite; }
     @keyframes blink { 0%,100%{opacity:.2} 50%{opacity:1} }
 
@@ -156,7 +163,7 @@
 </head>
 <body>
   <div id="root">
-    <div id="boot"><div class="wm">una<span>mesa</span><i class="dot"></i></div></div>
+    <div id="boot"><div class="wm"><img class="boot-on-light" src="app/brand/unamesa-logo-dark.svg" alt="Una Mesa"><img class="boot-on-dark" src="app/brand/unamesa-logo-light.svg" alt=""></div></div>
   </div>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>

@@ -188,7 +188,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
 
         /* ── Logo ── */
         React.createElement('div', { className:'brand', onClick:()=>{ go('home'); setMenuOpen(false); } },
-          React.createElement('span', { className: 'brand-word' }, 'UnaMesa')
+          React.createElement('span', { className: 'brand-logo', role: 'img', 'aria-label': 'Una Mesa' }, React.createElement('img', { src: '/brand/unamesa-logo-dark.svg', className: 'bl-full bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-logo-light.svg', className: 'bl-full bl-light', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-dark.svg', className: 'bl-word bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-light.svg', className: 'bl-word bl-light', alt: '' }))
         ),
 
         /* ── Links de navegación (desktop) ── */
@@ -299,7 +299,7 @@ function Footer() {
     React.createElement('div', { className: 'wrap' },
       React.createElement('div', { className: 'foot-in' },
         React.createElement('div', { className: 'foot-brand' },
-          React.createElement('span', { className: 'brand-word' }, 'UnaMesa'),
+          React.createElement('span', { className: 'brand-logo', role: 'img', 'aria-label': 'Una Mesa' }, React.createElement('img', { src: '/brand/unamesa-logo-dark.svg', className: 'bl-full bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-logo-light.svg', className: 'bl-full bl-light', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-dark.svg', className: 'bl-word bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-light.svg', className: 'bl-word bl-light', alt: '' })),
           React.createElement('span', { className: 'foot-copy' }, en ? '© 2026 Una Mesa Ltd. All rights reserved.' : '© 2026 Una Mesa Ltd. Todos los derechos reservados.')),
         React.createElement('div', { className: 'foot-links' },
           React.createElement('a', { href: '#results' }, en ? 'Restaurants' : 'Restaurantes'),

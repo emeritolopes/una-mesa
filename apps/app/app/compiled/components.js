@@ -313,7 +313,7 @@ function Header({
       go('home');
       setMenuOpen(false);
     }
-  }, React.createElement('span', { className: 'brand-word' }, 'UnaMesa')), /* ── Links de navegación (desktop) ── */
+  }, React.createElement('span', { className: 'brand-logo', role: 'img', 'aria-label': 'Una Mesa' }, React.createElement('img', { src: '/brand/unamesa-logo-dark.svg', className: 'bl-full bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-logo-light.svg', className: 'bl-full bl-light', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-dark.svg', className: 'bl-word bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-light.svg', className: 'bl-word bl-light', alt: '' }))), /* ── Links de navegación (desktop) ── */
   React.createElement('nav', {
     className: 'hdr-links'
   }, lnk('home', CM_T.discover), lnk('results', CM_T.explore), lnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes'))), /* ── Barra de búsqueda scroll ── */
@@ -456,7 +456,7 @@ function Footer() {
     React.createElement('div', { className: 'wrap' },
       React.createElement('div', { className: 'foot-in' },
         React.createElement('div', { className: 'foot-brand' },
-          React.createElement('span', { className: 'brand-word' }, 'UnaMesa'),
+          React.createElement('span', { className: 'brand-logo', role: 'img', 'aria-label': 'Una Mesa' }, React.createElement('img', { src: '/brand/unamesa-logo-dark.svg', className: 'bl-full bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-logo-light.svg', className: 'bl-full bl-light', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-dark.svg', className: 'bl-word bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-light.svg', className: 'bl-word bl-light', alt: '' })),
           React.createElement('span', { className: 'foot-copy' }, en ? '© 2026 Una Mesa Ltd. All rights reserved.' : '© 2026 Una Mesa Ltd. Todos los derechos reservados.')),
         React.createElement('div', { className: 'foot-links' },
           React.createElement('a', { href: '#results' }, en ? 'Restaurants' : 'Restaurantes'),

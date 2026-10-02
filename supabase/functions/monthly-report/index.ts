@@ -83,7 +83,7 @@ function renderEmail(lang: 'en' | 'es', venueName: string, monthLabel: string, f
   return `<!DOCTYPE html><html><body style="margin:0;background:#FCF9F3;font-family:'Helvetica Neue',Arial,sans-serif;color:#1C1C18">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FCF9F3;padding:32px 16px"><tr><td align="center">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #EBE8E2;border-radius:16px;padding:32px">
-      <tr><td style="font-family:Georgia,serif;font-size:24px;color:#1C1C18;padding-bottom:4px">UnaMesa</td></tr>
+      <tr><td style="padding-bottom:10px"><img src="https://app.unamesa.co/una-mesa-logo.png" width="174" height="48" alt="Una Mesa" style="display:block;border:0"></td></tr>
       <tr><td style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8B716A;font-weight:700;padding-bottom:20px">${venueName} · ${monthLabel}</td></tr>
       <tr><td style="font-family:Georgia,serif;font-size:28px;line-height:1.25;color:#1C1C18;padding-bottom:8px">${t.headline(f.covers_attended, monthLabel).replace('<b>', '<b style="color:#973312">')}</td></tr>
       <tr><td style="font-size:15px;color:#57423C;padding-bottom:24px">${t.views(f.restaurant_views)}</td></tr>

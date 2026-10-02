@@ -2,11 +2,7 @@
    Una Mesa — Login (split screen: manager password + staff PIN)
    ───────────────────────────────────────────────────────────── */
 function Wordmark({ light }) {
-  return (
-    <div className={`font-['Syne'] font-black tracking-tight ${light ? 'text-white' : 'text-brand'}`}>
-      una<span className={light ? 'text-white/55 font-bold' : 'text-gray-400 font-bold'}>mesa</span>
-    </div>
-  );
+  return <img src={light ? 'app/brand/unamesa-wordmark-light.svg' : 'app/brand/unamesa-wordmark-dark.svg'} alt="Una Mesa" style={{ height: 32, width: 'auto' }} />;
 }
 
 function BrandPanel() {

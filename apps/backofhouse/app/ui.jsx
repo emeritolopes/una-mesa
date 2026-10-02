@@ -89,24 +89,15 @@ function LogoMark({ size = 36, className = '' }) {
 
 /* Logo badge — the Una Mesa app icon (rounded orange tile) */
 function LogoBadge({ size = 36, rounded = 'rounded-xl' }) {
-  const logoSrc = (window.__resources && window.__resources.unaLogo) || 'app/una-mesa-logo.png';
   return (
-    <img src={logoSrc} alt="Una Mesa" className={`${rounded} flex-shrink-0 block object-contain`} style={{ width: size, height: size }} />
+    <img src="app/brand/unamesa-icon-square-light.svg" alt="Una Mesa" className={`${rounded} flex-shrink-0 block object-contain`} style={{ width: size, height: size }} />
   );
 }
 
-/* Word + mark lockup */
-function Logo({ light = false, badge = true, size = 36 }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      {badge && (light
-        ? <div className="rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1" style={{ width: size, height: size }}><img src={(window.__resources && window.__resources.unaLogo) || 'app/una-mesa-logo.png'} alt="Una Mesa" className="w-full h-full object-contain rounded-lg" /></div>
-        : <LogoBadge size={size} />)}
-      <div className={`font-['Syne'] font-black tracking-tight leading-none ${light ? 'text-white' : 'text-brand'}`} style={{ fontSize: size * 0.6 }}>
-        una<span className={light ? 'text-white/55 font-bold' : 'text-gray-400 font-bold'}>mesa</span>
-      </div>
-    </div>
-  );
+/* Word + mark lockup — new logo (2026-10). light = all-white version for coloured/dark panels. */
+function Logo({ light = false, size = 36 }) {
+  return <img src={light ? 'app/brand/unamesa-logo-white.svg' : 'app/brand/unamesa-logo-dark.svg'} alt="Una Mesa"
+    className="block flex-shrink-0" style={{ height: Math.round(size * 1.1), width: 'auto' }} />;
 }
 
 /* Clean toggle — left-positioned knob (no transform conflicts), brand accent */

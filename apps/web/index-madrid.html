@@ -82,13 +82,16 @@
   #nav-sheet.up { transform:none; transition:transform .48s cubic-bezier(.2,.8,.2,1); }
   #nav-sheet.away { transform:translateX(100%); transition:transform .45s cubic-bezier(.4,0,.2,1); }
 </style>
+<style>.um-logo{display:inline-flex;align-items:center}.um-logo img{width:auto;display:block}.um-logo .um-l-full{height:40px}.um-logo .um-l-word{height:34px;display:none}@media (max-width:767px){header .um-logo .um-l-full{display:none}header .um-logo .um-l-word{display:block}}</style>
+<link rel="icon" type="image/svg+xml" href="brand/unamesa-icon.svg">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
 
 <!-- NAV -->
 <header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
   <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-    <a class="font-headline text-headline-md text-on-surface tracking-tight" href="#">UnaMesa</a>
+    <a class="um-logo" href="#" aria-label="Una Mesa"><img class="um-l-full" src="brand/unamesa-logo-dark.svg" alt="Una Mesa"><img class="um-l-word" src="brand/unamesa-wordmark-dark.svg" alt=""></a>
     <nav class="hidden md:flex items-center space-x-8">
       <a class="text-label-md text-primary font-semibold" href="#discover">Descubrir</a>
       <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://app.unamesa.co/#results">Explorar</a>
@@ -312,7 +315,7 @@
 <footer class="w-full bg-inverse-surface border-t border-outline/20">
   <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
     <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-      <a class="font-headline text-headline-md text-inverse-on-surface tracking-tight" href="#">UnaMesa</a>
+      <a class="um-logo" href="#" aria-label="Una Mesa"><img class="um-l-full" src="brand/unamesa-logo-light.svg" alt="Una Mesa"></a>
       <span class="text-surface-dim text-body-sm">© 2026 Una Mesa Ltd. Todos los derechos reservados.</span>
     </div>
     <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">

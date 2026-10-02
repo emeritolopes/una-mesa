@@ -2036,3 +2036,22 @@ html[data-nav-dir] .view{animation:none}
 
 /* the "% match" pill on the restaurant page showed a default value, not a real score — hidden until matching uses real data */
 .det-match-pill{display:none!important}
+
+/* ── Brand logo (2026-10): full lockup on desktop, "una mesa." wordmark on phones.
+   .bl-dark = dark letters for light backgrounds, .bl-light = white letters for dark ones. ── */
+.brand-logo{display:inline-flex;align-items:center;line-height:0}
+.brand-logo img{width:auto;display:none;filter:none!important}
+.brand-logo .bl-full{height:38px}
+.brand-logo .bl-word{height:34px}
+.brand-logo .bl-full.bl-dark{display:block}
+[data-theme="noche"] .brand-logo .bl-full.bl-dark{display:none}
+[data-theme="noche"] .brand-logo .bl-full.bl-light{display:block}
+.foot .brand-logo .bl-full.bl-dark{display:none!important}
+.foot .brand-logo .bl-full.bl-light{display:block!important}
+@media (max-width:760px){
+  .hdr .brand-logo .bl-full{display:none!important}
+  .hdr .brand-logo .bl-word.bl-dark{display:block}
+  [data-theme="noche"] .hdr .brand-logo .bl-word.bl-dark{display:none}
+  [data-theme="noche"] .hdr .brand-logo .bl-word.bl-light{display:block}
+  .foot .brand-logo .bl-full{height:32px}
+}

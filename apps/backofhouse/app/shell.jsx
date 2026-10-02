@@ -57,10 +57,10 @@ function Sidebar({ view, go, user, onLogout, hidden = [] }) {
     <aside className="w-52 bg-white border-r border-black/7 flex flex-col h-screen flex-shrink-0">
       <div className="px-5 py-5 border-b border-black/7">
         <div className="flex items-center gap-2.5">
-          <LogoBadge size={34} />
           <div>
-            <div className="font-['Syne'] font-black text-lg text-brand tracking-tight leading-none">una<span className="text-gray-400 font-bold">mesa</span></div>
-            <div className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Gestión de local</div>
+            <img src="app/brand/unamesa-logo-dark.svg" alt="Una Mesa" className="boh-logo-on-light block" style={{ height: 34, width: 'auto' }} />
+            <img src="app/brand/unamesa-logo-light.svg" alt="" className="boh-logo-on-dark" style={{ height: 34, width: 'auto' }} />
+            <div className="text-[9px] text-gray-400 uppercase tracking-widest mt-2">Gestión de local</div>
           </div>
         </div>
       </div>
