@@ -172,14 +172,30 @@ nav.um-nav {
 #reels-view { display: none; }
 @media (max-width: 900px) { #content { display: none; } #reels-view { display: block; } }
 
-.reels-grid { display: flex; flex-direction: column; gap: 10px; padding: 0 0 32px; }
-.reels-card-btn { position: relative; display: block; width: 100%; min-height: 130px; border-radius: var(--um-radius); overflow: hidden; text-align: left; transition: transform 0.15s; }
-.reels-card-btn:active { transform: scale(0.98); }
 .reels-card-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--um-surface); }
-.reels-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.1) 100%); }
-.reels-card-body { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; }
-.reels-category-badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; background: rgba(216,85,46,0.2); border: 1px solid rgba(216,85,46,0.35); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 6px; backdrop-filter: blur(6px); width: fit-content; }
-.reels-card-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; }
+/* Mobile home (≤900px) — design A: wide cards, 16px gap, sticky reserve CTA */
+@media (max-width: 900px) {
+  #desktop-wrap { display: none; } /* was hidden only inside, its padding left a ~150px gap above the cards */
+  footer.um-footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
+.reels-home { padding: calc(var(--nav-h) + 20px) 16px 24px; }
+.reels-intro { margin-bottom: 18px; }
+.reels-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--um-accent); margin-bottom: 6px; }
+.reels-title { font-family: 'Playfair Display', serif; font-size: 34px; line-height: 1.05; font-weight: 700; color: var(--um-text); }
+.reels-sub { margin-top: 8px; font-size: 14px; color: var(--um-text-muted); }
+.reels-grid { display: flex; flex-direction: column; gap: 16px; }
+.reels-card-btn { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 18px; overflow: hidden; text-align: left; transition: transform 0.15s; }
+.reels-card-btn:active { transform: scale(0.98); }
+.reels-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.25) 45%, rgba(0,0,0,0) 70%); }
+.reels-card-play { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: .5px solid rgba(255,255,255,.3); }
+.reels-card-play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+.reels-card-body { position: absolute; left: 18px; right: 18px; bottom: 16px; }
+.reels-card-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #fff; line-height: 1.1; }
+.reels-card-meta { margin-top: 6px; font-size: 12.5px; color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reels-card-meta span { color: var(--um-accent); }
+.reels-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--um-bg) 55%, transparent); }
+.reels-cta a { display: block; height: 52px; line-height: 52px; text-align: center; border-radius: 999px; background: var(--um-accent); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.reels-cta a:active { opacity: .9; }
 
 .reels-cat-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: #000; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
 .reels-cat-overlay.open { transform: translateY(0); }
@@ -277,7 +293,7 @@ window.umLoadVideo = function(video) {
   <div id="content"><div class="empty-msg">Loading…</div></div>
 </div>
 
-<div id="reels-view"></div>
+<div id="reels-view"><div class="empty-msg" style="padding-top:100px;">Loading…</div></div>
 
 <footer class="um-footer">
   <a href="https://www.unamesa.co.uk">Una Mesa</a> — Discover restaurants through video
@@ -591,15 +607,17 @@ function renderReelsHome() {
   const cards = cats.map(cat => {
     const dishes = ALL_VIDEOS.filter(v => v.category === cat);
     const first = dishes[0];
-    const badge = dishes.length ? `${dishes.length} DISH${dishes.length === 1 ? '' : 'ES'}` : 'COMING SOON';
+    const meta = dishes.length
+      ? `${dishes.length} dish${dishes.length === 1 ? '' : 'es'} <span>·</span> ${dishes.slice(0, 2).map(d => d.dish_name).join(' · ')}`
+      : 'Coming soon';
     return `
       <button data-reels-open="${reelsSlug(cat)}" class="reels-card-btn">
         ${first ? reelsVideoTag(first.video_url, first.thumbnail_url) : `<div style="position:absolute;inset:0;background:var(--um-surface);"></div>`}
         <div class="reels-card-overlay"></div>
-        ${first ? `` : ''}
+        ${first ? `<span class="reels-card-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ''}
         <div class="reels-card-body">
-          <div class="reels-category-badge">${badge}</div>
           <div class="reels-card-title">${cat}</div>
+          <div class="reels-card-meta">${meta}</div>
         </div>
       </button>`;
   }).join('');
@@ -642,12 +660,15 @@ function renderReelsHome() {
       </div>`;
   }).join('');
   view.innerHTML = `
-    <div style="padding: calc(var(--nav-h) + 24px) 16px 0;">
-      <div class="section-eyebrow" style="margin-bottom:4px;">Video Menu</div>
-      <div class="section-title" style="margin-bottom:8px;">${VENUE.name}</div>
-      <p style="font-size:13px;color:var(--um-text-muted);margin-bottom:20px;">Tap a category to watch the dishes on video.</p>
+    <div class="reels-home">
+      <header class="reels-intro">
+        <div class="reels-eyebrow">Video menu</div>
+        <h1 class="reels-title">${VENUE.name}</h1>
+        <p class="reels-sub">Tap a category to watch the dishes.</p>
+      </header>
       <div class="reels-grid">${cards}</div>
     </div>
+    <div class="reels-cta"><a href="${bookUrl()}">Reserve a table</a></div>
     ${overlays}`;
   bindReelsEvents(); observeReelsCardVideos();
   if (requestedDishId) {
@@ -656,7 +677,7 @@ function renderReelsHome() {
   }
 }
 function observeReelsCardVideos() {
-  const videos = document.querySelectorAll('.reels-card-video');
+  const videos = document.querySelectorAll('video.reels-card-video'); // cards without a video are a plain image div
   if (!videos.length) return;
   if (!('IntersectionObserver' in window)) { videos.forEach(v => { window.umLoadVideo(v); v.play().catch(() => {}); }); return; }
   const observer = new IntersectionObserver(entries => {
