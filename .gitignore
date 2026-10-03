@@ -8,3 +8,6 @@ scripts/
 .agents/
 .claude/
 skills-lock.json
+
+# local patch exports
+out/
