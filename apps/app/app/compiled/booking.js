@@ -204,15 +204,26 @@ function BookingScreen({
   const today = new Date();
   // Parse presetDate (YYYY-MM-DD) at noon local time to avoid UTC-midnight timezone shift
   const initialDay = presetDate ? new Date(presetDate + 'T12:00:00') : startStep > 0 ? today : null;
-  const [step, setStep] = useState(startStep);
-  const [day, setDay] = useState(initialDay);
-  const [time, setTime] = useState(presetTime || null);
-  const [party, setParty] = useState(presetParty || 2);
+  // Reserva ya confirmada en esta pestaña para este restaurante (p. ej. el
+  // comensal refrescó la pantalla de "¡Mesa confirmada!"): volvemos a esa
+  // pantalla en vez de al formulario. app.startBook la borra al empezar otra.
+  const done = (() => {
+    try {
+      const d = JSON.parse(sessionStorage.getItem('um-booking-done') || 'null');
+      return d && d.rid === rid && Date.now() - d.at < 6 * 3600 * 1000 ? d : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+  const [step, setStep] = useState(done ? 4 : startStep);
+  const [day, setDay] = useState(done ? new Date(done.day) : initialDay);
+  const [time, setTime] = useState(done ? done.time : presetTime || null);
+  const [party, setParty] = useState(done ? done.party : presetParty || 2);
   const [partyText, setPartyText] = useState(null); // texto mientras se escribe el nº de comensales
   const [pay, setPay] = useState('card');
-  const [notify, setNotify] = useState('email');
-  const [confCode, setConfCode] = useState('');
-  const [confPending, setConfPending] = useState(false); // el restaurante aún debe confirmar (venues con manual_confirmation)
+  const [notify, setNotify] = useState(done ? done.notify : 'email');
+  const [confCode, setConfCode] = useState(done ? done.code : '');
+  const [confPending, setConfPending] = useState(done ? !!done.pending : false); // el restaurante aún debe confirmar (venues con manual_confirmation)
   const [hold, setHold] = useState(360);
   const [expired, setExpired] = useState(false);
 
@@ -358,7 +369,7 @@ function BookingScreen({
     setPayError('');
     setStep(n);
   };
-  const finish = (paymentIntentId, code) => {
+  const finish = (paymentIntentId, code, pending) => {
     const id = code || 'UM-' + Math.random().toString(36).slice(2, 7).toUpperCase();
     setConfCode(id);
     const booking = {
@@ -380,6 +391,18 @@ function BookingScreen({
       paymentIntentId: paymentIntentId || null
     };
     onConfirm(booking);
+    try {
+      sessionStorage.setItem('um-booking-done', JSON.stringify({
+        rid: r.id,
+        code: id,
+        pending: !!pending,
+        day: booking.day,
+        time,
+        party,
+        notify,
+        at: Date.now()
+      }));
+    } catch (e) {}
     setStep(4);
   };
 
@@ -406,7 +429,7 @@ function BookingScreen({
       throw new Error(code === 'service_full' ? BK_T.serviceFull : (!code || /^[a-z_]+$/.test(code)) ? BK_T.genericPayError : code);
     }
     setConfPending(json.status === 'pending');
-    finish(null, reservationCode);
+    finish(null, reservationCode, json.status === 'pending');
   } catch (err) {
     setPayError(err.message || BK_T.genericPayError);
   } finally {

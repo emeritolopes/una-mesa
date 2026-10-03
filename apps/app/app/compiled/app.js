@@ -502,6 +502,8 @@ function App() {
     query: q || ''
   }));
   const startBook = (rid, t, party, date) => {
+    // reserva nueva: olvida la confirmación anterior (ver booking.js)
+    try { sessionStorage.removeItem('um-booking-done'); } catch (e) {}
     setRoute({
       view: 'booking',
       rid,

@@ -344,6 +344,8 @@ function App() {
   const search = q => setRoute(r=>({ ...r, view:'results', query:q }));
   const askConcierge = q => setRoute(r=>({ ...r, view:'concierge', query:q||'' }));
   const startBook = (rid, t, party, date) => {
+    // reserva nueva: olvida la confirmación anterior (ver booking.js)
+    try { sessionStorage.removeItem('um-booking-done'); } catch (e) {}
     setRoute({ view:'booking', rid, query:route.query, presetTime:t, presetParty: party||null, presetDate: date||null });
   };
   const toggleFav = rid => {
