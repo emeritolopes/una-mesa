@@ -27,10 +27,10 @@ Deno.serve(async (req) => {
     const { date, time, party_size } = params;
 
     // Verificar que la fecha y hora no son en el pasado
-    const nowMadrid = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+    const nowLondon = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
     const requestedDT = new Date(`${date}T${time}:00`);
 
-    if (requestedDT < nowMadrid) {
+    if (requestedDT < nowLondon) {
       return new Response(JSON.stringify({
         result: `No es posible reservar para las ${time} del ${date} porque esa hora ya ha pasado. Por favor elige una hora futura.`
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

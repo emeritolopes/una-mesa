@@ -767,7 +767,7 @@ function AdminCreateVenueScreen({
   const [form, setForm] = useState({
     name: '',
     address: '',
-    city: 'Madrid',
+    city: 'London',
     phone: '',
     email: '',
     cuisine: '',
@@ -912,7 +912,7 @@ function AdminCreateVenueScreen({
     setForm({
       name: v.name || '',
       address: v.address || '',
-      city: v.city || 'Madrid',
+      city: v.city || 'London',
       phone: v.phone || '',
       email: v.email || '',
       cuisine: v.cuisine || '',
@@ -1119,10 +1119,10 @@ function AdminCreateVenueScreen({
     value: form.city,
     onChange: set('city')
   }, React.createElement('option', {
-    value: 'Madrid'
-  }, 'Madrid'), React.createElement('option', {
     value: 'London'
-  }, 'London')), React.createElement('label', {
+  }, 'London'), React.createElement('option', {
+    value: 'Madrid'
+  }, 'Madrid')), React.createElement('label', {
     style: labelStyle
   }, 'Dirección'), React.createElement('input', {
     style: inputStyle,

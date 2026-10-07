@@ -177,8 +177,8 @@ const SUPA_PAY_FUNC = SUPA_BASE + '/stripe-payment';
 const SUPA_RES_FUNC = SUPA_BASE + '/create-reservation';
 const SUPA_EMAIL_FUNC = SUPA_BASE + '/send-email';
 const SUPA_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
-/* Hora actual en la zona horaria DEL LOCAL (Londres o Madrid), calculada cada vez que se necesita:
-   antes se fijaba una sola vez al cargar la página y siempre en hora de Madrid, también para Londres. */
+/* Hora actual en la zona horaria DEL LOCAL (Londres), calculada cada vez que se necesita:
+   antes se fijaba una sola vez al cargar la página y en hora de Madrid. */
 const venueClock = tz => {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
   const g = t => parts.find(x => x.type === t).value;
@@ -344,12 +344,12 @@ function BookingScreen({
   const allTimes = [...(r.times.lunch || []), ...(r.times.dinner || [])];
 
   // Filtra slots pasados si la fecha seleccionada es hoy (hora del local)
-  const vClock = venueClock(r.timezone || 'Europe/Madrid');
+  const vClock = venueClock(r.timezone || 'Europe/London');
   const selectedDate = day ? `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}` : vClock.dateStr;
   const isToday = selectedDate === vClock.dateStr;
   // ¿La hora elegida ya pasó en el local? (se recalcula al pulsar, no al abrir la pantalla)
   const isPastSlot = () => {
-    const c = venueClock(r.timezone || 'Europe/Madrid');
+    const c = venueClock(r.timezone || 'Europe/London');
     const [h, m] = (time || '').slice(0, 5).split(':').map(Number);
     return selectedDate < c.dateStr || selectedDate === c.dateStr && h * 60 + m < c.minutes;
   };

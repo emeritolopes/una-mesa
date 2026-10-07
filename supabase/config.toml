@@ -544,3 +544,8 @@ entrypoint = "./functions/send-reservation-reminders/index.ts"
 [functions.create-manual-reservation]
 enabled = true
 verify_jwt = true
+
+[functions.data-retention]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/data-retention/index.ts"

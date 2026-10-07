@@ -69,9 +69,9 @@ Deno.serve(async (req) => {
       .join('\n')
 
     const today = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
-      timeZone: 'Europe/Madrid', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      timeZone: 'Europe/London', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
-    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
 
     const systemPrompt = lang === 'en' ? `You are the digital concierge for Una Mesa, a premium restaurant booking platform in the UK.
 

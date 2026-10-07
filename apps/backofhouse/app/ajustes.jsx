@@ -71,7 +71,7 @@ function GeneralTab({ v, set }) {
         <div className="grid grid-cols-3 gap-4">
           <Field label="Idioma"><LangSelect /></Field>
           <Field label="Moneda"><select className={fieldCls} value={v.currency} onChange={e => set('currency', e.target.value)}><option value="EUR">Euro (€)</option><option value="GBP">Libra (£)</option></select></Field>
-          <Field label="Zona horaria"><select className={fieldCls} value={v.timezone} onChange={e => set('timezone', e.target.value)}><option value="Europe/Madrid">Europe/Madrid</option><option value="Atlantic/Canary">Atlantic/Canary</option></select></Field>
+          <Field label="Zona horaria"><select className={fieldCls} value={v.timezone} onChange={e => set('timezone', e.target.value)}><option value="Europe/London">Europe/London</option><option value="Europe/Madrid">Europe/Madrid</option></select></Field>
         </div>
       </Card>
     </div>

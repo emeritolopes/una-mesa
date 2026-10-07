@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     // simple que ya usa stripe-connect-onboard. Revisar cuando haya más mercados.
     const isLondon = city === 'London'
     const currency = isLondon ? 'gbp' : 'eur'
-    const timezone = isLondon ? 'Europe/London' : 'Europe/Madrid'
+    const timezone = city === 'Madrid' ? 'Europe/Madrid' : 'Europe/London'
     const times = {
       lunch: generateSlots(lunchStart, lunchEnd),
       dinner: generateSlots(dinnerStart, dinnerEnd),

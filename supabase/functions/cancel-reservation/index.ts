@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     }
 
     // 4 · Ventana de 24h, calculada con la zona horaria real del restaurante
-    const tz = reservation.venues?.timezone || 'Europe/Madrid'
+    const tz = reservation.venues?.timezone || 'Europe/London'
     const hoursUntil = (zonedToUtcMs(reservation.date, reservation.time, tz) - Date.now()) / (1000 * 60 * 60)
     const withinPenaltyWindow = hoursUntil < 24
     // deposit_amount solo se escribe al CAPTURAR el pago (stripe-webhook): una reserva con depósito

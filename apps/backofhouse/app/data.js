@@ -9,10 +9,10 @@
   const addDays = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return d; };
 
   const venue = {
-    id: 'v1', name: 'El Bodegón Central', address: 'Calle Mayor 12',
-    city: 'Madrid', cp: '28013', phone: '+34 91 123 4567',
-    email: 'hola@bodegoncentral.es', vat_number: 'B12345678',
-    plan: 'profesional', currency: 'EUR', locale: 'es-ES', timezone: 'Europe/Madrid',
+    id: 'v1', name: 'Restaurante Demo', address: '1 Demo Street',
+    city: 'London', cp: 'E1 6AN', phone: '+44 20 7946 0000',
+    email: 'demo@example.com', vat_number: 'GB000000000',
+    plan: 'profesional', currency: 'GBP', locale: 'en-GB', timezone: 'Europe/London',
   };
 
   const tables = [
@@ -136,7 +136,7 @@
     { id:'r4b', customer_name:'Carlos Fuentes',     customer_phone:'+34 677 221 004', pax:2,  time:'16:30:00', status:'confirmed',   table:'24"×30"',   notes:'', allergy_alert:'' },
     { id:'r4c', customer_name:'Grupo Repsol',       customer_phone:'+34 91 777 0100', pax:5,  time:'17:00:00', status:'confirmed',   table:'30"×60"',   notes:'Reunión de trabajo', allergy_alert:'' },
     { id:'r5',  customer_name:'Montserrat Boix',    customer_phone:'+34 934 667 001', pax:2,  time:'20:00:00', status:'confirmed',   table:'24"×24"',   notes:'', allergy_alert:'' },
-    { id:'r6',  customer_name:'Club Rotario Madrid',customer_phone:'+34 91 442 5500', pax:8,  time:'15:00:00', status:'confirmed',   table:'60" Round', notes:'Reserva anual del club', allergy_alert:'' },
+    { id:'r6',  customer_name:'Club Rotario',customer_phone:'+44 20 7946 0100', pax:8,  time:'15:00:00', status:'confirmed',   table:'60" Round', notes:'Reserva anual del club', allergy_alert:'' },
     { id:'r7',  customer_name:'Familia López',      customer_phone:'+34 666 119 221', pax:4,  time:'20:30:00', status:'unconfirmed', table:'30"×48"',   notes:'', allergy_alert:'' },
     { id:'r8',  customer_name:'Pedro Ramírez',      customer_phone:'+34 644 119 003', pax:2,  time:'21:00:00', status:'unconfirmed', table:'24"×42"',   notes:'', allergy_alert:'Celíaco' },
     { id:'r9',  customer_name:'Cumpleaños Miriam',  customer_phone:'+34 611 998 007', pax:5,  time:'21:00:00', status:'confirmed',   table:'48" Round', notes:'Tarta sorpresa', allergy_alert:'' },

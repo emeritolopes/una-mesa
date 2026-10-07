@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
     const menuUrl = venue?.menu_url || null
     // Con menos de 24 h de margen al reservar, cancelar ya no devuelve el depósito:
     // el email de confirmación no debe prometer lo contrario.
-    const venueTz = venue?.city === 'London' ? 'Europe/London' : (venue?.timezone || 'Europe/Madrid')
+    const venueTz = venue?.city === 'London' ? 'Europe/London' : (venue?.timezone || 'Europe/London')
     let depositNonRefundable = false
     try { depositNonRefundable = (zonedToUtcMs(meta.date, meta.time, venueTz) - Date.now()) / 36e5 < 24 } catch { /* si la fecha no se puede leer, se deja el texto normal */ }
 

@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
       const isLondon = venue.city === 'London'
       const lang: 'es' | 'en' = isLondon ? 'en' : 'es'
-      const tz = isLondon ? 'Europe/London' : (venue.timezone || 'Europe/Madrid')
+      const tz = isLondon ? 'Europe/London' : (venue.timezone || 'Europe/London')
       const [hh, mm] = String(r.time).split(':')
       const shownTime = `${hh.padStart(2, '0')}:${(mm || '00').slice(0, 2)}`
 
