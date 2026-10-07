@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     try { dryRun = (await req.json())?.dry_run === true } catch { /* sin body */ }
 
     const query = new URLSearchParams({
-      select: 'id,token,reminder_sent_at,reservations!inner(id,status,date,time,pax,customer_name,customer_email,customer_phone,created_at,venues(name,email,city))',
+      select: 'id,token,reminder_sent_at,reservations!inner(id,status,date,time,pax,customer_name,customer_email,customer_phone,created_at,venues(name,email,city,timezone))',
       used_at: 'is.null',
       'reservations.status': 'eq.pending',
       limit: '200',
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
       if (!r || !venue || !r.date || !r.time) continue
 
       const lang: 'es' | 'en' = venue.city === 'London' ? 'en' : 'es'
-      const tz = venue.city === 'London' ? 'Europe/London' : 'Europe/Madrid'
+      const tz = venue.timezone || 'Europe/London'
       const [hh, mm] = String(r.time).split(':')
       const shownTime = `${hh.padStart(2, '0')}:${(mm || '00').slice(0, 2)}`
 

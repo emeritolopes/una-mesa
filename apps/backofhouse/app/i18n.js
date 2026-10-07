@@ -134,7 +134,6 @@
     'PIN de equipo': 'Team PIN',
     '¿No tienes cuenta?': "Don't have an account?",
     'Solicita una demo': 'Request a demo',
-    '© 2026 Una Mesa · Hecho en Madrid': '© 2026 Una Mesa',
 
     /* ── Dashboard (panel) ── */
     'Abierto': 'Open',

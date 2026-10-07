@@ -515,7 +515,7 @@ function AdminCreateVenueScreen({ onDone }){
   const [venueList, setVenueList] = useState(null); // null = not loaded yet
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
-    name:'', address:'', city:'Madrid', phone:'', email:'',
+    name:'', address:'', city:'London', phone:'', email:'',
     cuisine:'', neighborhood:'', description:'', photo_urls:[],
     deposit:'10.00', capacity:'50',
     lunch_start:'13:00', lunch_end:'16:00', dinner_start:'20:00', dinner_end:'23:00',
@@ -613,7 +613,7 @@ function AdminCreateVenueScreen({ onDone }){
     const lunch = slotsToRange(v.times?.lunch) || { start:'13:00', end:'16:00' };
     const dinner = slotsToRange(v.times?.dinner) || { start:'20:00', end:'23:00' };
     setForm({
-      name: v.name || '', address: v.address || '', city: v.city || 'Madrid',
+      name: v.name || '', address: v.address || '', city: v.city || 'London',
       phone: v.phone || '', email: v.email || '', cuisine: v.cuisine || '',
       neighborhood: v.neighborhood || '', description: v.description || '',
       photo_urls: v.photo_urls || [],
@@ -736,8 +736,8 @@ function AdminCreateVenueScreen({ onDone }){
       React.createElement('input', { style:inputStyle, value:form.name, onChange:set('name') }),
       React.createElement('label', { style:labelStyle }, 'Ciudad'),
       React.createElement('select', { style:inputStyle, value:form.city, onChange:set('city') },
-        React.createElement('option', { value:'Madrid' }, 'Madrid'),
-        React.createElement('option', { value:'London' }, 'London')
+        React.createElement('option', { value:'London' }, 'London'),
+        React.createElement('option', { value:'Madrid' }, 'Madrid')
       ),
       React.createElement('label', { style:labelStyle }, 'Dirección'),
       React.createElement('input', { style:inputStyle, value:form.address, onChange:set('address') }),
