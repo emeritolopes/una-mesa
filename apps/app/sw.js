@@ -17,7 +17,7 @@ self.addEventListener('fetch', e => {
   // mostrando el "Offline" de respaldo pensado para la SPA, no un error
   // real y útil.
   const url = new URL(e.request.url);
-  if (url.pathname.startsWith('/menu-video/') || url.pathname.startsWith('/restaurants/')) return;
+  if (url.pathname.startsWith('/menu-video/') || url.pathname.startsWith('/restaurants/') || url.pathname.startsWith('/legal/')) return;
 
   // Los vídeos del menú viven en otro origen (Supabase Storage) y nunca
   // coinciden con las exclusiones de pathname de arriba. Como este service
