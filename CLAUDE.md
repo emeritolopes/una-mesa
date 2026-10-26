@@ -8,7 +8,7 @@ Una Mesa is a restaurant reservation platform. London, UK is the current primary
 
 - **apps/app/** — Customer-facing booking app (comensal)
 - **apps/backofhouse/** — Restaurant management panel
-- **apps/web/** — Marketing landing pages. `index.html` (London, EN) serves unamesa.co.uk; `index-madrid.html` (Madrid, ES) is served on unamesa.co / www.unamesa.co via a host rewrite in `apps/web/vercel.json`. hreflang cross-links both.
+- **apps/web/** — Marketing landing pages. `index.html` (London, EN) serves unamesa.co.uk; `index-madrid.html` (Madrid, ES) is served on unamesa.co / www.unamesa.co via `apps/web/api/index.js`, which picks the file by host (a `rewrites` rule does not work here: the static `index.html` at the root wins over it). hreflang cross-links both.
 - **supabase/functions/** — Deno edge functions (Stripe, email, AI concierge)
 
 ## No Build Step
