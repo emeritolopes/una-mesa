@@ -125,14 +125,14 @@ html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45
   .um-field { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgb(var(--c-outline-variant)); background: rgb(var(--c-surface-container-lowest)); color: rgb(var(--c-on-surface)); font-size: 15px; }
   .um-field:focus { outline: 2px solid rgb(var(--c-primary)); outline-offset: 1px; border-color: transparent; }
 </style>
-<style>.um-logo{display:inline-flex;align-items:center}.um-logo img{width:auto;display:block}.um-logo .um-l-full{height:40px}.um-logo .um-l-word{height:34px;display:none}@media (max-width:767px){header .um-logo .um-l-full{display:none}header .um-logo .um-l-word{display:block}}</style>
+<style>.um-logo{display:inline-flex;align-items:center}.um-logo>span{display:inline-flex;align-items:center}.um-logo .um-t-noche{display:none}:root[data-theme="noche"] .um-logo .um-t-noche{display:inline-flex}:root[data-theme="noche"] .um-logo .um-t-crema{display:none}.um-logo img{width:auto;display:block}.um-logo .um-l-full{height:40px}.um-logo .um-l-word{height:34px;display:none}@media (max-width:767px){header .um-logo .um-l-full{display:none}header .um-logo .um-l-word{display:block}}</style>
 </head>
 <body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
 
 <!-- NAV (same as the landing) -->
 <header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
   <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-    <a id="logo-link" class="um-logo" href="/" aria-label="Una Mesa"><img class="um-l-full" src="/brand/unamesa-logo-dark.svg" alt="Una Mesa"><img class="um-l-word" src="/brand/unamesa-wordmark-dark.svg" alt=""></a>
+    <a id="logo-link" class="um-logo" href="/" aria-label="Una Mesa"><span class="um-t-crema"><img class="um-l-full" src="/brand/unamesa-logo-dark.svg" alt="Una Mesa"><img class="um-l-word" src="/brand/unamesa-wordmark-dark.svg" alt=""></span><span class="um-t-noche"><img class="um-l-full" src="/brand/unamesa-logo-light.svg" alt="Una Mesa"><img class="um-l-word" src="/brand/unamesa-wordmark-light.svg" alt=""></span></a>
     <div class="hidden md:flex items-center space-x-8">
       <a id="nav-discover" class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/" data-i18n="navDiscover">Discover</a>
       <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/#results" data-i18n="navExplore">Explore</a>
