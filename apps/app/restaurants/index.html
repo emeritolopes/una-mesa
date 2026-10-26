@@ -310,6 +310,7 @@ html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45
           </div>
           <div class="sm:col-span-2 mt-2">
             <button type="submit" id="submit-btn" class="w-full px-8 py-4 rounded-full bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md disabled:opacity-60" data-i18n="submitBtn">Send my details</button>
+            <p id="privacy-note" class="text-center text-body-sm text-on-surface-variant mt-4" data-i18n-html="privacyNote"></p>
             <p id="form-status" class="text-center text-label-md mt-4"></p>
           </div>
         </form>
@@ -350,6 +351,7 @@ html[data-nav-dir="back"]::view-transition-new(root){animation:umUnderReveal .45
       <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/restaurants/" data-i18n="navForRestaurants">For Restaurants</a>
       <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/#concierge" data-i18n="navConcierge">AI Concierge</a>
       <a id="contact-link" class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="mailto:hello@unamesa.co.uk" data-i18n="footContact">Contact</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="/legal/" data-i18n="footPrivacy">Privacy &amp; cookies</a>
     </div>
     <div class="flex items-center gap-4 text-surface-dim">
       <a aria-label="Instagram" class="hover:text-surface-bright transition-colors" href="https://www.instagram.com/unamesagroup/" target="_blank" rel="noopener"><span class="material-symbols-outlined text-[20px]">photo_camera</span></a>
@@ -411,7 +413,9 @@ var I18N = {
     rib1T: 'Direct reservations', rib1S: 'No hefty commissions', rib2T: 'Less dependency', rib2S: 'On impersonal marketplaces',
     rib3T: 'Content that converts', rib3S: 'Real, sustainable demand',
     footerCopy: '© 2026 Una Mesa Ltd. All rights reserved.', footRestaurants: 'Restaurants', footContact: 'Contact',
-    cityPlaceholder: 'London'
+    cityPlaceholder: 'London',
+    footPrivacy: 'Privacy & cookies',
+    privacyNote: 'Una Mesa Ltd uses these details to respond to your request. Details of who receives them, how long we keep them and your rights are in our <a class="underline" href="/legal/">Privacy &amp; cookies notice</a>.'
   },
   es: {
     pageTitle: 'Una Mesa para Restaurantes — Deja de perder dinero con los no-shows',
@@ -449,7 +453,9 @@ var I18N = {
     rib1T: 'Reserva directa', rib1S: 'Sin comisiones abusivas', rib2T: 'Menos dependencia', rib2S: 'De marketplaces impersonales',
     rib3T: 'Contenido que genera', rib3S: 'Demanda real y sostenible',
     footerCopy: '© 2026 Una Mesa Ltd. Todos los derechos reservados.', footRestaurants: 'Restaurantes', footContact: 'Contacto',
-    cityPlaceholder: 'Madrid'
+    cityPlaceholder: 'Madrid',
+    footPrivacy: 'Privacidad y cookies',
+    privacyNote: 'Una Mesa Ltd usa estos datos para responder a tu solicitud. Quién los recibe, cuánto tiempo los conservamos y tus derechos están en el <a class="underline" href="/legal/">Aviso de privacidad y cookies</a>.'
   }
 };
 
