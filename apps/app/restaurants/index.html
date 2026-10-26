@@ -550,5 +550,43 @@ var I18N = {
 })();
 </script>
 
+
+<!-- Aviso informativo de almacenamiento/terceros (se puede cerrar). No es un banner de consentimiento: estas páginas no establecen cookies y no hay nada que aceptar o rechazar. -->
+<style>
+  #um-notice{position:fixed;left:16px;right:16px;bottom:16px;z-index:900;max-width:640px;margin:0 auto;display:none;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgb(var(--c-outline-variant));background:rgb(var(--c-surface-container-lowest));color:rgb(var(--c-on-surface));box-shadow:0 8px 28px rgba(0,0,0,.22);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #um-notice.show{display:flex}
+  #um-notice p{margin:0;flex:1}
+  #um-notice a{color:rgb(var(--c-primary));text-decoration:underline;white-space:nowrap}
+  #um-notice button{flex:none;cursor:pointer;border:0;border-radius:999px;padding:9px 16px;font:600 14px system-ui,sans-serif;background:rgb(var(--c-primary));color:rgb(var(--c-on-primary))}
+  #um-notice button:focus-visible,#um-notice a:focus-visible{outline:2px solid rgb(var(--c-primary));outline-offset:2px}
+  @media (max-width:520px){#um-notice{flex-direction:column;align-items:stretch}#um-notice button{align-self:flex-end}}
+</style>
+<div id="um-notice" role="region" aria-live="polite"><p id="um-notice-text"></p><button type="button" id="um-notice-close"></button></div>
+<script>
+(function () {
+  var KEY = 'um-cookie-notice';
+  try { if (localStorage.getItem(KEY) === '1') return; } catch (e) {}
+  function build() {
+    var en = (document.documentElement.lang || '').toLowerCase().indexOf('en') === 0;
+    var onApp = /^app\./.test(location.hostname);
+    var legal = onApp ? '/legal/#cookies' : (en ? 'https://app.unamesa.co.uk/legal/#cookies' : 'https://app.unamesa.co/legal/#cookies');
+    var T = en
+      ? { t: 'These pages set no cookies of their own. We only remember your light/dark choice on your device, and your browser loads fonts and styles from third parties (they see your IP address).', more: 'More information', ok: 'Got it', label: 'Cookies and storage' }
+      : { t: 'Estas páginas no establecen cookies propias. Solo recordamos en tu dispositivo tu elección de modo claro u oscuro, y tu navegador carga tipografías y estilos de terceros (que ven tu dirección IP).', more: 'Más información', ok: 'Entendido', label: 'Cookies y almacenamiento' };
+    var box = document.getElementById('um-notice'); if (!box) return;
+    /* fuera de <body>: la animación de entrada del body usa transform y haría que position:fixed se midiera respecto al body, no a la ventana */
+    document.documentElement.appendChild(box);
+    box.setAttribute('aria-label', T.label);
+    document.getElementById('um-notice-text').innerHTML = T.t + ' <a href="' + legal + '">' + T.more + '</a>';
+    var btn = document.getElementById('um-notice-close'); btn.textContent = T.ok;
+    btn.addEventListener('click', function () {
+      box.classList.remove('show');
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    });
+    box.classList.add('show');
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+})();
+</script>
 </body>
 </html>
