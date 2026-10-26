@@ -1,4 +1,16 @@
 {
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "unamesa.co" }],
+      "destination": "/index-madrid.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.unamesa.co" }],
+      "destination": "/index-madrid.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
