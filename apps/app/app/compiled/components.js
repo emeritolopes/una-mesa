@@ -316,7 +316,7 @@ function Header({
   }, React.createElement('span', { className: 'brand-logo', role: 'img', 'aria-label': 'Una Mesa' }, React.createElement('img', { src: '/brand/unamesa-logo-dark.svg', className: 'bl-full bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-logo-light.svg', className: 'bl-full bl-light', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-dark.svg', className: 'bl-word bl-dark', alt: '' }), React.createElement('img', { src: '/brand/unamesa-wordmark-light.svg', className: 'bl-word bl-light', alt: '' }))), /* ── Links de navegación (desktop) ── */
   React.createElement('nav', {
     className: 'hdr-links'
-  }, lnk('home', CM_T.discover), lnk('results', CM_T.explore), lnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes'))), /* ── Barra de búsqueda scroll ── */
+  }, lnk('home', CM_T.discover), lnk('results', CM_T.explore), lnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes')), window.UM_LANG === 'en' && React.createElement('a', { className: 'hdr-link', href: 'https://unamesa.co.uk/about/' }, 'About')), /* ── Barra de búsqueda scroll ── */
   React.createElement('form', {
     className: 'hdr-search' + (scrolled ? ' show' : ''),
     onSubmit: submit,
@@ -426,7 +426,7 @@ function Header({
   React.createElement('nav', {
     className: 'hdr-mobile-menu' + (menuOpen ? ' open' : ''),
     'aria-hidden': String(!menuOpen)
-  }, mlnk('home', CM_T.discover), mlnk('results', CM_T.explore), mlnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-mobile-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes'))));
+  }, mlnk('home', CM_T.discover), mlnk('results', CM_T.explore), mlnk('concierge', CM_T.concierge), React.createElement('a', { className: 'hdr-mobile-link', href: '/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes')), window.UM_LANG === 'en' && React.createElement('a', { className: 'hdr-mobile-link', href: 'https://unamesa.co.uk/about/' }, 'About')));
 }
 
 /* ── Footer ── */
@@ -462,6 +462,7 @@ function Footer() {
           React.createElement('a', { href: '#results' }, en ? 'Restaurants' : 'Restaurantes'),
           React.createElement('a', { href: '/restaurants/' }, en ? 'For Restaurants' : 'Para Restaurantes'),
           React.createElement('a', { href: '#concierge' }, en ? 'AI Concierge' : 'Conserje IA'),
+          en && React.createElement('a', { href: 'https://unamesa.co.uk/about/' }, 'About'),
           React.createElement('a', { href: en ? 'mailto:hello@unamesa.co.uk' : 'mailto:hola@unamesa.co' }, en ? 'Contact' : 'Contacto')),
         React.createElement('div', { className: 'foot-social' },
           SOCIAL_LINKS.map(s => React.createElement('a', {
