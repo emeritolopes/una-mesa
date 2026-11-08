@@ -197,7 +197,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
           lnk('results',   CM_T.explore),
           lnk('concierge', CM_T.concierge),
           React.createElement('a', { className:'hdr-link', href:'/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes')),
-          window.UM_LANG === 'en' && React.createElement('a', { className:'hdr-link', href:'https://unamesa.co.uk/about/' }, 'About')
+          window.UM_LANG === 'en' && React.createElement('a', { className:'hdr-link', href:'https://unamesa.co.uk/about/' }, 'About us')
         ),
 
         /* ── Barra de búsqueda scroll ── */
@@ -280,7 +280,7 @@ function Header({ go, route, user, onAuth, onProfile, onLogout, theme, onTheme, 
       mlnk('results',   CM_T.explore),
       mlnk('concierge', CM_T.concierge),
       React.createElement('a', { className:'hdr-mobile-link', href:'/restaurants/' }, (window.UM_LANG === 'en' ? 'For Restaurants' : 'Para Restaurantes')),
-      window.UM_LANG === 'en' && React.createElement('a', { className:'hdr-mobile-link', href:'https://unamesa.co.uk/about/' }, 'About')
+      window.UM_LANG === 'en' && React.createElement('a', { className:'hdr-mobile-link', href:'https://unamesa.co.uk/about/' }, 'About us')
     )
   );
 }
@@ -307,7 +307,7 @@ function Footer() {
           React.createElement('a', { href: '#results' }, en ? 'Restaurants' : 'Restaurantes'),
           React.createElement('a', { href: '/restaurants/' }, en ? 'For Restaurants' : 'Para Restaurantes'),
           React.createElement('a', { href: '#concierge' }, en ? 'AI Concierge' : 'Conserje IA'),
-          en && React.createElement('a', { href: 'https://unamesa.co.uk/about/' }, 'About'),
+          en && React.createElement('a', { href: 'https://unamesa.co.uk/about/' }, 'About us'),
           React.createElement('a', { href: en ? 'mailto:hello@unamesa.co.uk' : 'mailto:hola@unamesa.co' }, en ? 'Contact' : 'Contacto')),
         React.createElement('div', { className: 'foot-social' },
           SOCIAL_LINKS.map(s => React.createElement('a', {
