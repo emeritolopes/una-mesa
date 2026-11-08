@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Una Mesa — One table at a time</title>
+<meta name="description" content="Una Mesa is a London reservation platform for independent restaurants: watch the dishes on video before you book, and hold your table with a refundable deposit.">
+<link rel="canonical" href="https://unamesa.co.uk/about/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Una Mesa">
+<meta property="og:title" content="About Una Mesa — One table at a time">
+<meta property="og:description" content="Why we built Una Mesa: video menus and fair, refundable deposits for London's independent restaurants.">
+<meta property="og:url" content="https://unamesa.co.uk/about/">
+<meta property="og:image" content="https://unamesa.co.uk/about/founders.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+  try { document.documentElement.setAttribute('data-theme', localStorage.getItem('um-theme') === 'noche' ? 'noche' : 'crema'); } catch (e) {}
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "rgb(var(--c-primary) / <alpha-value>)",
+          "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+          "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+          "cypress": "#0B1E17",
+          "background": "rgb(var(--c-background) / <alpha-value>)",
+          "surface": "rgb(var(--c-surface) / <alpha-value>)",
+          "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
+          "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
+          "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
+          "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
+          "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
+          "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
+          "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
+          "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
+          "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
+          "outline": "rgb(var(--c-outline) / <alpha-value>)",
+          "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)"
+        },
+        fontFamily: {
+          "headline": ["Newsreader", "Georgia", "serif"],
+          "sans": ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+        },
+        fontSize: {
+          "label-sm": ["12px", { lineHeight: "16px", fontWeight: "600" }],
+          "label-eyebrow": ["11px", { lineHeight: "16px", fontWeight: "700" }],
+          "label-md": ["14px", { lineHeight: "20px", fontWeight: "600" }],
+          "body-sm": ["13px", { lineHeight: "20px" }],
+          "body-md": ["15px", { lineHeight: "24px" }],
+          "body-lg": ["18px", { lineHeight: "28px" }],
+          "headline-sm": ["24px", { lineHeight: "32px", fontWeight: "500" }],
+          "headline-md": ["32px", { lineHeight: "40px", fontWeight: "400" }],
+          "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "400" }],
+          "headline-lg": ["40px", { lineHeight: "48px", fontWeight: "400" }],
+          "display-mobile": ["36px", { lineHeight: "44px", fontWeight: "400" }],
+          "display": ["56px", { lineHeight: "64px", fontWeight: "400" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root { --c-primary:151 51 18; --c-primary-container:126 42 14; --c-on-primary:255 255 255; --c-background:252 249 243; --c-surface:252 249 243; --c-surface-bright:252 249 243; --c-surface-dim:220 218 212; --c-surface-container-lowest:255 255 255; --c-surface-container-low:246 243 237; --c-surface-container:240 238 232; --c-surface-container-high:235 232 226; --c-on-surface:28 28 24; --c-on-surface-variant:87 66 60; --c-inverse-surface:49 49 45; --c-outline:139 113 106; --c-outline-variant:222 192 184; color-scheme: light; }
+  :root[data-theme="noche"] { --c-primary:224 113 75; --c-primary-container:200 90 53; --c-on-primary:255 255 255; --c-background:20 18 16; --c-surface:20 18 16; --c-surface-bright:255 255 255; --c-surface-dim:168 163 155; --c-surface-container-lowest:28 26 23; --c-surface-container-low:25 23 20; --c-surface-container:34 31 27; --c-surface-container-high:42 38 34; --c-on-surface:243 239 232; --c-on-surface-variant:211 196 187; --c-inverse-surface:12 11 9; --c-outline:168 148 139; --c-outline-variant:74 63 58; color-scheme: dark; }
+  html { transition: background-color .3s ease; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; display:inline-block; vertical-align:middle; line-height:1; }
+  .hairline { border-color: rgb(var(--c-on-surface) / .08); }
+  .float-shadow { box-shadow: 0 12px 32px -8px rgba(11,30,23,.08), 0 4px 12px -2px rgba(151,51,18,.04); }
+  .dropcap::first-letter { font-family:Newsreader,Georgia,serif; float:left; font-size:3.4rem; line-height:.9; margin:.35rem .15rem 0 0; color:rgb(var(--c-primary)); }
+</style>
+<style>.um-logo{display:inline-flex;align-items:center}.um-logo>span{display:inline-flex;align-items:center}.um-logo .um-t-noche{display:none}:root[data-theme="noche"] .um-logo .um-t-noche{display:inline-flex}:root[data-theme="noche"] .um-logo .um-t-crema{display:none}.um-logo img{width:auto;display:block}.um-logo .um-l-full{height:40px}.um-logo .um-l-word{height:34px;display:none}@media (max-width:767px){header .um-logo .um-l-full{display:none}header .um-logo .um-l-word{display:block}}</style>
+<link rel="icon" type="image/svg+xml" href="../brand/unamesa-icon.svg">
+<link rel="apple-touch-icon" href="../brand/apple-touch-icon.png">
+</head>
+<body class="bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-white">
+
+<!-- NAV (same as the landing, with About active) -->
+<header class="sticky top-0 z-50 w-full bg-surface/90 backdrop-blur-md border-b hairline">
+  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <a class="um-logo" href="/" aria-label="Una Mesa — home"><span class="um-t-crema"><img class="um-l-full" src="../brand/unamesa-logo-dark.svg" alt="Una Mesa"><img class="um-l-word" src="../brand/unamesa-wordmark-dark.svg" alt=""></span><span class="um-t-noche"><img class="um-l-full" src="../brand/unamesa-logo-light.svg" alt="Una Mesa"><img class="um-l-word" src="../brand/unamesa-wordmark-light.svg" alt=""></span></a>
+    <nav class="hidden md:flex items-center space-x-8">
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://app.unamesa.co.uk/#results">Explore</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="https://app.unamesa.co.uk/#concierge">AI Concierge</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/#videos">Videos</a>
+      <a class="text-label-md text-on-surface font-medium hover:text-primary transition-colors" href="/#for-restaurants">For Restaurants</a>
+      <a class="text-label-md text-primary font-semibold border-b-2 border-primary pb-1" href="/about/" aria-current="page">About</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button id="theme-toggle" type="button" aria-label="Switch to dark mode" onclick="toggleTheme()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container transition-all active:scale-95">
+        <span class="material-symbols-outlined text-[22px]" id="theme-icon">dark_mode</span>
+      </button>
+      <a href="https://app.unamesa.co.uk/#results" class="ml-1 px-5 py-2.5 rounded-lg bg-primary text-on-primary text-label-md hover:bg-primary-container transition-all active:scale-95 inline-flex items-center gap-2">
+        <span class="hidden sm:inline">Reserve a table</span><span class="sm:hidden">Reserve</span> <span class="material-symbols-outlined text-[16px] hidden sm:inline-block">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- BREADCRUMB -->
+  <div class="w-full border-b hairline bg-surface-container-low py-3">
+    <div class="max-w-7xl mx-auto px-6 lg:px-14 flex items-center justify-between text-label-sm uppercase tracking-wider text-on-surface-variant">
+      <div class="flex items-center gap-2"><a href="/" class="hover:text-primary">Una Mesa</a><span>/</span><span class="text-primary">About us</span></div>
+      <div class="hidden sm:flex items-center gap-3"><span>London</span><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span>Independent restaurants</span></div>
+    </div>
+  </div>
+
+  <!-- HERO: editorial split -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-14 pt-12 lg:pt-20 pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <!-- Left: founders' portrait (7 cols, per DESIGN.md imagery split) -->
+      <div class="lg:col-span-7 relative">
+        <figure class="relative overflow-hidden rounded-2xl border hairline bg-surface-container-low float-shadow">
+          <img src="founders.jpg" width="1536" height="1024" alt="Una Mesa co-founders Carlos Alberto Martínez Escobar (left, white shirt) and Emerito Lopes Vieira (right, black jacket), sitting on a stone bench" class="w-full aspect-[4/3] object-cover object-center block" fetchpriority="high">
+          <div class="hidden sm:block absolute inset-0 bg-gradient-to-t from-[#1C1C18]/70 via-transparent to-transparent pointer-events-none"></div>
+          <figcaption class="m-3 sm:m-0 sm:absolute sm:bottom-5 sm:left-5 sm:max-w-sm p-4 rounded-lg bg-[#FCF9F3]/95 backdrop-blur-md text-[#1C1C18]">
+            <p class="text-label-eyebrow uppercase tracking-widest text-[#973312] mb-1">The founders</p>
+            <p class="font-headline text-xl leading-snug">Carlos Alberto Martínez Escobar &amp; Emerito Lopes Vieira</p>
+            <p class="text-body-sm text-[#57423c] mt-1">Co-founders, building Una Mesa full-time in London.</p>
+          </figcaption>
+        </figure>
+        <div class="hidden lg:block absolute -bottom-5 -left-5 w-24 h-24 border-b-2 border-l-2 border-primary/40 -z-10 rounded-bl-lg"></div>
+        <div class="hidden lg:block absolute -top-5 -right-5 w-24 h-24 border-t-2 border-r-2 border-primary/40 -z-10 rounded-tr-lg"></div>
+      </div>
+
+      <!-- Right: prose -->
+      <div class="lg:col-span-5 space-y-8">
+        <div class="space-y-4">
+          <div class="inline-flex items-center gap-3">
+            <span class="w-8 h-[2px] bg-primary"></span>
+            <span class="text-label-eyebrow text-primary uppercase tracking-widest">About Una Mesa</span>
+          </div>
+          <h1 class="font-headline text-display-mobile md:text-display tracking-tight text-on-surface">One table at a time.</h1>
+        </div>
+        <p class="font-headline italic text-xl md:text-2xl text-primary border-l-2 border-primary pl-6 py-1 leading-relaxed">
+          “A booking should feel like the start of the meal, not a form you fill in.”
+        </p>
+        <p class="text-body-lg text-on-surface-variant">
+          Una Mesa is a reservation platform for London’s independent restaurants. You watch short videos of the dishes before you choose, book in a few taps, and hold your table with a small deposit that goes straight to the restaurant. Cancel more than 24 hours ahead and it’s released in full.
+        </p>
+        <div class="pt-6 flex flex-wrap items-center gap-6 border-t hairline">
+          <a class="bg-primary text-on-primary text-label-md px-7 py-3.5 rounded-lg hover:bg-primary-container transition-all active:scale-95 inline-flex items-center gap-3" href="#letter">
+            Read why we started <span class="material-symbols-outlined text-[18px]">menu_book</span>
+          </a>
+          <a class="text-on-surface hover:text-primary transition-colors text-label-md inline-flex items-center gap-2 border-b border-outline-variant pb-1" href="#pillars">
+            What we believe <span class="material-symbols-outlined text-[16px]">south</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THREE FACTS (honest numbers only) -->
+  <section class="border-y hairline bg-surface-container-low py-12">
+    <div class="max-w-7xl mx-auto px-6 lg:px-14 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-outline-variant/40">
+      <div class="md:pr-8 space-y-2">
+        <div class="font-headline text-5xl text-primary">£0</div>
+        <div class="font-headline text-headline-sm text-on-surface">To list a restaurant</div>
+        <p class="text-body-sm text-on-surface-variant">No membership fee to join. Restaurants pay £1 per diner, and only when a booking is confirmed.</p>
+      </div>
+      <div class="pt-8 md:pt-0 md:px-8 space-y-2">
+        <div class="font-headline text-5xl text-primary">24h</div>
+        <div class="font-headline text-headline-sm text-on-surface">Room to change your mind</div>
+        <p class="text-body-sm text-on-surface-variant">Cancel more than 24 hours before your booking and any deposit is released in full.</p>
+      </div>
+      <div class="pt-8 md:pt-0 md:pl-8 space-y-2">
+        <div class="font-headline text-5xl text-primary italic">Direct</div>
+        <div class="font-headline text-headline-sm text-on-surface">From your table to theirs</div>
+        <p class="text-body-sm text-on-surface-variant">Deposits are paid into the restaurant’s own account through Stripe, never held by us.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDERS' LETTER -->
+  <section class="max-w-5xl mx-auto px-6 lg:px-14 py-24" id="letter">
+    <div class="bg-surface-container-low border hairline p-8 md:p-16 rounded-2xl">
+      <div class="flex items-center justify-between pb-10 border-b hairline">
+        <div>
+          <span class="text-label-eyebrow text-primary uppercase tracking-widest">A note from the founders</span>
+          <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mt-2">Why “Una Mesa”?</h2>
+        </div>
+        <div class="w-14 h-14 rounded-full border border-primary/20 flex items-center justify-center bg-surface-container-lowest">
+          <span class="material-symbols-outlined text-primary text-2xl">restaurant</span>
+        </div>
+      </div>
+      <div class="py-10 space-y-6 text-body-lg text-on-surface-variant">
+        <p class="dropcap">In Spanish, <em>una mesa</em> simply means a table. Not a cover count or a slot in a spreadsheet, but the place where people sit down, order too much bread and stay longer than they planned. That’s what we wanted a booking platform to protect.</p>
+        <p>We kept hearing the same two stories. Diners picking a restaurant from a few photos and a star rating, never quite sure what would arrive at the table. And independent restaurants losing whole tables to people who booked and never came, with very little they could do about it.</p>
+        <p>So we built the two things we wished existed. A video menu, so you can see the food before you go. We film it in the kitchen ourselves, and a proper shoot takes a few hours, not a quick snap. And a small refundable deposit, so a reservation means something on both sides of the pass.</p>
+        <p>We’re starting small and in the open: London first, independent kitchens of every cuisine, Spain next. Pull up a chair.</p>
+      </div>
+      <div class="pt-8 border-t hairline flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <div class="font-headline italic text-2xl text-on-surface">Carlos Alberto Martínez Escobar &amp; Emerito Lopes Vieira</div>
+          <div class="text-label-sm uppercase tracking-wider text-outline mt-1">Co-founders, Una Mesa</div>
+        </div>
+        <a href="mailto:hello@unamesa.co.uk" class="flex items-center gap-2 text-body-sm text-on-surface-variant hover:text-primary italic">
+          <span class="material-symbols-outlined text-primary text-[18px]">mail</span> hello@unamesa.co.uk
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- THREE PILLARS -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-14 py-20 border-t hairline" id="pillars">
+    <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+      <span class="text-label-eyebrow text-primary uppercase tracking-widest">What we believe</span>
+      <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">Three things we hold to</h2>
+      <p class="text-body-md text-on-surface-variant">Show the food honestly, keep it fair for diners and kitchens alike, and make finding the right table feel like asking a friend.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- 01 -->
+      <article class="bg-surface-container-low border hairline p-8 rounded-2xl flex flex-col justify-between hover:border-primary/50 transition-colors group">
+        <div class="space-y-6">
+          <div class="w-14 h-14 rounded-lg bg-surface-container-lowest flex items-center justify-center border hairline group-hover:border-primary transition-colors">
+            <span class="material-symbols-outlined text-primary text-3xl">videocam</span>
+          </div>
+          <span class="text-label-eyebrow text-primary uppercase tracking-wider block">01</span>
+          <h3 class="font-headline text-2xl text-on-surface leading-snug">See it before you book</h3>
+          <p class="text-body-md text-on-surface-variant">Short videos of the dishes, on the restaurant’s page or from a QR code at the table. Most are filmed on site by our team. Where a clip is an AI-generated preview made from our own photos, it says so on screen.</p>
+        </div>
+        <div class="pt-8 border-t hairline mt-8">
+          <a class="inline-flex items-center gap-2 text-label-md text-primary group-hover:translate-x-1 transition-transform" href="https://app.unamesa.co.uk/#results">Browse restaurants <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+        </div>
+      </article>
+      <!-- 02 -->
+      <article class="bg-surface-container-low border hairline p-8 rounded-2xl flex flex-col justify-between hover:border-primary/50 transition-colors group">
+        <div class="space-y-6">
+          <div class="w-14 h-14 rounded-lg bg-surface-container-lowest flex items-center justify-center border hairline group-hover:border-primary transition-colors">
+            <span class="material-symbols-outlined text-primary text-3xl">handshake</span>
+          </div>
+          <span class="text-label-eyebrow text-primary uppercase tracking-wider block">02</span>
+          <h3 class="font-headline text-2xl text-on-surface leading-snug">Fair on both sides</h3>
+          <p class="text-body-md text-on-surface-variant">Diners hold a table with a refundable deposit, and restaurants protect their evenings from no-shows. The deposit goes straight to the restaurant. Listing is free, and restaurants pay £1 per diner only when a booking is confirmed.</p>
+        </div>
+        <div class="pt-8 border-t hairline mt-8">
+          <a class="inline-flex items-center gap-2 text-label-md text-primary group-hover:translate-x-1 transition-transform" href="https://app.unamesa.co.uk/restaurants/#how-it-works">How it works for restaurants <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+        </div>
+      </article>
+      <!-- 03 -->
+      <article class="bg-surface-container-low border hairline p-8 rounded-2xl flex flex-col justify-between hover:border-primary/50 transition-colors group">
+        <div class="space-y-6">
+          <div class="w-14 h-14 rounded-lg bg-surface-container-lowest flex items-center justify-center border hairline group-hover:border-primary transition-colors">
+            <span class="material-symbols-outlined text-primary text-3xl">forum</span>
+          </div>
+          <span class="text-label-eyebrow text-primary uppercase tracking-wider block">03</span>
+          <h3 class="font-headline text-2xl text-on-surface leading-snug">A concierge that listens</h3>
+          <p class="text-body-md text-on-surface-variant">Say what you’re after in your own words, like a quiet corner for two in Shoreditch or a proper Sunday lunch. It suggests restaurants on Una Mesa, checks availability and starts the booking for you.</p>
+        </div>
+        <div class="pt-8 border-t hairline mt-8">
+          <a class="inline-flex items-center gap-2 text-label-md text-primary group-hover:translate-x-1 transition-transform" href="https://app.unamesa.co.uk/#concierge">Ask the concierge <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE (inverted surface) -->
+  <section class="w-full bg-cypress py-20 relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-6 text-center space-y-6 relative z-10">
+      <span class="material-symbols-outlined text-[#C25A35] text-4xl">format_quote</span>
+      <blockquote class="font-headline italic text-2xl md:text-3xl text-[#FCF9F3] leading-snug">
+        Good food deserves to be seen. Good restaurants deserve guests who turn up.
+      </blockquote>
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <span class="w-6 h-px bg-[#C25A35]"></span>
+        <span class="text-label-eyebrow text-[#F0EEE8]/70 uppercase tracking-widest">Una Mesa</span>
+        <span class="w-6 h-px bg-[#C25A35]"></span>
+      </div>
+    </div>
+    <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#973312]/20 blur-3xl pointer-events-none"></div>
+  </section>
+
+  <!-- DUAL CTA -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-14 py-24">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-surface-container-low border hairline p-10 lg:p-12 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+        <div class="space-y-4 relative z-10">
+          <span class="text-label-eyebrow text-primary uppercase tracking-widest">For diners</span>
+          <h3 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">Find your table tonight</h3>
+          <p class="text-body-md text-on-surface-variant">Watch the dishes, pick your time and book in a few taps. No app to download. It works in your phone’s browser.</p>
+        </div>
+        <div class="pt-8 relative z-10">
+          <a class="bg-primary text-on-primary text-label-md px-8 py-3.5 rounded-lg hover:bg-primary-container transition-all inline-flex items-center gap-3 active:scale-95" href="https://app.unamesa.co.uk/#results">Explore restaurants <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
+        </div>
+        <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+      </div>
+      <div class="bg-surface-container border hairline p-10 lg:p-12 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+        <div class="space-y-4 relative z-10">
+          <span class="text-label-eyebrow text-outline uppercase tracking-widest">For restaurants</span>
+          <h3 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">Pull up a chair with us</h3>
+          <p class="text-body-md text-on-surface-variant">Listing is free. Deposits land in your own account, you pay £1 per diner only when a booking is confirmed, and we’ll talk you through getting your dishes on video.</p>
+        </div>
+        <div class="pt-8 relative z-10">
+          <a class="border border-primary text-primary bg-surface text-label-md px-8 py-3.5 rounded-lg hover:bg-primary hover:text-on-primary transition-all inline-flex items-center gap-3 active:scale-95" href="https://app.unamesa.co.uk/restaurants/#join">List your restaurant <span class="material-symbols-outlined text-[18px]">arrow_outward</span></a>
+        </div>
+        <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER (same as the landing) -->
+<footer class="w-full bg-inverse-surface border-t border-outline/20">
+  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      <a class="um-logo" href="/" aria-label="Una Mesa"><img class="um-l-full" src="../brand/unamesa-logo-light.svg" alt="Una Mesa"></a>
+      <span class="text-surface-dim text-body-sm">© 2026 Una Mesa Ltd. All rights reserved.</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/#results">Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/restaurants/">For Restaurants</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/#concierge">AI Concierge</a>
+      <a class="text-label-sm text-surface-bright transition-colors" href="/about/" aria-current="page">About</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="mailto:hello@unamesa.co.uk">Contact</a>
+      <a class="text-label-sm text-surface-dim hover:text-surface-bright transition-colors" href="https://app.unamesa.co.uk/legal/">Privacy &amp; cookies</a>
+    </div>
+    <div class="flex items-center gap-4 text-surface-dim">
+      <a aria-label="Instagram" class="hover:text-surface-bright transition-colors" href="https://www.instagram.com/unamesagroup/" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+      <a aria-label="TikTok" class="hover:text-surface-bright transition-colors" href="https://www.tiktok.com/@unamesagroup" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 2h-3.2v12.3a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V8.4a6 6 0 1 0 5.1 5.9V8.9a7.2 7.2 0 0 0 4.2 1.4V7.1a4.2 4.2 0 0 1-4.2-4.2V2z"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'noche' ? 'noche' : 'crema'; }
+function syncThemeButton() {
+  const dark = currentTheme() === 'noche';
+  document.getElementById('theme-icon').textContent = dark ? 'light_mode' : 'dark_mode';
+  document.getElementById('theme-toggle').setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+}
+function toggleTheme() {
+  const next = currentTheme() === 'noche' ? 'crema' : 'noche';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('um-theme', next); } catch (e) {}
+  syncThemeButton();
+}
+window.addEventListener('storage', e => {
+  if (e.key === 'um-theme') { document.documentElement.setAttribute('data-theme', e.newValue === 'noche' ? 'noche' : 'crema'); syncThemeButton(); }
+});
+syncThemeButton();
+</script>
+
+<!-- Aviso informativo de almacenamiento/terceros (igual que en la landing). No es un banner de consentimiento. -->
+<style>
+  #um-notice{position:fixed;left:16px;right:16px;bottom:16px;z-index:900;max-width:640px;margin:0 auto;display:none;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgb(var(--c-outline-variant));background:rgb(var(--c-surface-container-lowest));color:rgb(var(--c-on-surface));box-shadow:0 8px 28px rgba(0,0,0,.22);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #um-notice.show{display:flex}
+  #um-notice p{margin:0;flex:1}
+  #um-notice a{color:rgb(var(--c-primary));text-decoration:underline;white-space:nowrap}
+  #um-notice button{flex:none;cursor:pointer;border:0;border-radius:999px;padding:9px 16px;font:600 14px system-ui,sans-serif;background:rgb(var(--c-primary));color:rgb(var(--c-on-primary))}
+  @media (max-width:520px){#um-notice{flex-direction:column;align-items:stretch}#um-notice button{align-self:flex-end}}
+</style>
+<div id="um-notice" role="region" aria-live="polite" aria-label="Cookies and storage"><p id="um-notice-text"></p><button type="button" id="um-notice-close">Got it</button></div>
+<script>
+(function () {
+  var KEY = 'um-cookie-notice';
+  try { if (localStorage.getItem(KEY) === '1') return; } catch (e) {}
+  function build() {
+    var box = document.getElementById('um-notice'); if (!box) return;
+    document.getElementById('um-notice-text').innerHTML = 'These pages set no cookies of their own. We only remember your light/dark choice on your device, and your browser loads fonts and styles from third parties (they see your IP address). <a href="https://app.unamesa.co.uk/legal/#cookies">More information</a>';
+    document.getElementById('um-notice-close').addEventListener('click', function () {
+      box.classList.remove('show');
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    });
+    box.classList.add('show');
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+})();
+</script>
+</body>
+</html>
