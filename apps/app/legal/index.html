@@ -87,6 +87,7 @@
     <li>Tu dirección IP, que se guarda junto a la solicitud.</li>
   </ul>
   <p>Además contamos las visitas a la página «Para restaurantes» para saber cuánta gente la ve frente a cuántas personas envían el formulario. Ese conteo solo registra el idioma de la página; no enviamos ningún dato personal con él.</p>
+  <p>También contamos las visitas a las páginas de Una Mesa (la web, la app y esta página) para saber cuánta gente nos visita y desde qué sitio llega. Cada visita registra solo el dominio, la página y el sitio web desde el que llegaste (por ejemplo, instagram.com). No usamos cookies ni guardamos nada en tu navegador para ello, y no registramos tu dirección IP ni ningún identificador. Estos datos se borran a los 13 meses.</p>
 
   <h2>3. Para qué los usamos y con qué base legal</h2>
   <ul>
@@ -113,7 +114,7 @@
   <p>Puedes pedirnos acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad de tus datos escribiendo a <a href="mailto:hola@unamesa.co">hola@unamesa.co</a>. Si crees que no hemos tratado tus datos correctamente, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" rel="noopener">aepd.es</a>) o, si estás en el Reino Unido, ante la ICO (<a href="https://ico.org.uk" rel="noopener">ico.org.uk</a>).</p>
 
   <h2 id="cookies">8. Cookies y almacenamiento en tu dispositivo</h2>
-  <p><strong>Estas páginas no establecen cookies propias.</strong> No incluyen herramientas de analítica ni de publicidad.</p>
+  <p><strong>Estas páginas no establecen cookies propias.</strong> No incluyen herramientas de publicidad ni analítica de terceros; el único conteo de visitas es el nuestro, descrito arriba, y no guarda nada en tu navegador.</p>
 
   <h3>Lo que guardamos en tu dispositivo</h3>
   <table>
@@ -156,6 +157,7 @@
     <li>Your IP address, which is stored with the request.</li>
   </ul>
   <p>We also count visits to the “For restaurants” page to see how many people view it compared with how many submit the form. That count records only the page language; we don’t send any personal data with it.</p>
+  <p>We also count visits to Una Mesa’s pages (the website, the app and this page) to see how many people visit and which site they come from. Each visit records only the domain, the page and the website you came from (for example, instagram.com). We don’t use cookies or store anything in your browser for this, and we don’t record your IP address or any identifier. This data is deleted after 13 months.</p>
 
   <h2>3. Why we use it and our legal basis</h2>
   <ul>
@@ -182,7 +184,7 @@
   <p>You can ask us for access, rectification, erasure, restriction, objection and portability of your data by writing to <a href="mailto:hello@unamesa.co.uk">hello@unamesa.co.uk</a>. If you think we have not handled your data properly, you can complain to the Information Commissioner’s Office (<a href="https://ico.org.uk" rel="noopener">ico.org.uk</a>) or, if you are in Spain, to the Agencia Española de Protección de Datos (<a href="https://www.aepd.es" rel="noopener">aepd.es</a>).</p>
 
   <h2 id="cookies-en">8. Cookies and on-device storage</h2>
-  <p><strong>These pages do not set any cookies of their own.</strong> They include no analytics or advertising tools.</p>
+  <p><strong>These pages do not set any cookies of their own.</strong> They include no advertising or third-party analytics tools; the only visit count is our own, described above, and it stores nothing in your browser.</p>
 
   <h3>What we store on your device</h3>
   <table>
@@ -216,5 +218,26 @@
   </div>
 </footer>
 
+<script>
+/* Contador de visitas a la web (migración 052): una fila por página cargada.
+   Sin cookies ni nada guardado en el navegador, sin IP ni identificador:
+   solo dominio, ruta y dominio de procedencia. Ver /legal/. */
+(function () {
+  try {
+    var SITES = { 'unamesa.co.uk': 1, 'unamesa.co': 1, 'app.unamesa.co.uk': 1, 'app.unamesa.co': 1 };
+    var host = location.hostname.replace(/^www\./, '');
+    if (!SITES[host] || navigator.webdriver) return;
+    var src = '';
+    try { src = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
+    if (SITES[src]) src = '';
+    var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/rest/v1/site_page_views', {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json', apikey: key, Authorization: 'Bearer ' + key, Prefer: 'return=minimal' },
+      body: JSON.stringify({ site: host, page: (location.pathname || '/').slice(0, 80), source: src ? src.slice(0, 100) : null })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>

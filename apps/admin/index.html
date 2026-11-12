@@ -479,6 +479,12 @@ async function renderOverview() {
     Promise.all(days.map(countViews)),
     Promise.all(days.map(countVideos)),
   ]);
+  // Visitas a la web (migración 052). Si la migración no está aplicada, el panel lo dice.
+  const [siteDailyRes, siteSourcesRes, sitePagesRes] = await Promise.all([
+    sb.from('site_views_daily').select('day, site, views'),
+    sb.from('site_sources_30d').select('source, views').limit(6),
+    sb.from('site_pages_30d').select('site, page, views').limit(6),
+  ]);
 
   const venues = venuesRes.data || [];
   const live = venues.filter(v => !v.archived);
@@ -587,6 +593,7 @@ async function renderOverview() {
 
     <section class="ov-split">
       <div class="ov-col">
+        ${ovSitePanel(siteDailyRes, siteSourcesRes, sitePagesRes)}
         <div class="ov-card ov-panel">
           <div class="ov-panel-head">
             <div><h2>${OV_ICONS.chart} Tráfico de comensales</h2><p>Visitas a fichas de restaurante y vídeos de platos vistos, por día</p></div>
@@ -671,6 +678,53 @@ async function renderOverview() {
   }));
   body.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => navigateToRestaurant(el.dataset.open)));
   ovDrawChart(document.getElementById('ov-chart'), days, dailyViews, dailyVideos, trafficOk);
+}
+
+
+/* ── Panel «Visitas a la web» (site_page_views, migración 052) ── */
+function ovSitePanel(dailyRes, sourcesRes, pagesRes) {
+  const head = `<div class="ov-panel-head"><div><h2>${OV_ICONS.pulse} Visitas a la web</h2><p>Páginas vistas en unamesa.co.uk, unamesa.co y la app. Cuenta visitas, no personas: no usamos cookies ni identificadores.</p></div>
+    <div class="ov-legend"><span><i style="background:#FF5A36"></i>Reino Unido</span><span><i style="background:#06B6D4"></i>España</span></div></div>`;
+  if (dailyRes.error) {
+    return `<div class="ov-card ov-panel">${head}<p class="page-sub" style="margin:0">Todavía no hay datos: aplica la migración <span class="mono">052_site_page_views.sql</span> en Supabase y las visitas empezarán a contarse desde ese momento.</p></div>`;
+  }
+  const rows = dailyRes.data || [];
+  const today = new Date();
+  const key = n => new Date(today.getFullYear(), today.getMonth(), today.getDate() - n).toLocaleDateString('en-CA');
+  const byDay = {};
+  rows.forEach(r => {
+    const d = String(r.day).slice(0, 10);
+    const b = byDay[d] || (byDay[d] = { uk: 0, es: 0 });
+    if (/\.co\.uk$/.test(r.site)) b.uk += Number(r.views); else b.es += Number(r.views);
+  });
+  const sum = (from, to) => { let t = 0; for (let n = from; n <= to; n++) { const b = byDay[key(n)]; if (b) t += b.uk + b.es; } return t; };
+  const todayV = sum(0, 0), last7 = sum(0, 6), prev7 = sum(7, 13), last30 = sum(0, 29);
+  const delta = prev7 ? Math.round((last7 - prev7) / prev7 * 100) : null;
+  const bars = [];
+  for (let n = 13; n >= 0; n--) bars.push({ k: key(n), d: new Date(today.getFullYear(), today.getMonth(), today.getDate() - n), ...(byDay[key(n)] || { uk: 0, es: 0 }) });
+  const max = Math.max(1, ...bars.map(b => b.uk + b.es));
+  const list = (items, label) => items.length
+    ? items.map(i => `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${escHtml(label(i))}</span><span class="num" style="color:var(--muted)">${ovFmt(i.views)}</span></div>`).join('')
+    : '<p class="page-sub" style="margin:0;font-size:12.5px">Sin datos todavía.</p>';
+  return `<div class="ov-card ov-panel">${head}
+    <div class="ov-stats">
+      <div class="ov-stat"><span class="ov-label">Hoy</span><div class="v">${ovFmt(todayV)}</div><span class="s">visitas</span></div>
+      <div class="ov-stat"><span class="ov-label">Últimos 7 días</span><div class="v">${ovFmt(last7)}</div><span class="s ${delta != null && delta < 0 ? '' : 'coral'}">${delta == null ? 'sin semana anterior' : `${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs semana anterior`}</span></div>
+      <div class="ov-stat"><span class="ov-label">Últimos 30 días</span><div class="v">${ovFmt(last30)}</div><span class="s">visitas</span></div>
+      <div class="ov-stat"><span class="ov-label">Media diaria</span><div class="v">${ovFmt(Math.round(last30 / 30))}</div><span class="s">últimos 30 días</span></div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:6px" aria-label="Visitas por día, últimos 14 días">
+      ${bars.map((b, i) => `<div title="${b.d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}: ${b.uk + b.es} visitas (${b.uk} UK · ${b.es} ES)" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:1px">
+        <span style="display:block;height:${b.es / max * 100}%;background:#06B6D4;border-radius:2px 2px 0 0;opacity:.85"></span>
+        <span style="display:block;height:${b.uk / max * 100}%;background:#FF5A36;border-radius:${b.es ? '0' : '2px 2px'} 0 0;${i === 13 ? 'box-shadow:0 0 10px rgba(255,90,54,.5)' : ''}"></span>
+      </div>`).join('')}
+    </div>
+    <div class="ov-axis"><span>${bars[0].d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span><span>${bars[7].d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span><span class="today">Hoy</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:16px">
+      <div><div class="ov-label" style="margin-bottom:6px">De dónde llegan · 30 días</div>${sourcesRes.error ? '<p class="page-sub" style="margin:0">—</p>' : list(sourcesRes.data || [], i => i.source)}</div>
+      <div><div class="ov-label" style="margin-bottom:6px">Páginas más vistas · 30 días</div>${pagesRes.error ? '<p class="page-sub" style="margin:0">—</p>' : list(pagesRes.data || [], i => `${i.site.replace(/^app\./, 'app · ')}${i.page === '/' ? '' : i.page}`)}</div>
+    </div>
+  </div>`;
 }
 
 function ovDrawChart(el, days, views, videos, ok) {
