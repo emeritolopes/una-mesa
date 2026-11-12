@@ -5,144 +5,268 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Una Mesa — Admin</title>
 <link rel="icon" type="image/svg+xml" href="brand/unamesa-icon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  /* Obsidian Telemetry — tema oscuro del admin (ver DESIGN.md).
+     Las variables antiguas (--coral, --ink, --muted…) se mantienen con valores
+     oscuros para que las vistas de Restaurantes, Leads y el detalle sigan
+     funcionando sin tocar su JS. */
   :root {
-    --coral: #D8552E;
-    --coral-dark: #B8431F;
-    --ink: #1A130D;
-    --muted: #6B6259;
-    --line: #E8E0D4;
-    --bg: #F7F5F2;
-    --sidebar-bg: #1A130D;
-    --sidebar-text: #C9BFB3;
-    --sidebar-active: #FAF6F0;
-    --green: #2E7D32;
-    --red: #B8431F;
-    --amber: #B8860B;
+    --coral: #FF5A36;
+    --coral-dark: #E04624;
+    --ink: #F1F5F9;
+    --text: #D4E4FA;
+    --muted: #94A3B8;
+    --dim: #64748B;
+    --line: rgba(255,255,255,.08);
+    --line-soft: rgba(255,255,255,.05);
+    --bg: #090D14;
+    --panel: #0F172A;
+    --card: rgba(21,30,46,.8);
+    --card-solid: #151E2E;
+    --raised: #1A2638;
+    --green: #10B981;
+    --red: #F87171;
+    --amber: #F59E0B;
+    --cyan: #06B6D4;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    color-scheme: dark;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
-  button { font-family:inherit; cursor:pointer; }
+  body { font-family:'Geist', system-ui, sans-serif; background:var(--bg); color:var(--text); font-size:14px; -webkit-font-smoothing:antialiased; }
+  body { background-image: linear-gradient(to right, rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.018) 1px, transparent 1px); background-size:32px 32px; }
+  button { font-family:inherit; cursor:pointer; color:inherit; }
   a { color:inherit; }
+  ::selection { background:var(--coral); color:#fff; }
+  .mono, .num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
 
-  /* ── Login screen ── */
+  /* ── Login ── */
   #login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; }
-  .login-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:40px; width:340px; text-align:center; box-shadow:0 8px 32px rgba(26,19,13,.08); }
+  .login-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:40px; width:340px; text-align:center; }
   .login-logo { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px; }
-  .login-logo img { width:32px; height:32px; border-radius:9px; }
-  .login-logo span { font-weight:800; font-size:20px; }
-  .login-logo .accent { color:var(--coral); }
-  .btn-google { width:100%; height:46px; border-radius:10px; border:1.5px solid var(--line); background:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:10px; }
-  .btn-google:hover { background:var(--bg); }
+  .btn-google { width:100%; height:44px; border-radius:4px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--ink); font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .btn-google:hover { border-color:rgba(255,255,255,.2); }
   .login-err { color:var(--red); font-size:13px; margin-top:16px; }
 
   /* ── Shell ── */
   #app-shell { display:none; min-height:100vh; }
   #app-shell.visible { display:flex; }
-  .sidebar { width:230px; background:var(--sidebar-bg); color:var(--sidebar-text); flex-shrink:0; display:flex; flex-direction:column; padding:24px 16px; }
-  .sb-logo { display:flex; align-items:center; gap:8px; padding:0 8px; margin-bottom:32px; }
-  .sb-logo img { width:28px; height:28px; border-radius:8px; }
-  .sb-logo span { font-weight:800; font-size:17px; color:#fff; }
-  .sb-nav a { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; margin-bottom:2px; }
-  .sb-nav a:hover { background:rgba(255,255,255,.06); }
-  .sb-nav a.active { background:var(--coral); color:#fff; }
+  .sidebar { width:260px; background:var(--panel); border-right:1px solid rgba(255,255,255,.06); color:var(--muted); flex-shrink:0; display:flex; flex-direction:column; padding:20px 16px; position:sticky; top:0; height:100vh; }
+  .sb-logo { display:flex; align-items:center; gap:8px; padding:0 4px; margin-bottom:20px; }
+  .sb-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--coral); border:1px solid rgba(255,90,54,.3); background:rgba(255,90,54,.08); padding:2px 6px; border-radius:4px; }
+  .sb-cta { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--coral); color:#fff; border:none; border-radius:4px; padding:9px 12px; font-size:14px; font-weight:500; margin-bottom:16px; }
+  .sb-cta:hover { background:var(--coral-dark); box-shadow:0 0 16px rgba(255,90,54,.35); }
+  .sb-nav a { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:4px; text-decoration:none; font-weight:500; font-size:13.5px; margin-bottom:2px; border-left:2px solid transparent; }
+  .sb-nav a:hover { background:var(--card-solid); color:var(--ink); }
+  .sb-nav a.active { background:var(--raised); color:var(--ink); border-left-color:var(--coral); }
+  .sb-nav a.active svg { color:var(--coral); }
   .sb-nav svg { width:18px; height:18px; flex-shrink:0; }
-  .sb-foot { margin-top:auto; padding:12px 8px; font-size:12px; color:#8a7c6d; }
-  .sb-foot button { background:none; border:none; color:#C9BFB3; font-size:13px; font-weight:600; padding:0; margin-top:6px; }
-  .sb-foot button:hover { color:#fff; }
+  .sb-nav .sb-count { margin-left:auto; font-family:var(--mono); font-size:10.5px; padding:1px 6px; border-radius:4px; border:1px solid var(--line); color:var(--muted); }
+  .sb-nav .sb-count.hot { color:var(--coral); border-color:rgba(255,90,54,.35); }
+  .sb-foot { margin-top:auto; padding:12px 4px 0; border-top:1px solid var(--line-soft); font-size:12px; color:var(--dim); }
+  .sb-foot #sb-email { color:var(--text); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sb-foot button { background:none; border:none; color:var(--muted); font-size:13px; font-weight:500; padding:0; margin-top:8px; }
+  .sb-foot button:hover { color:var(--red); }
 
-  .main { flex:1; padding:32px 40px; overflow-y:auto; }
-  .page-title { font-size:24px; font-weight:800; margin-bottom:4px; }
-  .page-sub { color:var(--muted); font-size:14px; margin-bottom:28px; }
+  .main { flex:1; padding:28px 32px; overflow-y:auto; min-width:0; }
+  .page-title { font-size:24px; font-weight:600; letter-spacing:-.02em; color:var(--ink); margin-bottom:4px; }
+  .page-sub { color:var(--muted); font-size:14px; margin-bottom:24px; }
 
-  /* ── Cards / metrics ── */
+  /* ── Tarjetas de métricas (vistas antiguas) ── */
   .metric-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:32px; }
-  .metric-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; text-align:left; font-family:inherit; width:100%; transition:transform .12s, box-shadow .12s; }
-  button.metric-card { cursor:pointer; }
-  button.metric-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,19,13,.08); border-color:var(--coral); }
-  .metric-card.health-ok { border-color:#C8E6C9; }
-  .metric-card.health-bad { border-color:#FFCC80; background:#FFF8F0; }
-  .metric-card.health-bad .metric-val { color:var(--amber); }
-  .metric-card.health-ok .metric-val { color:var(--green); }
-
-  .filter-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
-  .filter-tab { background:#fff; border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:var(--muted); }
-  .filter-tab:hover { background:var(--bg); }
-  .filter-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
-  .cat-chip { background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--muted); }
-  .cat-chip:hover { border-color:var(--coral); color:var(--coral); }
-  .cat-chip.active { background:var(--coral); border-color:var(--coral); color:#fff; }
-  .metric-label { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700; margin-bottom:8px; }
-  .metric-val { font-size:30px; font-weight:800; }
+  .metric-card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:20px; text-align:left; width:100%; color:var(--text); }
+  .metric-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; margin-bottom:8px; }
+  .metric-val { font-family:var(--mono); font-size:30px; font-weight:600; color:var(--ink); }
   .metric-sub { font-size:12.5px; color:var(--muted); margin-top:4px; }
 
-  /* ── Tables ── */
-  .table-card { background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .filter-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-tab { background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:999px; padding:6px 13px; font-size:12.5px; font-weight:500; color:var(--muted); }
+  .filter-tab:hover { color:var(--ink); border-color:rgba(255,255,255,.2); }
+  .filter-tab.active { background:var(--raised); color:var(--ink); border-color:rgba(255,90,54,.45); }
+  .cat-chip { background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:500; color:var(--muted); }
+  .cat-chip:hover { border-color:var(--coral); color:var(--coral); }
+  .cat-chip.active { background:var(--coral); border-color:var(--coral); color:#fff; }
+
+  /* ── Tablas ── */
+  .table-card { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
   table { width:100%; border-collapse:collapse; }
-  th { text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:700; padding:12px 16px; border-bottom:1px solid var(--line); background:#FBFAF8; }
-  td { padding:13px 16px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+  th { text-align:left; font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; padding:11px 16px; border-bottom:1px solid var(--line); background:rgba(1,15,31,.6); }
+  td { padding:12px 16px; border-bottom:1px solid var(--line-soft); font-size:13.5px; vertical-align:middle; color:var(--text); }
   tr:last-child td { border-bottom:none; }
-  tr:hover td { background:#FBFAF8; }
-  .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; }
-  .pill.on { background:#E8F5E9; color:var(--green); }
-  .pill.off { background:#F4EFE6; color:var(--muted); }
-  .pill.pending { background:#FFF3E0; color:var(--amber); }
-  .tbl-action { background:none; border:1px solid var(--line); border-radius:7px; padding:5px 11px; font-size:12.5px; font-weight:700; color:var(--ink); }
-  .tbl-action:hover { background:var(--bg); }
+  tr:hover td { background:rgba(26,38,56,.6); }
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:999px; font-family:var(--mono); font-size:11px; font-weight:500; border:1px solid transparent; }
+  .pill.on { background:rgba(16,185,129,.12); color:var(--green); border-color:rgba(16,185,129,.25); }
+  .pill.off { background:rgba(255,255,255,.04); color:var(--muted); border-color:var(--line); }
+  .pill.pending { background:rgba(255,90,54,.12); color:var(--coral); border-color:rgba(255,90,54,.3); }
+  .tbl-action { background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:4px; padding:5px 10px; font-size:12.5px; font-weight:500; color:var(--muted); }
+  .tbl-action:hover { color:var(--ink); border-color:rgba(255,255,255,.2); }
+  .tbl-action:disabled { opacity:.4; cursor:not-allowed; }
   .row-link:hover { color:var(--coral); text-decoration:underline; }
 
-  .btn-primary { background:var(--coral); color:#fff; border:none; border-radius:8px; padding:10px 18px; font-size:13.5px; font-weight:700; white-space:nowrap; }
-  .btn-primary:hover { background:var(--coral-dark); }
-  .btn-primary:disabled { opacity:.6; cursor:not-allowed; }
-  .btn-secondary { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 18px; font-size:13.5px; font-weight:700; color:var(--ink); }
-  .btn-secondary:hover { background:var(--bg); }
-  .btn-danger { background:none; border:1px solid #F4C7BC; color:var(--red); border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:700; }
-  .btn-danger:hover { background:#FFF3F0; }
+  .btn-primary { background:var(--coral); color:#fff; border:none; border-radius:4px; padding:9px 16px; font-size:13.5px; font-weight:500; white-space:nowrap; }
+  .btn-primary:hover { background:var(--coral-dark); box-shadow:0 0 16px rgba(255,90,54,.35); }
+  .btn-primary:disabled { opacity:.6; cursor:not-allowed; box-shadow:none; }
+  .btn-secondary { background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:4px; padding:9px 16px; font-size:13.5px; font-weight:500; color:var(--muted); }
+  .btn-secondary:hover { color:var(--ink); border-color:rgba(255,255,255,.2); }
+  .btn-danger { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#EF4444; border-radius:4px; padding:7px 13px; font-size:12.5px; font-weight:500; }
+  .btn-danger:hover { background:rgba(239,68,68,.18); }
 
-  .form-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .form-card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:20px; }
   .form-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; }
-  .form-field label { display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px; }
+  .form-field label { display:block; font-family:var(--mono); font-size:10.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
   .form-field input, .form-field textarea, .form-field select {
-    width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:13.5px; font-family:inherit; background:#fff; color:var(--ink);
+    width:100%; height:36px; border:1px solid var(--line); border-radius:4px; padding:7px 11px; font-size:13.5px; font-family:inherit; background:var(--panel); color:var(--ink);
   }
-  .form-field textarea { resize:vertical; min-height:60px; }
-  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline:2px solid var(--coral); outline-offset:-1px; }
-  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); }
+  .form-field textarea { resize:vertical; min-height:60px; height:auto; }
+  .form-field input::placeholder, .form-field textarea::placeholder { color:#475569; }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline:none; border-color:var(--coral); box-shadow:0 0 0 1px var(--coral); }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line-soft); }
   .toggle-row:last-child { border-bottom:none; }
-  .switch { position:relative; width:42px; height:24px; }
+  .toggle-row strong { color:var(--ink); font-weight:500; }
+  .switch { position:relative; width:40px; height:22px; flex-shrink:0; }
   .switch input { opacity:0; width:0; height:0; }
-  .switch-track { position:absolute; inset:0; background:var(--line); border-radius:999px; transition:background .15s; cursor:pointer; }
-  .switch-track:before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .15s; }
+  .switch-track { position:absolute; inset:0; background:#273647; border-radius:999px; transition:background .15s; cursor:pointer; }
+  .switch-track:before { content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#F8FAFC; border-radius:50%; transition:transform .15s; }
   .switch input:checked + .switch-track { background:var(--coral); }
   .switch input:checked + .switch-track:before { transform:translateX(18px); }
+  .switch input:disabled + .switch-track { opacity:.4; cursor:not-allowed; }
 
-  .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; font-weight:600; margin-bottom:16px; cursor:pointer; }
+  .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; font-weight:500; margin-bottom:16px; cursor:pointer; }
   .back-link:hover { color:var(--ink); }
-  .section-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:20px; }
-  .section-title { font-size:16px; font-weight:800; margin-bottom:4px; }
+  .section-card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:22px; margin-bottom:18px; }
+  .section-title { font-size:16px; font-weight:500; color:var(--ink); margin-bottom:4px; }
   .section-sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
 
-  .dish-card { border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; }
+  .dish-card { border:1px solid var(--line); background:rgba(1,15,31,.4); border-radius:6px; padding:14px; margin-bottom:12px; }
   .dish-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .dish-card-head strong { font-size:14px; }
-  .upload-drop { border:2px dashed var(--line); border-radius:10px; padding:20px; text-align:center; color:var(--muted); font-size:13px; cursor:pointer; }
-  .upload-drop:hover { border-color:var(--coral); background:#FBF6F2; }
-  .upload-drop.has-video { border-style:solid; border-color:#C8E6C9; background:#F5FBF6; color:var(--green); }
-  .progress-bar-wrap { height:6px; background:var(--line); border-radius:999px; overflow:hidden; margin-top:8px; }
+  .dish-card-head strong { font-size:14px; color:var(--ink); font-weight:500; }
+  .upload-drop { border:1px dashed rgba(255,255,255,.15); border-radius:6px; padding:20px; text-align:center; color:var(--muted); font-size:13px; cursor:pointer; }
+  .upload-drop:hover { border-color:var(--coral); background:rgba(255,90,54,.05); }
+  .upload-drop.has-video { border-style:solid; border-color:rgba(16,185,129,.35); background:rgba(16,185,129,.06); color:var(--green); }
+  .progress-bar-wrap { height:6px; background:#1C2B3C; border-radius:999px; overflow:hidden; margin-top:8px; }
   .progress-bar-fill { height:100%; background:var(--coral); width:0%; transition:width .2s; }
   .empty-row td { text-align:center; color:var(--muted); padding:40px 16px; }
   .loading-txt { color:var(--muted); padding:20px; }
 
-  /* ── Venue photo gallery ── */
   .photo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px; margin-bottom:14px; }
-  .photo-thumb { position:relative; aspect-ratio:4/3; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
+  .photo-thumb { position:relative; aspect-ratio:4/3; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
   .photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-  .photo-thumb-remove { position:absolute; top:5px; right:5px; width:22px; height:22px; background:rgba(0,0,0,.55); border:none; border-radius:50%; color:#fff; font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .photo-thumb-remove:hover { background:var(--red); }
+  .photo-thumb-remove { position:absolute; top:5px; right:5px; width:22px; height:22px; background:rgba(0,0,0,.6); border:none; border-radius:50%; color:#fff; font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .photo-thumb-remove:hover { background:#EF4444; }
   .upload-drop.photo-drop { min-height:80px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
   .upload-drop.photo-drop svg { width:24px; height:24px; opacity:.45; }
+
+  /* ── Resumen (overview) ── */
+  .ov-head { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:-28px -32px 24px; padding:14px 32px; background:rgba(1,15,31,.8); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20; }
+  .ov-head h1 { font-size:17px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .ov-head p { font-size:12px; color:var(--muted); margin-top:2px; }
+  .ov-head-actions { display:flex; align-items:center; gap:8px; }
+  .ov-chip { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 10px; border-radius:4px; background:var(--panel); border:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text); }
+  .ov-icon-btn { width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid transparent; color:var(--muted); }
+  .ov-icon-btn:hover { color:var(--ink); background:var(--card-solid); border-color:var(--line); }
+  .ov-icon-btn svg { width:18px; height:18px; }
+  .ov-icon-btn.spin svg { animation:ovspin .8s linear infinite; }
+  @keyframes ovspin { to { transform:rotate(360deg); } }
+  .ov-live { display:inline-flex; align-items:center; gap:5px; padding:1px 8px; border-radius:999px; font-family:var(--mono); font-size:10px; font-weight:600; color:var(--coral); background:rgba(255,90,54,.1); border:1px solid rgba(255,90,54,.3); }
+  .ov-dot { width:6px; height:6px; border-radius:50%; background:currentColor; display:inline-block; }
+  .ov-dot.pulse { animation:ovpulse 1.6s ease-in-out infinite; }
+  @keyframes ovpulse { 50% { opacity:.35; } }
+
+  .ov-ribbon { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:10px 16px; border-radius:4px; background:var(--card); border:1px solid var(--line); border-left:3px solid var(--green); margin-bottom:24px; font-size:12.5px; }
+  .ov-ribbon.warn { border-left-color:var(--coral); }
+  .ov-ribbon strong { font-weight:600; }
+  .ov-ribbon .meta { font-family:var(--mono); font-size:10.5px; color:var(--muted); }
+
+  .ov-kpis { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:16px; margin-bottom:24px; }
+  @media (max-width:1400px) { .ov-kpis { grid-template-columns:repeat(3, minmax(0,1fr)); } }
+  @media (max-width:800px) { .ov-kpis { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .ov-card { background:var(--card); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:8px; transition:background .2s, border-color .2s, box-shadow .2s; }
+  .ov-kpi { padding:14px; display:flex; flex-direction:column; text-align:left; color:inherit; min-height:150px; }
+  button.ov-kpi:hover { background:var(--raised); border-color:rgba(255,90,54,.4); box-shadow:0 0 20px -4px rgba(255,90,54,.15); }
+  .ov-kpi-top { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-bottom:6px; }
+  .ov-label { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .ov-tag { font-family:var(--mono); font-size:10px; font-weight:500; padding:1px 6px; border-radius:4px; white-space:nowrap; border:1px solid var(--line); color:var(--muted); }
+  .ov-tag.coral { color:var(--coral); border-color:rgba(255,90,54,.3); background:rgba(255,90,54,.08); }
+  .ov-tag.green { color:var(--green); border-color:rgba(16,185,129,.3); background:rgba(16,185,129,.08); }
+  .ov-big { display:flex; align-items:baseline; gap:6px; margin:2px 0 4px; }
+  .ov-big .num { font-size:34px; font-weight:600; letter-spacing:-.03em; color:var(--ink); line-height:1.1; }
+  .ov-big .of { font-size:12px; color:var(--muted); }
+  .ov-kpi .ov-note { font-size:11.5px; color:var(--muted); margin-bottom:10px; }
+  .ov-bar { margin-top:auto; height:5px; border-radius:999px; background:#1C2B3C; overflow:hidden; }
+  .ov-bar > span { display:block; height:100%; border-radius:999px; background:var(--coral); }
+  .ov-bar.green > span { background:var(--green); }
+  .ov-spark { margin-top:auto; height:36px; width:100%; display:block; overflow:visible; }
+
+  .ov-split { display:grid; grid-template-columns:minmax(0,8fr) minmax(0,4fr); gap:24px; margin-bottom:24px; align-items:start; }
+  @media (max-width:1180px) { .ov-split { grid-template-columns:minmax(0,1fr); } }
+  .ov-col { display:flex; flex-direction:column; gap:20px; min-width:0; }
+  .ov-panel { padding:20px; }
+  .ov-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--line-soft); }
+  .ov-panel-head h2, .ov-panel-head h3 { font-size:16px; font-weight:500; color:var(--ink); display:flex; align-items:center; gap:8px; letter-spacing:-.01em; }
+  .ov-panel-head h2 svg, .ov-panel-head h3 svg { width:18px; height:18px; color:var(--coral); flex-shrink:0; }
+  .ov-panel-head p { font-size:12px; color:var(--muted); margin-top:3px; }
+  .ov-legend { display:flex; gap:14px; font-family:var(--mono); font-size:10.5px; color:var(--muted); white-space:nowrap; }
+  .ov-legend i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+
+  .ov-stats { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+  @media (max-width:700px) { .ov-stats { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .ov-stat { padding:10px 12px; border-radius:4px; background:rgba(1,15,31,.6); border:1px solid var(--line-soft); }
+  .ov-stat .v { font-family:var(--mono); font-size:20px; font-weight:600; color:var(--ink); margin:2px 0; font-variant-numeric:tabular-nums; }
+  .ov-stat .s { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .ov-stat .s.coral { color:var(--coral); }
+
+  .ov-chart { position:relative; height:230px; }
+  .ov-chart svg { width:100%; height:100%; display:block; overflow:visible; }
+  .ov-tip { position:absolute; pointer-events:none; background:rgba(26,38,56,.96); border:1px solid rgba(255,90,54,.35); border-radius:4px; padding:7px 9px; font-size:12px; white-space:nowrap; display:none; transform:translate(-50%, -100%); }
+  .ov-tip .d { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .ov-axis { display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--dim); border-top:1px solid var(--line-soft); padding-top:8px; margin-top:6px; }
+  .ov-axis .today { color:var(--coral); font-weight:600; }
+  .ov-empty-chart { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12.5px; color:var(--muted); }
+
+  .ov-steps { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; }
+  @media (max-width:700px) { .ov-steps { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .ov-step { padding:12px; border-radius:4px; background:var(--panel); border:1px solid var(--line); display:flex; flex-direction:column; gap:6px; }
+  .ov-step.last { border-color:rgba(255,90,54,.35); box-shadow:0 0 16px -6px rgba(255,90,54,.35); }
+  .ov-step .k { font-family:var(--mono); font-size:10px; color:var(--muted); display:flex; justify-content:space-between; }
+  .ov-step .v { font-family:var(--mono); font-size:16px; font-weight:600; color:var(--ink); }
+  .ov-step .d { font-size:12px; color:var(--muted); }
+  .ov-step .ov-bar { margin-top:4px; height:4px; }
+
+  .ov-checks { display:flex; flex-direction:column; gap:8px; }
+  .ov-check { padding:11px 12px; border-radius:4px; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .ov-check .l { display:flex; align-items:center; gap:10px; min-width:0; }
+  .ov-check .st { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .ov-check .st.ok { background:var(--green); box-shadow:0 0 10px rgba(16,185,129,.5); }
+  .ov-check .st.bad { background:var(--coral); box-shadow:0 0 10px rgba(255,90,54,.55); }
+  .ov-check .st.unk { background:var(--dim); }
+  .ov-check h4 { font-size:13px; font-weight:500; color:var(--ink); }
+  .ov-check small { display:block; font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:1px; }
+  .ov-check .r { font-family:var(--mono); font-size:11px; font-weight:600; white-space:nowrap; }
+  .ov-issues { margin-top:10px; font-size:12px; color:var(--coral); line-height:1.5; }
+
+  .ov-feed { position:relative; padding-left:18px; display:flex; flex-direction:column; gap:14px; }
+  .ov-feed:before { content:''; position:absolute; left:4px; top:6px; bottom:6px; width:1px; background:rgba(255,255,255,.08); }
+  .ov-ev { position:relative; }
+  .ov-ev:before { content:''; position:absolute; left:-18px; top:5px; width:9px; height:9px; border-radius:50%; background:var(--ev, var(--dim)); box-shadow:0 0 0 3px var(--panel); }
+  .ov-ev .t { display:flex; justify-content:space-between; gap:10px; }
+  .ov-ev .t b { font-size:13px; font-weight:500; color:var(--ink); }
+  .ov-ev .t span { font-family:var(--mono); font-size:10px; color:var(--muted); white-space:nowrap; }
+  .ov-ev p { font-size:12.5px; color:var(--muted); margin-top:2px; }
+
+  .ov-table-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:16px 20px; border-bottom:1px solid var(--line); background:rgba(13,28,45,.5); }
+  .ov-table-head h3 { font-size:16px; font-weight:500; color:var(--ink); }
+  .ov-table-head p { font-size:12px; color:var(--muted); margin-top:2px; }
+  .ov-link-btn { display:inline-flex; align-items:center; gap:4px; padding:6px 11px; border-radius:4px; background:var(--raised); border:1px solid var(--line); color:var(--coral); font-size:13px; font-weight:500; }
+  .ov-link-btn:hover { border-color:rgba(255,90,54,.4); }
+  .ov-av { width:32px; height:32px; border-radius:4px; background:var(--raised); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:600; color:var(--coral); flex-shrink:0; }
+  .ov-venue { display:flex; align-items:center; gap:10px; }
+  .ov-venue b { font-weight:500; color:var(--ink); display:block; }
+  .ov-venue small { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .ov-yes { font-family:var(--mono); font-size:11px; color:var(--green); }
+  .ov-no { font-family:var(--mono); font-size:11px; color:var(--muted); }
+  .ov-warn { font-family:var(--mono); font-size:11px; color:var(--coral); }
+  .ov-table-foot { padding:11px 20px; border-top:1px solid var(--line-soft); font-family:var(--mono); font-size:10.5px; color:var(--muted); background:rgba(1,15,31,.5); }
 </style>
 </head>
 <body>
@@ -150,7 +274,7 @@
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <img src="brand/unamesa-logo-dark.svg" alt="Una Mesa" style="width:auto;height:44px;border-radius:0">
+      <img src="brand/unamesa-logo-light.svg" alt="Una Mesa" style="width:auto;height:44px;border-radius:0">
     </div>
     <button class="btn-google" id="google-btn">
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.88 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.27c-.8.54-1.83.86-3.05.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.34C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.95 10.69A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.16.27-1.69V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.03l2.99-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l2.99 2.34C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
@@ -164,12 +288,13 @@
   <aside class="sidebar">
     <div class="sb-logo">
       <img src="brand/unamesa-logo-light.svg" alt="Una Mesa" style="width:auto;height:30px;border-radius:0">
-      <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-left:2px">Admin</span>
+      <span class="sb-badge">ADMIN</span>
     </div>
+    <button class="sb-cta" id="sb-new-venue" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nuevo restaurante</button>
     <nav class="sb-nav" id="sb-nav">
       <a href="#overview" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg> Resumen</a>
-      <a href="#restaurants" data-view="restaurants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg> Restaurantes</a>
-      <a href="#leads" data-view="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Leads</a>
+      <a href="#restaurants" data-view="restaurants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg> Restaurantes <span class="sb-count" id="sb-count-venues" hidden></span></a>
+      <a href="#leads" data-view="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Leads <span class="sb-count" id="sb-count-leads" hidden></span></a>
     </nav>
     <div class="sb-foot">
       <div id="sb-email"></div>
@@ -223,6 +348,12 @@ async function checkAdminAndInit() {
   document.querySelectorAll('#sb-nav a').forEach(a => {
     a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.view); });
   });
+  // "Nuevo restaurante" abre el mismo formulario que el botón de la vista Restaurantes.
+  document.getElementById('sb-new-venue').addEventListener('click', () => {
+    navigate('restaurants');
+    const btn = document.getElementById('new-venue-btn');
+    if (btn) { btn.click(); const f = document.getElementById('nv-name'); if (f) f.focus(); }
+  });
 
   const initialHash = (window.location.hash || '#overview').replace('#', '');
   if (initialHash.startsWith('restaurant/')) {
@@ -248,80 +379,337 @@ function navigateToRestaurant(id, skipHashUpdate) {
   renderRestaurantDetail(id);
 }
 
-/* ── Overview ── */
+/* ── Overview (Resumen) ──
+   Diseño "Obsidian Telemetry". Todo lo que se muestra sale de datos reales:
+   venues, restaurant_leads, restaurant_page_conversion, venue_page_views,
+   venue_events, venue_funnel() y los chequeos find_cron_issues() /
+   find_stuck_reservations(). No hay métricas inventadas (latencias, uptime…):
+   si un dato no existe, la tarjeta no se muestra. */
+const OV_ICONS = {
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+  funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>',
+  server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
+  pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+  cal: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>',
+};
+const OV_DOW = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const ovFmt = n => (n == null || Number.isNaN(n)) ? '—' : Number(n).toLocaleString('es-ES');
+const ovPct = (a, b) => b ? Math.round((a / b) * 1000) / 10 : null;
+function ovAgo(iso) {
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return 'ahora';
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.round(h / 24);
+  if (d < 7) return `hace ${d} d`;
+  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+}
+const ovInitials = name => String(name || '?').replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+// Curva suave (Catmull-Rom → Bézier) para el gráfico y los minigráficos.
+function ovPath(pts) {
+  if (!pts.length) return '';
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+}
+function ovSpark(values, color, id) {
+  const W = 120, H = 32, max = Math.max(...values, 1);
+  const pts = values.map((v, i) => [Math.round(i * W / Math.max(values.length - 1, 1)), Math.round(H - 3 - (v / max) * (H - 8))]);
+  const line = ovPath(pts), last = pts[pts.length - 1];
+  return `<svg class="ov-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".35"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${line} L${W},${H} L0,${H} Z" fill="url(#${id})"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="#090D14" stroke="${color}" stroke-width="1.5"/>
+  </svg>`;
+}
+
+function ovLast7Days() {
+  const out = [], now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i + 1);
+    out.push({ start, end, key: start.toLocaleDateString('en-CA'), label: i === 0 ? 'Hoy' : `${OV_DOW[start.getDay()]} ${String(start.getDate()).padStart(2, '0')}` });
+  }
+  return out;
+}
+
 async function renderOverview() {
   const main = document.getElementById('main-content');
   main.innerHTML = `
-    <div class="page-title">Resumen</div>
-    <div class="page-sub">Un vistazo rápido a la actividad del negocio</div>
-    <div class="metric-grid" id="metric-grid"><p class="loading-txt">Cargando…</p></div>
-  `;
+    <header class="ov-head">
+      <div>
+        <h1>Resumen operativo <span class="ov-live"><span class="ov-dot pulse"></span>EN VIVO</span></h1>
+        <p>Un vistazo rápido a la actividad del negocio</p>
+      </div>
+      <div class="ov-head-actions">
+        <span class="ov-chip">${OV_ICONS.cal} Últimos 7 días</span>
+        <button class="ov-icon-btn" id="ov-refresh" title="Actualizar datos" aria-label="Actualizar datos">${OV_ICONS.refresh}</button>
+      </div>
+    </header>
+    <div id="ov-body"><p class="loading-txt">Cargando datos…</p></div>`;
+  document.getElementById('ov-refresh').addEventListener('click', () => {
+    document.getElementById('ov-refresh').classList.add('spin');
+    renderOverview();
+  });
 
-  const [venuesRes, activeRes, leadsRes, leadsAllRes, conversionRes, healthRes] = await Promise.all([
-    sb.from('venues').select('id, archived, stripe_charges_enabled, menu_video_access', { count: 'exact' }),
-    sb.from('venues').select('id', { count: 'exact' }).eq('archived', false).eq('stripe_charges_enabled', true),
-    sb.from('restaurant_leads').select('id', { count: 'exact' }).gt('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
-    sb.from('restaurant_leads').select('id', { count: 'exact' }),
+  const days = ovLast7Days();
+  const since7 = days[0].start.toISOString();
+  const fromKey = days[0].key, toKey = days[6].key;
+  const countViews = d => sb.from('venue_page_views').select('id', { count: 'exact', head: true }).gte('viewed_at', d.start.toISOString()).lt('viewed_at', d.end.toISOString());
+  const countVideos = d => sb.from('venue_events').select('id', { count: 'exact', head: true }).eq('event', 'video_view').gte('created_at', d.start.toISOString()).lt('created_at', d.end.toISOString());
+
+  const [venuesRes, leads7Res, leadsRes, convRes, cronRes, stuckRes, dishesRes, viewCountsRes, viewDays, videoDays] = await Promise.all([
+    sb.from('venues').select('*'),
+    sb.from('restaurant_leads').select('id', { count: 'exact', head: true }).gte('created_at', since7),
+    sb.from('restaurant_leads').select('restaurant_name, city, created_at', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
     sb.from('restaurant_page_conversion').select('*').maybeSingle(),
     sb.rpc('find_cron_issues'),
+    sb.rpc('find_stuck_reservations'),
+    sb.from('menu_videos').select('*'),
+    sb.from('venue_view_counts').select('venue_id, views_last_30_days'),
+    Promise.all(days.map(countViews)),
+    Promise.all(days.map(countVideos)),
   ]);
 
   const venues = venuesRes.data || [];
-  const totalVenues = venuesRes.count ?? venues.length;
-  const activeCount = activeRes.count ?? 0;
-  const pendingCount = venues.filter(v => !v.archived && !v.stripe_charges_enabled).length;
-  const archivedCount = venues.filter(v => v.archived).length;
-  const menuVideoCount = venues.filter(v => v.menu_video_access).length;
-  const leadsThisWeek = leadsRes.count ?? 0;
-  const leadsTotal = leadsAllRes.count ?? 0;
-  const conv = conversionRes.data;
-  const healthIssues = healthRes.data || [];
+  const live = venues.filter(v => !v.archived);
+  const active = live.filter(v => v.stripe_charges_enabled);
+  const pending = live.filter(v => !v.stripe_charges_enabled);
+  const archived = venues.filter(v => v.archived);
+  const withVideoAccess = venues.filter(v => v.menu_video_access);
+  const dishes = dishesRes.data || [];
+  const dishesByVenue = {};
+  dishes.forEach(d => { if (d.video_url) dishesByVenue[d.venue_id] = (dishesByVenue[d.venue_id] || 0) + 1; });
+  const liveWithDishes = live.filter(v => dishesByVenue[v.id]);
+  const views30 = {};
+  (viewCountsRes.data || []).forEach(r => { views30[r.venue_id] = r.views_last_30_days; });
+  const leads7 = leads7Res.count ?? 0;
+  const leadsTotal = leadsRes.count ?? 0;
+  const recentLeads = leadsRes.data || [];
+  const conv = convRes.data;
+  const dailyViews = viewDays.map(r => r.count ?? 0);
+  const dailyVideos = videoDays.map(r => r.count ?? 0);
+  const trafficOk = !viewDays.some(r => r.error);
 
-  const grid = document.getElementById('metric-grid');
-  grid.innerHTML = `
-    <button class="metric-card" data-nav="restaurants" data-filter="active">
-      <div class="metric-label">Restaurantes activos</div>
-      <div class="metric-val">${activeCount}</div>
-      <div class="metric-sub">de ${totalVenues} en total</div>
-    </button>
-    <button class="metric-card" data-nav="restaurants" data-filter="pending">
-      <div class="metric-label">Pendientes de Stripe</div>
-      <div class="metric-val">${pendingCount}</div>
-      <div class="metric-sub">restaurantes sin conectar pago</div>
-    </button>
-    <button class="metric-card" data-nav="restaurants" data-filter="archived">
-      <div class="metric-label">Archivados</div>
-      <div class="metric-val">${archivedCount}</div>
-      <div class="metric-sub">fuera del listado público</div>
-    </button>
-    <button class="metric-card" data-nav="restaurants" data-filter="menuvideo">
-      <div class="metric-label">Con menú en video</div>
-      <div class="metric-val">${menuVideoCount}</div>
-      <div class="metric-sub">servicio de pago activo</div>
-    </button>
-    <button class="metric-card" data-nav="leads">
-      <div class="metric-label">Leads (últimos 7 días)</div>
-      <div class="metric-val">${leadsThisWeek}</div>
-      <div class="metric-sub">${leadsTotal} en total desde el inicio</div>
-    </button>
-    <div class="metric-card">
-      <div class="metric-label">Conversión landing restaurantes</div>
-      <div class="metric-val">${conv && conv.conversion_pct_total != null ? conv.conversion_pct_total + '%' : '—'}</div>
-      <div class="metric-sub">${conv ? `${conv.leads_total} leads / ${conv.views_total} visitas` : 'Sin datos aún'}</div>
+  // Embudo de comensales de los últimos 7 días, sumado entre restaurantes activos.
+  const funnelRows = await Promise.all(live.map(v => sb.rpc('venue_funnel', { p_venue_id: v.id, p_from: fromKey, p_to: toKey })));
+  const funnelOk = funnelRows.length > 0 && funnelRows.every(r => !r.error);
+  // Visitas y vídeos salen de los conteos diarios (misma fuente que el gráfico); del embudo solo reservas.
+  const F = { booking_starts: 0, bookings: 0, covers_booked: 0 };
+  funnelRows.forEach(r => { const row = Array.isArray(r.data) ? r.data[0] : r.data; if (row) Object.keys(F).forEach(k => { F[k] += Number(row[k] || 0); }); });
+
+  // Sidebar badges
+  const cv = document.getElementById('sb-count-venues'); if (cv) { cv.textContent = venues.length; cv.hidden = false; }
+  const cl = document.getElementById('sb-count-leads'); if (cl) { cl.textContent = leads7; cl.hidden = !leads7; cl.classList.toggle('hot', leads7 > 0); }
+
+  const cronIssues = cronRes.error ? null : (cronRes.data || []);
+  const stuck = stuckRes.error ? null : (stuckRes.data || []);
+  const problems = (cronIssues ? cronIssues.length : 0) + (stuck ? stuck.length : 0);
+  const unknownChecks = cronIssues === null || stuck === null;
+  const now = new Date();
+
+  // ── Actividad reciente: leads, restaurantes creados y platos subidos (solo si hay fecha) ──
+  const venueName = {}; venues.forEach(v => { venueName[v.id] = v.name; });
+  const events = [];
+  recentLeads.forEach(l => events.push({ at: l.created_at, color: 'var(--coral)', title: 'Nuevo lead', text: `${l.restaurant_name}${l.city ? ` · ${l.city}` : ''} — desde la landing de restaurantes` }));
+  venues.filter(v => v.created_at).forEach(v => events.push({ at: v.created_at, color: 'var(--green)', title: v.name, text: 'Restaurante dado de alta en Una Mesa' }));
+  dishes.filter(d => d.created_at && d.video_url).forEach(d => events.push({ at: d.created_at, color: 'var(--cyan)', title: venueName[d.venue_id] || 'Restaurante', text: `Plato con vídeo: ${d.dish_name}` }));
+  events.sort((a, b) => new Date(b.at) - new Date(a.at));
+  const feed = events.slice(0, 6);
+
+  // ── Tabla: restaurantes más recientes (o por nombre si no hay created_at) ──
+  const sorted = [...venues].sort((a, b) => (a.created_at && b.created_at) ? new Date(b.created_at) - new Date(a.created_at) : String(a.name).localeCompare(String(b.name)));
+  const tableRows = sorted.slice(0, 5);
+
+  const viewsTotal7 = dailyViews.reduce((a, b) => a + b, 0);
+  const videosTotal7 = dailyVideos.reduce((a, b) => a + b, 0);
+  const pctActive = live.length ? Math.round(active.length / live.length * 100) : 0;
+  const convPct = conv && conv.conversion_pct_total != null ? conv.conversion_pct_total : null;
+
+  const body = document.getElementById('ov-body');
+  body.innerHTML = `
+    <div class="ov-ribbon ${problems ? 'warn' : ''}">
+      <span>${problems
+        ? `<strong style="color:var(--coral)">${problems} aviso${problems > 1 ? 's' : ''} del sistema.</strong> Revisa el panel «Salud del sistema».`
+        : unknownChecks
+          ? `<strong style="color:var(--muted)">No se pudieron ejecutar todos los chequeos.</strong> Revisa el panel «Salud del sistema».`
+          : `<strong style="color:var(--green)">Todo en orden.</strong> Sin depósitos atascados ni tareas programadas retrasadas.`}</span>
+      <span class="meta">Actualizado ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
     </div>
-    <div class="metric-card ${healthIssues.length ? 'health-bad' : 'health-ok'}">
-      <div class="metric-label">Salud del sistema</div>
-      <div class="metric-val">${healthIssues.length ? healthIssues.length : '✓'}</div>
-      <div class="metric-sub">${healthIssues.length
-        ? healthIssues.map(i => `${i.job_name || i.venue_name}: ${i.detail}`).join(' · ')
-        : 'Todo en orden — sin anomalías'}</div>
-    </div>
-  `;
-  grid.querySelectorAll('[data-nav]').forEach(card => {
-    card.addEventListener('click', () => {
-      const filter = card.dataset.filter;
-      navigate(card.dataset.nav, filter ? { filter } : null);
+
+    <section class="ov-kpis" aria-label="Métricas principales">
+      <button class="ov-card ov-kpi" data-nav="restaurants" data-filter="active">
+        <div class="ov-kpi-top"><span class="ov-label">Restaurantes activos</span>${archived.length ? `<span class="ov-tag">${archived.length} archivado${archived.length > 1 ? 's' : ''}</span>` : ''}</div>
+        <div class="ov-big"><span class="num">${active.length}</span><span class="of">/ ${live.length} en la plataforma</span></div>
+        <div class="ov-note">${pctActive}% con pagos activos</div>
+        <div class="ov-bar green"><span style="width:${pctActive}%"></span></div>
+      </button>
+      <button class="ov-card ov-kpi" data-nav="restaurants" data-filter="pending">
+        <div class="ov-kpi-top"><span class="ov-label">Stripe pendiente</span>${pending.length ? '<span class="ov-tag coral">Acción</span>' : '<span class="ov-tag green">OK</span>'}</div>
+        <div class="ov-big"><span class="num" style="${pending.length ? 'color:var(--coral)' : ''}">${pending.length}</span><span class="of">sin conectar pagos</span></div>
+        <div class="ov-note">${pending.length ? 'No pueden cobrar depósitos' : 'Todos pueden cobrar depósitos'}</div>
+        <div class="ov-bar"><span style="width:${live.length ? Math.round(pending.length / live.length * 100) : 0}%"></span></div>
+      </button>
+      <button class="ov-card ov-kpi" data-nav="restaurants" data-filter="menuvideo">
+        <div class="ov-kpi-top"><span class="ov-label">Menú en vídeo</span><span class="ov-tag">${dishes.filter(d => d.video_url).length} plato${dishes.filter(d => d.video_url).length === 1 ? '' : 's'}</span></div>
+        <div class="ov-big"><span class="num">${withVideoAccess.length}</span><span class="of">con el servicio activo</span></div>
+        <div class="ov-note">${liveWithDishes.length} con platos subidos</div>
+        <div class="ov-bar"><span style="width:${venues.length ? Math.round(withVideoAccess.length / venues.length * 100) : 0}%"></span></div>
+      </button>
+      <button class="ov-card ov-kpi" data-nav="leads">
+        <div class="ov-kpi-top"><span class="ov-label">Leads (7 días)</span>${leads7 ? '<span class="ov-tag coral">Nuevo</span>' : ''}</div>
+        <div class="ov-big"><span class="num">${leads7}</span><span class="of">/ ${leadsTotal} en total</span></div>
+        <div class="ov-note">${recentLeads[0] ? `Último ${ovAgo(recentLeads[0].created_at)}` : 'Sin leads todavía'}</div>
+        <div class="ov-bar"><span style="width:${leadsTotal ? Math.round(leads7 / leadsTotal * 100) : 0}%"></span></div>
+      </button>
+      <div class="ov-card ov-kpi">
+        <div class="ov-kpi-top"><span class="ov-label">Conversión landing restaurantes</span></div>
+        <div class="ov-big"><span class="num">${convPct != null ? convPct + '%' : '—'}</span></div>
+        <div class="ov-note">${conv ? `${ovFmt(conv.leads_total)} leads / ${ovFmt(conv.views_total)} visitas` : 'Sin datos aún'}</div>
+        <div class="ov-bar"><span style="width:${Math.min(convPct || 0, 100)}%"></span></div>
+      </div>
+      <div class="ov-card ov-kpi">
+        <div class="ov-kpi-top"><span class="ov-label">Visitas a fichas (7 días)</span></div>
+        <div class="ov-big"><span class="num">${trafficOk ? ovFmt(viewsTotal7) : '—'}</span></div>
+        <div class="ov-note">Hoy: ${trafficOk ? ovFmt(dailyViews[6]) : '—'}</div>
+        ${trafficOk ? ovSpark(dailyViews, '#FF5A36', 'ov-sp-views') : ''}
+      </div>
+    </section>
+
+    <section class="ov-split">
+      <div class="ov-col">
+        <div class="ov-card ov-panel">
+          <div class="ov-panel-head">
+            <div><h2>${OV_ICONS.chart} Tráfico de comensales</h2><p>Visitas a fichas de restaurante y vídeos de platos vistos, por día</p></div>
+            <div class="ov-legend"><span><i style="background:#FF5A36"></i>Visitas</span><span><i style="background:#FFB4A3"></i>Vídeos vistos</span></div>
+          </div>
+          <div class="ov-stats">
+            <div class="ov-stat"><span class="ov-label">Visitas a fichas</span><div class="v">${trafficOk ? ovFmt(viewsTotal7) : '—'}</div><span class="s">últimos 7 días</span></div>
+            <div class="ov-stat"><span class="ov-label">Vídeos vistos</span><div class="v">${trafficOk ? ovFmt(videosTotal7) : '—'}</div><span class="s">más de 2 s de reproducción</span></div>
+            <div class="ov-stat"><span class="ov-label">Reservas empezadas</span><div class="v">${funnelOk ? ovFmt(F.booking_starts) : '—'}</div><span class="s">${funnelOk && viewsTotal7 ? `${ovPct(F.booking_starts, viewsTotal7)}% de las visitas` : 'abrieron la pantalla de reserva'}</span></div>
+            <div class="ov-stat"><span class="ov-label">Reservas</span><div class="v" style="color:var(--coral)">${funnelOk ? ovFmt(F.bookings) : '—'}</div><span class="s coral">${funnelOk ? `${ovFmt(F.covers_booked)} comensales · por fecha de la reserva` : 'no disponible'}</span></div>
+          </div>
+          <div class="ov-chart" id="ov-chart"></div>
+          <div class="ov-axis">${days.map((d, i) => `<span class="${i === 6 ? 'today' : ''}">${d.label}</span>`).join('')}</div>
+        </div>
+
+        <div class="ov-card ov-panel">
+          <div class="ov-panel-head">
+            <div><h3>${OV_ICONS.funnel} Estado del onboarding</h3><p>Dónde está cada restaurante en el camino hasta estar listo para recibir reservas con depósito</p></div>
+            <span class="ov-tag ${pending.length ? 'coral' : 'green'}">${active.length} de ${live.length} con Stripe</span>
+          </div>
+          <div class="ov-steps">
+            <div class="ov-step"><div class="k"><span>Paso 01</span><span>Leads</span></div><div class="v">${ovFmt(leadsTotal)}</div><div class="d">Dejaron sus datos en la landing</div></div>
+            <div class="ov-step"><div class="k"><span>Paso 02</span><span>Alta</span></div><div class="v">${live.length}</div><div class="d">Restaurantes en la plataforma</div><div class="ov-bar green"><span style="width:100%"></span></div></div>
+            <div class="ov-step"><div class="k"><span>Paso 03</span><span>Pagos</span></div><div class="v">${active.length} / ${live.length}</div><div class="d">Stripe Connect conectado</div><div class="ov-bar"><span style="width:${pctActive}%"></span></div></div>
+            <div class="ov-step last"><div class="k"><span>Paso 04</span><span>Vídeo</span></div><div class="v">${liveWithDishes.length} / ${live.length}</div><div class="d">Con platos en vídeo publicados</div><div class="ov-bar"><span style="width:${live.length ? Math.round(liveWithDishes.length / live.length * 100) : 0}%"></span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov-col">
+        <div class="ov-card ov-panel">
+          <div class="ov-panel-head">
+            <h3>${OV_ICONS.server} Salud del sistema</h3>
+            <span class="ov-tag ${problems ? 'coral' : unknownChecks ? '' : 'green'}">${problems ? `${problems} AVISO${problems > 1 ? 'S' : ''}` : unknownChecks ? 'SIN DATOS' : 'TODO OK'}</span>
+          </div>
+          <div class="ov-checks">
+            <div class="ov-check"><div class="l"><span class="st ${cronIssues === null ? 'unk' : cronIssues.length ? 'bad' : 'ok'}"></span><div><h4>Tareas programadas</h4><small>auto-capture · health-check · reminders</small></div></div>
+              <span class="r" style="color:${cronIssues === null ? 'var(--muted)' : cronIssues.length ? 'var(--coral)' : 'var(--green)'}">${cronIssues === null ? 'Sin datos' : cronIssues.length ? `${cronIssues.length} retraso${cronIssues.length > 1 ? 's' : ''}` : 'Al día'}</span></div>
+            <div class="ov-check"><div class="l"><span class="st ${stuck === null ? 'unk' : stuck.length ? 'bad' : 'ok'}"></span><div><h4>Depósitos</h4><small>capturas atascadas en Stripe</small></div></div>
+              <span class="r" style="color:${stuck === null ? 'var(--muted)' : stuck.length ? 'var(--coral)' : 'var(--green)'}">${stuck === null ? 'Sin datos' : stuck.length ? `${stuck.length} atascado${stuck.length > 1 ? 's' : ''}` : 'Ninguno'}</span></div>
+            <div class="ov-check"><div class="l"><span class="st ${pending.length ? 'bad' : 'ok'}"></span><div><h4>Stripe Connect</h4><small>restaurantes que aún no cobran</small></div></div>
+              <span class="r" style="color:${pending.length ? 'var(--coral)' : 'var(--green)'}">${pending.length ? `${pending.length} pendiente${pending.length > 1 ? 's' : ''}` : 'Todos'}</span></div>
+          </div>
+          ${problems ? `<div class="ov-issues">${[...(cronIssues || []).map(i => `${escHtml(i.job_name)}: ${escHtml(i.detail)}`), ...(stuck || []).map(i => `${escHtml(i.venue_name)}: ${escHtml(i.detail)}`)].join('<br>')}</div>` : ''}
+        </div>
+
+        <div class="ov-card ov-panel">
+          <div class="ov-panel-head"><h3>${OV_ICONS.pulse} Actividad reciente</h3><span class="ov-dot pulse" style="color:var(--coral);margin-top:6px"></span></div>
+          ${feed.length ? `<div class="ov-feed">${feed.map(e => `
+            <div class="ov-ev" style="--ev:${e.color}">
+              <div class="t"><b>${escHtml(e.title)}</b><span>${ovAgo(e.at)}</span></div>
+              <p>${escHtml(e.text)}</p>
+            </div>`).join('')}</div>` : '<p class="page-sub" style="margin:0">Sin actividad registrada todavía.</p>'}
+        </div>
+      </div>
+    </section>
+
+    <section class="ov-card table-card" aria-label="Restaurantes recientes" style="margin-bottom:32px">
+      <div class="ov-table-head">
+        <div><h3>Restaurantes ${venues.some(v => v.created_at) ? 'recientes' : ''} y estado de servicios</h3><p>Pagos, menú en vídeo y visitas de cada restaurante</p></div>
+        <button class="ov-link-btn" data-nav="restaurants">Ver los ${venues.length} restaurantes →</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Restaurante</th><th>Estado</th><th>Stripe Connect</th><th>Menú en vídeo</th><th style="text-align:right">Visitas 30 días</th><th style="text-align:center">Acciones</th></tr></thead>
+          <tbody>${tableRows.length ? tableRows.map(v => `
+            <tr style="${v.archived ? 'opacity:.65' : ''}">
+              <td><div class="ov-venue"><span class="ov-av">${escHtml(ovInitials(v.name))}</span><div><b>${escHtml(v.name)}</b><small>${escHtml(v.city || 'Sin ciudad')}${v.slug ? ` · ${escHtml(v.slug)}` : ''}</small></div></div></td>
+              <td>${v.archived ? '<span class="pill off">Archivado</span>' : '<span class="pill on"><span class="ov-dot"></span>Activo</span>'}</td>
+              <td>${v.stripe_charges_enabled ? '<span class="ov-yes">● Conectado</span>' : '<span class="ov-warn">● Pendiente</span>'}</td>
+              <td>${v.menu_video_access ? `<span class="ov-yes">Activo · ${dishesByVenue[v.id] || 0} plato${(dishesByVenue[v.id] || 0) === 1 ? '' : 's'}</span>` : '<span class="ov-no">No contratado</span>'}</td>
+              <td class="num" style="text-align:right">${ovFmt(views30[v.id] || 0)}</td>
+              <td style="text-align:center"><button class="tbl-action" data-open="${v.id}">Editar</button></td>
+            </tr>`).join('') : '<tr class="empty-row"><td colspan="6">Sin restaurantes todavía</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="ov-table-foot">Mostrando ${tableRows.length} de ${venues.length} restaurantes</div>
+    </section>`;
+
+  body.querySelectorAll('[data-nav]').forEach(el => el.addEventListener('click', () => {
+    navigate(el.dataset.nav, el.dataset.filter ? { filter: el.dataset.filter } : null);
+  }));
+  body.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => navigateToRestaurant(el.dataset.open)));
+  ovDrawChart(document.getElementById('ov-chart'), days, dailyViews, dailyVideos, trafficOk);
+}
+
+function ovDrawChart(el, days, views, videos, ok) {
+  if (!el) return;
+  if (!ok) { el.innerHTML = '<div class="ov-empty-chart">No se pudieron cargar las visitas.</div>'; return; }
+  const W = 800, H = 220, PAD = 12;
+  const max = Math.max(...views, ...videos, 1);
+  const x = i => Math.round(i * W / (days.length - 1));
+  const y = v => Math.round(H - PAD - (v / max) * (H - PAD * 3));
+  const pv = views.map((v, i) => [x(i), y(v)]), pd = videos.map((v, i) => [x(i), y(v)]);
+  const grid = [0.25, 0.5, 0.75, 1].map(f => { const yy = Math.round(H - PAD - f * (H - PAD * 3)); return `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.05)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`; }).join('');
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Visitas y vídeos vistos por día">
+      <defs>
+        <linearGradient id="ov-a1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#FF5A36" stop-opacity=".32"/><stop offset="95%" stop-color="#FF5A36" stop-opacity="0"/></linearGradient>
+        <linearGradient id="ov-a2" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#FFB4A3" stop-opacity=".2"/><stop offset="95%" stop-color="#FFB4A3" stop-opacity="0"/></linearGradient>
+      </defs>
+      ${grid}
+      <path d="${ovPath(pd)} L${W},${H} L0,${H} Z" fill="url(#ov-a2)"/>
+      <path d="${ovPath(pd)}" fill="none" stroke="#FFB4A3" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <path d="${ovPath(pv)} L${W},${H} L0,${H} Z" fill="url(#ov-a1)"/>
+      <path d="${ovPath(pv)}" fill="none" stroke="#FF5A36" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 6px rgba(255,90,54,.5))"/>
+    </svg>
+    ${pv.map((p, i) => `<span style="position:absolute;left:${p[0] / W * 100}%;top:${p[1] / H * 100}%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:${i === 6 ? '#fff' : '#FF5A36'};border:2px solid ${i === 6 ? '#FF5A36' : '#090D14'}"></span>`).join('')}
+    <div class="ov-tip" id="ov-tip"></div>
+    ${days.map((d, i) => `<span data-i="${i}" style="position:absolute;top:0;bottom:0;left:${(i - 0.5) / (days.length - 1) * 100}%;width:${100 / (days.length - 1)}%"></span>`).join('')}`;
+  if (max === 1 && !views.some(Boolean) && !videos.some(Boolean)) {
+    el.insertAdjacentHTML('beforeend', '<div class="ov-empty-chart">Sin visitas en los últimos 7 días.</div>');
+  }
+  const tip = el.querySelector('#ov-tip');
+  el.querySelectorAll('[data-i]').forEach(zone => {
+    zone.addEventListener('mouseenter', () => {
+      const i = Number(zone.dataset.i);
+      tip.innerHTML = `<div class="d">${days[i].label === 'Hoy' ? 'Hoy' : days[i].start.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}</div><div style="color:#FF5A36;font-weight:600">${ovFmt(views[i])} visitas</div><div style="color:#FFB4A3;font-family:var(--mono);font-size:11px">${ovFmt(videos[i])} vídeos vistos</div>`;
+      tip.style.left = `${Math.min(Math.max(pv[i][0] / W * 100, 10), 90)}%`;
+      tip.style.top = `${Math.max(pv[i][1] / H * 100 - 4, 18)}%`;
+      tip.style.display = 'block';
     });
+    zone.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
   });
 }
 
