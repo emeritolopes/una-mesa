@@ -414,8 +414,12 @@ function ovPath(pts) {
   let d = `M${pts[0][0]},${pts[0][1]}`;
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    // Los puntos de control se limitan al rango vertical del tramo: así la curva
+    // nunca baja de cero ni sube por encima del valor real (sin "valles" falsos).
+    const lo = Math.min(p1[1], p2[1]), hi = Math.max(p1[1], p2[1]);
+    const clamp = v => Math.min(Math.max(v, lo), hi);
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, clamp(p1[1] + (p2[1] - p0[1]) / 6)];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, clamp(p2[1] - (p3[1] - p1[1]) / 6)];
     d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
   }
   return d;
@@ -580,7 +584,7 @@ async function renderOverview() {
       <div class="ov-card ov-kpi">
         <div class="ov-kpi-top"><span class="ov-label">Conversión landing restaurantes</span></div>
         <div class="ov-big"><span class="num">${convPct != null ? convPct + '%' : '—'}</span></div>
-        <div class="ov-note">${conv ? `${ovFmt(conv.leads_total)} leads / ${ovFmt(conv.views_total)} visitas` : 'Sin datos aún'}</div>
+        <div class="ov-note">${conv ? `${ovFmt(conv.leads_total)} lead${Number(conv.leads_total) === 1 ? '' : 's'} / ${ovFmt(conv.views_total)} visita${Number(conv.views_total) === 1 ? '' : 's'}` : 'Sin datos aún'}</div>
         <div class="ov-bar"><span style="width:${Math.min(convPct || 0, 100)}%"></span></div>
       </div>
       <div class="ov-card ov-kpi">
@@ -602,7 +606,7 @@ async function renderOverview() {
           <div class="ov-stats">
             <div class="ov-stat"><span class="ov-label">Visitas a fichas</span><div class="v">${trafficOk ? ovFmt(viewsTotal7) : '—'}</div><span class="s">últimos 7 días</span></div>
             <div class="ov-stat"><span class="ov-label">Vídeos vistos</span><div class="v">${trafficOk ? ovFmt(videosTotal7) : '—'}</div><span class="s">más de 2 s de reproducción</span></div>
-            <div class="ov-stat"><span class="ov-label">Reservas empezadas</span><div class="v">${funnelOk ? ovFmt(F.booking_starts) : '—'}</div><span class="s">${funnelOk && viewsTotal7 ? `${ovPct(F.booking_starts, viewsTotal7)}% de las visitas` : 'abrieron la pantalla de reserva'}</span></div>
+            <div class="ov-stat"><span class="ov-label">Reservas empezadas</span><div class="v">${funnelOk ? ovFmt(F.booking_starts) : '—'}</div><span class="s">${funnelOk && viewsTotal7 && F.booking_starts <= viewsTotal7 ? `${ovPct(F.booking_starts, viewsTotal7)}% de las visitas` : 'abrieron la pantalla de reserva'}</span></div>
             <div class="ov-stat"><span class="ov-label">Reservas</span><div class="v" style="color:var(--coral)">${funnelOk ? ovFmt(F.bookings) : '—'}</div><span class="s coral">${funnelOk ? `${ovFmt(F.covers_booked)} comensales · por fecha de la reserva` : 'no disponible'}</span></div>
           </div>
           <div class="ov-chart" id="ov-chart"></div>
@@ -709,11 +713,12 @@ function ovSitePanel(dailyRes, sourcesRes, pagesRes) {
   return `<div class="ov-card ov-panel">${head}
     <div class="ov-stats">
       <div class="ov-stat"><span class="ov-label">Hoy</span><div class="v">${ovFmt(todayV)}</div><span class="s">visitas</span></div>
-      <div class="ov-stat"><span class="ov-label">Últimos 7 días</span><div class="v">${ovFmt(last7)}</div><span class="s ${delta != null && delta < 0 ? '' : 'coral'}">${delta == null ? 'sin semana anterior' : `${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs semana anterior`}</span></div>
+      <div class="ov-stat"><span class="ov-label">Últimos 7 días</span><div class="v">${ovFmt(last7)}</div><span class="s ${delta != null && delta > 0 ? 'coral' : ''}">${delta == null ? 'sin semana anterior' : `${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs semana anterior`}</span></div>
       <div class="ov-stat"><span class="ov-label">Últimos 30 días</span><div class="v">${ovFmt(last30)}</div><span class="s">visitas</span></div>
       <div class="ov-stat"><span class="ov-label">Media diaria</span><div class="v">${ovFmt(Math.round(last30 / 30))}</div><span class="s">últimos 30 días</span></div>
     </div>
-    <div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:6px" aria-label="Visitas por día, últimos 14 días">
+    ${last30 === 0 ? '<p class="page-sub" style="margin:8px 0 0;font-size:12.5px">Aún no hay visitas registradas. El contador empieza a contar desde que se aplicó la migración y se desplegó la web: abre unamesa.co.uk en una ventana privada y pulsa ↻ para comprobarlo.</p>' : ''}
+    <div style="display:${last30 === 0 ? 'none' : 'flex'};align-items:flex-end;gap:6px;height:120px;padding-top:6px" aria-label="Visitas por día, últimos 14 días">
       ${bars.map((b, i) => `<div title="${b.d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}: ${b.uk + b.es} visitas (${b.uk} UK · ${b.es} ES)" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:1px">
         <span style="display:block;height:${b.es / max * 100}%;background:#06B6D4;border-radius:2px 2px 0 0;opacity:.85"></span>
         <span style="display:block;height:${b.uk / max * 100}%;background:#FF5A36;border-radius:${b.es ? '0' : '2px 2px'} 0 0;${i === 13 ? 'box-shadow:0 0 10px rgba(255,90,54,.5)' : ''}"></span>
