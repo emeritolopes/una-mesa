@@ -791,5 +791,26 @@ document.addEventListener('click', function(e) {
 }, true);
 </script>
 
+<script>
+/* Contador de visitas a la web (migración 052): una fila por página cargada.
+   Sin cookies ni nada guardado en el navegador, sin IP ni identificador:
+   solo dominio, ruta y dominio de procedencia. Ver /legal/. */
+(function () {
+  try {
+    var SITES = { 'unamesa.co.uk': 1, 'unamesa.co': 1, 'app.unamesa.co.uk': 1, 'app.unamesa.co': 1 };
+    var host = location.hostname.replace(/^www\./, '');
+    if (!SITES[host] || navigator.webdriver) return;
+    var src = '';
+    try { src = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
+    if (SITES[src]) src = '';
+    var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYXl0Y215YWFpZ2hvenhhdG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDU2NDIsImV4cCI6MjA5NjQyMTY0Mn0.8zgAxW2q6JU_PySTQHBfBUHpxlDnz9UVLr6jm981x3s';
+    fetch('https://rkaytcmyaaighozxatod.supabase.co/rest/v1/site_page_views', {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json', apikey: key, Authorization: 'Bearer ' + key, Prefer: 'return=minimal' },
+      body: JSON.stringify({ site: host, page: (location.pathname || '/').slice(0, 80), source: src ? src.slice(0, 100) : null })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
