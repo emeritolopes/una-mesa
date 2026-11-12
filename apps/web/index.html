@@ -30,7 +30,7 @@
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Una Mesa","url":"https://unamesa.co.uk","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Una Mesa is a London restaurant discovery and reservation platform with video menus. Diners watch short videos of every dish before visiting, and book with a fully refundable deposit to secure their table.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free for diners. Restaurants pay no membership fee — £1 per diner, only when they get a booking."},"featureList":["Video menu — watch every dish before you visit","Table reservation with refundable deposit","London restaurant listings","QR code video menus for restaurant tables"],"provider":{"@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk","areaServed":{"@type":"City","name":"London","address":{"@type":"PostalAddress","addressLocality":"London","addressCountry":"GB"}}}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk","logo":"https://app.unamesa.co.uk/brand/icon-512.png","sameAs":["https://www.instagram.com/unamesagroup/","https://www.tiktok.com/@unamesagroup"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","email":"hello@unamesa.co.uk","availableLanguage":["English","Spanish"]}}
+{"@context":"https://schema.org","@type":"Organization","name":"Una Mesa","url":"https://unamesa.co.uk","logo":"https://app.unamesa.co.uk/brand/icon-512.png","sameAs":["https://www.instagram.com/unamesagroup/","https://www.tiktok.com/@unamesagroup","https://www.youtube.com/channel/UCWkNOs0GTLhfJv7vqfe8W9Q"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","email":"hello@unamesa.co.uk","availableLanguage":["English","Spanish"]}}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","name":"Una Mesa","url":"https://unamesa.co.uk","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://app.unamesa.co.uk/#search/{search_term_string}"},"query-input":"required name=search_term_string"}}
@@ -250,6 +250,25 @@
   </div>
 </section>
 
+<!-- YOUTUBE: featured episodes. Facade: nothing from YouTube loads until the visitor presses play
+     (then the player comes from youtube-nocookie.com). The list lives in UM_YT_VIDEOS below. -->
+<section class="py-16 bg-surface" id="youtube" hidden>
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+      <div>
+        <span class="text-label-eyebrow text-outline tracking-wider uppercase block mb-1">On our YouTube channel</span>
+        <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">We go, we eat, we tell you</h2>
+      </div>
+      <a class="group inline-flex items-center gap-1.5 text-label-md text-on-surface hover:text-primary transition-colors" href="https://www.youtube.com/channel/UCWkNOs0GTLhfJv7vqfe8W9Q" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        <span>Watch on YouTube</span><span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+    <div id="yt-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    <p id="yt-note" class="mt-6 text-body-sm text-outline">We pay for our own meals. Any paid partnership is labelled as one.</p>
+  </div>
+</section>
+
 <!-- AI CONCIERGE -->
 <section class="py-20 bg-surface" id="ai-concierge">
   <div class="max-w-5xl mx-auto px-6">
@@ -352,6 +371,7 @@
     <div class="flex items-center gap-4 text-surface-dim">
       <a aria-label="Instagram" class="hover:text-surface-bright transition-colors" href="https://www.instagram.com/unamesagroup/" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
       <a aria-label="TikTok" class="hover:text-surface-bright transition-colors" href="https://www.tiktok.com/@unamesagroup" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 2h-3.2v12.3a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V8.4a6 6 0 1 0 5.1 5.9V8.9a7.2 7.2 0 0 0 4.2 1.4V7.1a4.2 4.2 0 0 1-4.2-4.2V2z"/></svg></a>
+      <a aria-label="YouTube" class="hover:text-surface-bright transition-colors" href="https://www.youtube.com/channel/UCWkNOs0GTLhfJv7vqfe8W9Q" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
       <div class="h-4 w-px bg-surface-dim/40"></div>
       <span class="flex items-center gap-1 text-label-sm"><span class="text-surface-bright" aria-current="true">EN</span><span class="text-surface-dim/60" aria-hidden="true">/</span><a href="https://unamesa.co/" hreflang="es" lang="es" class="text-surface-dim hover:text-surface-bright underline-offset-2 hover:underline transition-colors" title="Una Mesa en español">ES</a></span>
     </div>
@@ -653,6 +673,47 @@ async function init() {
 init();
 </script>
 
+<script>
+/* Featured YouTube episodes on the landing — edit this list by hand.
+   Going forward only restaurants on a paid plan are featured here. If Una Mesa is paid
+   (in money or in kind) for a video, set paid:true: the card then shows "Paid partnership",
+   and the video must also be marked as a paid promotion on YouTube (ASA/CAP, DMCC). */
+const UM_YT_VIDEOS = [
+  { id: '5_Kzjrab2RM', title: 'The best steak we’ve ever had? Sagardi, Shoreditch', paid: false },
+];
+(function () {
+  const sec = document.getElementById('youtube'), grid = document.getElementById('yt-grid');
+  if (!sec || !grid || !UM_YT_VIDEOS.length) return;
+  if (UM_YT_VIDEOS.length === 1) { grid.className = 'max-w-3xl mx-auto'; document.getElementById('yt-note').classList.add('max-w-3xl', 'mx-auto'); }
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  grid.innerHTML = UM_YT_VIDEOS.map(v => `
+    <figure class="group">
+      <button type="button" data-yt="${esc(v.id)}" aria-label="Play: ${esc(v.title)}"
+        class="relative block w-full aspect-video rounded-2xl overflow-hidden bg-inverse-surface border border-outline-variant/40">
+        <img src="https://i.ytimg.com/vi/${esc(v.id)}/hqdefault.jpg" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500">
+        <span class="absolute inset-0 flex items-center justify-center">
+          <span class="w-16 h-16 rounded-full bg-primary/90 text-on-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[36px]" style="font-variation-settings:'FILL' 1">play_arrow</span>
+          </span>
+        </span>
+        ${v.paid ? '<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface/95 text-on-surface text-label-sm">Paid partnership</span>' : ''}
+      </button>
+      <figcaption class="mt-3 font-headline text-headline-sm text-on-surface">${esc(v.title)}</figcaption>
+    </figure>`).join('');
+  grid.addEventListener('click', e => {
+    const b = e.target.closest('button[data-yt]'); if (!b) return;
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(b.dataset.yt) + '?autoplay=1&rel=0';
+    f.title = b.getAttribute('aria-label').replace(/^Play: /, '');
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    f.allowFullscreen = true;
+    f.className = 'w-full aspect-video rounded-2xl border-0';
+    b.replaceWith(f);
+  });
+  sec.hidden = false;
+})();
+</script>
+
 <!-- Aviso informativo de almacenamiento/terceros (se puede cerrar). No es un banner de consentimiento: estas páginas no establecen cookies y no hay nada que aceptar o rechazar. -->
 <style>
   #um-notice{position:fixed;left:16px;right:16px;bottom:16px;z-index:900;max-width:640px;margin:0 auto;display:none;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgb(var(--c-outline-variant));background:rgb(var(--c-surface-container-lowest));color:rgb(var(--c-on-surface));box-shadow:0 8px 28px rgba(0,0,0,.22);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -673,8 +734,8 @@ init();
     var onApp = /^app\./.test(location.hostname);
     var legal = onApp ? '/legal/#cookies' : (en ? 'https://app.unamesa.co.uk/legal/#cookies' : 'https://app.unamesa.co/legal/#cookies');
     var T = en
-      ? { t: 'These pages set no cookies of their own. We only remember your light/dark choice on your device, and your browser loads fonts and styles from third parties (they see your IP address).', more: 'More information', ok: 'Got it', label: 'Cookies and storage' }
-      : { t: 'Estas páginas no establecen cookies propias. Solo recordamos en tu dispositivo tu elección de modo claro u oscuro, y tu navegador carga tipografías y estilos de terceros (que ven tu dirección IP).', more: 'Más información', ok: 'Entendido', label: 'Cookies y almacenamiento' };
+      ? { t: 'These pages set no cookies of their own. We only remember your light/dark choice on your device, and your browser loads fonts and styles from third parties (they see your IP address). Video thumbnails come from YouTube, and the video player only loads from YouTube if you press play.', more: 'More information', ok: 'Got it', label: 'Cookies and storage' }
+      : { t: 'Estas páginas no establecen cookies propias. Solo recordamos en tu dispositivo tu elección de modo claro u oscuro, y tu navegador carga tipografías y estilos de terceros (que ven tu dirección IP). Las miniaturas de vídeo vienen de YouTube, y el reproductor solo se carga desde YouTube si pulsas reproducir.', more: 'Más información', ok: 'Entendido', label: 'Cookies y almacenamiento' };
     var box = document.getElementById('um-notice'); if (!box) return;
     /* fuera de <body>: la animación de entrada del body usa transform y haría que position:fixed se midiera respecto al body, no a la ventana */
     document.documentElement.appendChild(box);
